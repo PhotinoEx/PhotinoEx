@@ -7,53 +7,55 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using PhotinoEx.Net;
 
-namespace PhotinoEx.Blazor
+namespace PhotinoEx.Blazor;
+
+public static class ServiceCollectionExtensions
 {
-    public static class ServiceCollectionExtensions
+    public static IServiceCollection AddBlazorDesktop(this IServiceCollection services, IFileProvider fileProvider = null)
     {
-        public static IServiceCollection AddBlazorDesktop(this IServiceCollection services, IFileProvider fileProvider = null)
-        {
-            services
-                .AddOptions<PhotinoBlazorAppConfiguration>()
-                .Configure(opts =>
-                {
-                    opts.AppBaseUri = new Uri(PhotinoWebViewManager.AppBaseUri);
-                    opts.HostPage = "index.html";
-                });
+        services
+            .AddOptions<PhotinoBlazorAppConfiguration>()
+            .Configure(opts =>
+            {
+                opts.AppBaseUri = new Uri(PhotinoWebViewManager.AppBaseUri);
+                opts.HostPage = "index.html";
+            });
 
-            return services
-                .AddScoped(sp =>
+        return services
+            .AddScoped(sp =>
+            {
+                var handler = sp.GetService<PhotinoHttpHandler>();
+                return new HttpClient(handler)
                 {
-                    var handler = sp.GetService<PhotinoHttpHandler>();
-                    return new HttpClient(handler) { BaseAddress = new Uri(PhotinoWebViewManager.AppBaseUri) };
-                })
-                .AddSingleton(sp =>
-                {
-                    var manager = sp.GetService<PhotinoWebViewManager>();
-                    var store = sp.GetService<JSComponentConfigurationStore>();
+                    BaseAddress = new Uri(PhotinoWebViewManager.AppBaseUri)
+                };
+            })
+            .AddSingleton(sp =>
+            {
+                var manager = sp.GetService<PhotinoWebViewManager>();
+                var store = sp.GetService<JSComponentConfigurationStore>();
 
-                    return new BlazorWindowRootComponents(manager, store);
-                })
-                .AddSingleton<Dispatcher, PhotinoDispatcher>()
-                .AddSingleton<IFileProvider>(_ =>
+                return new BlazorWindowRootComponents(manager, store);
+            })
+            .AddSingleton<Dispatcher, PhotinoDispatcher>()
+            .AddSingleton<IFileProvider>(_ =>
+            {
+                if (fileProvider is null)
                 {
-                    if (fileProvider is null)
-                    {
-                        var root = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot");
-                        return new PhysicalFileProvider(root);
-                    }
-                    else
-                    {
-                        return fileProvider;
-                    }
-                })
-                .AddSingleton<JSComponentConfigurationStore>()
-                .AddSingleton<PhotinoBlazorApp>()
-                .AddSingleton<PhotinoHttpHandler>()
-                .AddSingleton<PhotinoSynchronizationContext>()
-                .AddSingleton<PhotinoWebViewManager>()
-                .AddSingleton(new PhotinoWindow())
-                .AddBlazorWebView();
-        }
+                    var root = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot");
+                    return new PhysicalFileProvider(root);
+                }
+                else
+                {
+                    return fileProvider;
+                }
+            })
+            .AddSingleton<JSComponentConfigurationStore>()
+            .AddSingleton<PhotinoBlazorApp>()
+            .AddSingleton<PhotinoHttpHandler>()
+            .AddSingleton<PhotinoSynchronizationContext>()
+            .AddSingleton<PhotinoWebViewManager>()
+            .AddSingleton(new PhotinoWindow())
+            .AddBlazorWebView();
     }
 }

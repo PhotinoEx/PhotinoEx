@@ -1,17 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <Description>.NET10 app that opens native OS windows hosting web UI on Windows, Mac, and Linux</Description>
-        <RootNamespace>PhotinoEx.Net</RootNamespace>
-    </PropertyGroup>
+  <PropertyGroup>
+    <Description>.NET10 app that opens native OS windows hosting web UI on Windows, Mac, and Linux</Description>
+    <RootNamespace>PhotinoEx.Net</RootNamespace>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
-        <ImplicitUsings>true</ImplicitUsings>
-        <LangVersion>latest</LangVersion>
-        <OutputType>Library</OutputType>
-        <IsPackable>true</IsPackable>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>true</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <OutputType>Library</OutputType>
+    <IsPackable>true</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
 
 </Project>

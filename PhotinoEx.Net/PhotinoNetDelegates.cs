@@ -33,6 +33,7 @@ public partial class PhotinoWindow
     }
 
     public event EventHandler<Size> WindowSizeChanged;
+
     /// <summary>
     /// Registers user-defined handler methods to receive callbacks from the native window when its size changes.
     /// </summary>
@@ -102,6 +103,7 @@ public partial class PhotinoWindow
     }
 
     public event EventHandler WindowRestored;
+
     /// <summary>
     /// Registers user-defined handler methods to receive callbacks from the native window when it is restored.
     /// </summary>
@@ -222,7 +224,9 @@ public partial class PhotinoWindow
         byte noClose = 0;
         var doNotClose = WindowClosing?.Invoke(this, null);
         if (doNotClose ?? false)
+        {
             noClose = 1;
+        }
 
         return noClose;
     }
@@ -277,7 +281,8 @@ public partial class PhotinoWindow
     //NOTE: There is 1 callback from C++ to C# which is automatically registered. The .NET callback appropriate for the custom scheme is handled in OnCustomScheme().
 
     public delegate Stream NetCustomSchemeDelegate(object sender, string scheme, string url, out string contentType);
-    internal Dictionary<string, NetCustomSchemeDelegate> CustomSchemes = new Dictionary<string, NetCustomSchemeDelegate>();
+
+    internal Dictionary<string, NetCustomSchemeDelegate> CustomSchemes = new();
 
     /// <summary>
     /// Registers user-defined custom schemes (other than 'http', 'https' and 'file') and handler methods to receive callbacks
@@ -296,21 +301,30 @@ public partial class PhotinoWindow
     public PhotinoWindow RegisterCustomSchemeHandler(string scheme, NetCustomSchemeDelegate handler)
     {
         if (string.IsNullOrWhiteSpace(scheme))
+        {
             throw new ArgumentException("A scheme must be provided. (for example 'app' or 'custom'");
+        }
 
         if (handler == null)
+        {
             throw new ArgumentException("A handler (method) with a signature matching NetCustomSchemeDelegate must be supplied.");
+        }
 
         scheme = scheme.ToLower();
 
         if (_nativeInstance == IntPtr.Zero)
         {
             if (CustomSchemes.Count > 15 && !CustomSchemes.ContainsKey(scheme))
-                throw new ApplicationException($"No more than 16 custom schemes can be set prior to initialization. Additional handlers can be added after initialization.");
+            {
+                throw new ApplicationException(
+                    $"No more than 16 custom schemes can be set prior to initialization. Additional handlers can be added after initialization.");
+            }
             else
             {
                 if (!CustomSchemes.ContainsKey(scheme))
+                {
                     CustomSchemes.Add(scheme, null);
+                }
             }
         }
         else
@@ -342,12 +356,16 @@ public partial class PhotinoWindow
         var colonPos = url.IndexOf(':');
 
         if (colonPos < 0)
+        {
             throw new ApplicationException($"URL: '{url}' does not contain a colon.");
+        }
 
         var scheme = url.Substring(0, colonPos).ToLower();
 
         if (!CustomSchemes.ContainsKey(scheme))
+        {
             throw new ApplicationException($"A handler for the custom scheme '{scheme}' has not been registered.");
+        }
 
         var responseStream = CustomSchemes[scheme].Invoke(this, scheme, url, out contentType);
 
@@ -366,7 +384,7 @@ public partial class PhotinoWindow
         {
             responseStream.CopyTo(ms);
 
-            numBytes = (int)ms.Position;
+            numBytes = (int) ms.Position;
             var buffer = Marshal.AllocHGlobal(numBytes);
             Marshal.Copy(ms.GetBuffer(), 0, buffer, numBytes);
             //_hGlobalToFree.Add(buffer);

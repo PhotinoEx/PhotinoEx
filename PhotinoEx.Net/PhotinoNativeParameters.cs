@@ -6,28 +6,22 @@ namespace PhotinoEx.Net;
 internal struct PhotinoNativeParameters
 {
     ///<summary>EITHER StartString or StartUrl Must be specified: Browser control will render this HTML string when initialized. Default is none.</summary>
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    internal string StartString;
+    [MarshalAs(UnmanagedType.LPUTF8Str)] internal string StartString;
 
     ///<summary>EITHER StartString or StartUrl Must be specified: Browser control will navigate to this URL when initialized. Default is none.</summary>
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    internal string StartUrl;
+    [MarshalAs(UnmanagedType.LPUTF8Str)] internal string StartUrl;
 
     ///<summary>OPTIONAL: Appears on the title bar of the native window. Default is none.</summary>
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    internal string Title;
+    [MarshalAs(UnmanagedType.LPUTF8Str)] internal string Title;
 
     ///<summary>WINDOWS AND LINUX ONLY: OPTIONAL: Path to a local file or a URL. Icon appears on the title bar of the native window (if supported). Default is none.</summary>
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    internal string WindowIconFile;
+    [MarshalAs(UnmanagedType.LPUTF8Str)] internal string WindowIconFile;
 
     ///<summary>WINDOWS: OPTIONAL: Path to store temp files for browser control. Defaults is user's AppDataLocal folder.</summary>
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    internal string TemporaryFilesPath;
+    [MarshalAs(UnmanagedType.LPUTF8Str)] internal string TemporaryFilesPath;
 
     ///<summary>OPTIONAL: Changes the user agent on the browser control at initialiation.</summary>
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    internal string UserAgent;
+    [MarshalAs(UnmanagedType.LPUTF8Str)] internal string UserAgent;
 
     ///<summary>OPTIONAL: 
     ///WINDOWS: WebView2 specific string.
@@ -41,12 +35,10 @@ internal struct PhotinoNativeParameters
     ///https://developer.apple.com/documentation/webkit/wkwebviewconfiguration?language=objc
     ///https://developer.apple.com/documentation/webkit/wkpreferences?language=objc
     ///</summary>
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    internal string BrowserControlInitParameters;
+    [MarshalAs(UnmanagedType.LPUTF8Str)] internal string BrowserControlInitParameters;
 
     ///<summary>WINDOWS: OPTIONAL: Registers the application for toast notifications. If not provided, uses Window Title.</summary>
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    internal string NotificationRegistrationId;
+    [MarshalAs(UnmanagedType.LPUTF8Str)] internal string NotificationRegistrationId;
 
 
     ///<summary>OPTIONAL: If native window is created from another native windowm this is the pointer to the parent window. It is set automatically in WaitforExit().</summary>
@@ -114,7 +106,6 @@ internal struct PhotinoNativeParameters
 
     ///<summary>OPTIONAL: Initial maximum window height in pixels.</summary>
     [MarshalAs(UnmanagedType.I4)] internal int MaxHeight;
-
 
 
     ///<summary>OPTIONAL: If true, native window appears in centered on screen. Left and Top properties are ignored. Default is false.</summary>
@@ -196,19 +187,31 @@ internal struct PhotinoNativeParameters
         var windowIconFile = WindowIconFile;
 
         if (string.IsNullOrWhiteSpace(startUrl) && string.IsNullOrWhiteSpace(startString))
-            response.Add("An initial URL or HTML string must be supplied in StartUrl or StartString for the browser control to naviage to.");
+        {
+            response.Add(
+                "An initial URL or HTML string must be supplied in StartUrl or StartString for the browser control to naviage to.");
+        }
 
         if (Maximized && Minimized)
+        {
             response.Add("Window cannot be both maximized and minimized on startup.");
+        }
 
         if (FullScreen && (Maximized || Minimized))
+        {
             response.Add("FullScreen cannot be combined with Maximized or Minimized");
+        }
 
         if (!string.IsNullOrWhiteSpace(windowIconFile) && !File.Exists(windowIconFile))
+        {
             response.Add($"WindowIconFile: {windowIconFile} cannot be found");
+        }
 
         if (isWindows && Chromeless && (UseOsDefaultLocation || UseOsDefaultSize))
-            response.Add($"Chromeless cannot be used with UseOsDefaultLocation or UseOsDefaultSize on Windows. Size and location must be specified.");
+        {
+            response.Add(
+                $"Chromeless cannot be used with UseOsDefaultLocation or UseOsDefaultSize on Windows. Size and location must be specified.");
+        }
 
         Size = Marshal.SizeOf(typeof(PhotinoNativeParameters));
 

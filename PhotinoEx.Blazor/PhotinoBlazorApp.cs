@@ -3,58 +3,61 @@ using PhotinoEx.Net;
 using System;
 using System.IO;
 
-namespace PhotinoEx.Blazor
+namespace PhotinoEx.Blazor;
+
+public class PhotinoBlazorApp
 {
-    public class PhotinoBlazorApp
+    /// <summary>
+    /// Gets configuration for the service provider.
+    /// </summary>
+    public IServiceProvider Services { get; private set; }
+
+    /// <summary>
+    /// Gets configuration for the root components in the window.
+    /// </summary>
+    public BlazorWindowRootComponents RootComponents { get; private set; }
+
+    internal void Initialize(IServiceProvider services, RootComponentList rootComponents)
     {
-        /// <summary>
-        /// Gets configuration for the service provider.
-        /// </summary>
-        public IServiceProvider Services { get; private set; }
+        Services = services;
+        RootComponents = Services.GetService<BlazorWindowRootComponents>();
+        MainWindow = Services.GetService<PhotinoWindow>();
+        WindowManager = Services.GetService<PhotinoWebViewManager>();
 
-        /// <summary>
-        /// Gets configuration for the root components in the window.
-        /// </summary>
-        public BlazorWindowRootComponents RootComponents { get; private set; }
+        MainWindow
+            .SetTitle("Photino.Blazor App")
+            .SetUseOsDefaultSize(false)
+            .SetUseOsDefaultLocation(false)
+            .SetWidth(1000)
+            .SetHeight(900)
+            .SetLeft(450)
+            .SetTop(100);
 
-        internal void Initialize(IServiceProvider services, RootComponentList rootComponents)
+        MainWindow.RegisterCustomSchemeHandler(PhotinoWebViewManager.BlazorAppScheme, HandleWebRequest);
+
+        foreach (var component in rootComponents)
         {
-            Services = services;
-            RootComponents = Services.GetService<BlazorWindowRootComponents>();
-            MainWindow = Services.GetService<PhotinoWindow>();
-            WindowManager = Services.GetService<PhotinoWebViewManager>();
+            RootComponents.Add(component.Item1, component.Item2);
+        }
+    }
 
-            MainWindow
-                .SetTitle("Photino.Blazor App")
-                .SetUseOsDefaultSize(false)
-                .SetUseOsDefaultLocation(false)
-                .SetWidth(1000)
-                .SetHeight(900)
-                .SetLeft(450)
-                .SetTop(100);
+    public PhotinoWindow MainWindow { get; private set; }
 
-            MainWindow.RegisterCustomSchemeHandler(PhotinoWebViewManager.BlazorAppScheme, HandleWebRequest);
+    public PhotinoWebViewManager WindowManager { get; private set; }
 
-            foreach (var component in rootComponents)
-            {
-                RootComponents.Add(component.Item1, component.Item2);
-            }
+    public void Run()
+    {
+        if (string.IsNullOrWhiteSpace(MainWindow.StartUrl))
+        {
+            MainWindow.StartUrl = "/";
         }
 
-        public PhotinoWindow MainWindow { get; private set; }
+        WindowManager.Navigate(MainWindow.StartUrl);
+        MainWindow.WaitForClose();
+    }
 
-        public PhotinoWebViewManager WindowManager { get; private set; }
-
-        public void Run()
-        {
-            if (string.IsNullOrWhiteSpace(MainWindow.StartUrl))
-                MainWindow.StartUrl = "/";
-
-            WindowManager.Navigate(MainWindow.StartUrl);
-            MainWindow.WaitForClose();
-        }
-
-        public Stream HandleWebRequest(object sender, string scheme, string url, out string contentType)
-                => WindowManager.HandleWebRequest(sender, scheme, url, out contentType!)!;
+    public Stream HandleWebRequest(object sender, string scheme, string url, out string contentType)
+    {
+        return WindowManager.HandleWebRequest(sender, scheme, url, out contentType!)!;
     }
 }

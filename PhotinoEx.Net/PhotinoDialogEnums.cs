@@ -1,5 +1,4 @@
-﻿
-namespace PhotinoEx.Net;
+﻿namespace PhotinoEx.Net;
 
 /// <summary>
 /// Represents the types of buttons that can be displayed in a Photino-dialog.

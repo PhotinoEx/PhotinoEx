@@ -1,11 +1,10 @@
 using System;
 
-namespace PhotinoEx.Blazor
-{
-    public class PhotinoBlazorAppConfiguration
-    {
-        public Uri AppBaseUri { get; set; }
+namespace PhotinoEx.Blazor;
 
-        public string HostPage { get; set; }
-    }
+public class PhotinoBlazorAppConfiguration
+{
+    public Uri AppBaseUri { get; set; }
+
+    public string HostPage { get; set; }
 }
