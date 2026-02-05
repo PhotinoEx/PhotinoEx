@@ -1,45 +1,49 @@
 using Monitor = PhotinoEx.Core.Models.Monitor;
+using Point = System.Drawing.Point;
+using Size = System.Drawing.Size;
 
 namespace PhotinoEx.Core;
 
 public abstract class Photino
 {
-    private Action<string>? _onWebMessageReceived { get; set; }
-    private Action<int, int>? _onResized { get; set; }
-    private Action? _onMaximized { get; set; }
-    private Action? _onRestored { get; set; }
-    private Action? _onMinimized { get; set; }
-    private Action<int, int>? _onMoved { get; set; }
-    private Func<bool>? _onClosing { get; set; }
-    private Action? _onFocusIn { get; set; }
-    private Action? _onFocusOut { get; set; }
-    private Func<Monitor, int>? _getAllMonitors { get; set; }
+    protected Action<string>? _onWebMessageReceived { get; set; }
+    protected Action<int, int>? _onResized { get; set; }
+    protected Action? _onMaximized { get; set; }
+    protected Action? _onRestored { get; set; }
+    protected Action? _onMinimized { get; set; }
+    protected Action<int, int>? _onMoved { get; set; }
+    protected Func<bool>? _onClosing { get; set; }
+    protected Action? _onFocusIn { get; set; }
+    protected Action? _onFocusOut { get; set; }
+    protected Func<Monitor, int>? _getAllMonitors { get; set; }
+    protected Func<object>? _onCustomScheme { get; set; } // TODO: this is not correct, but deal with later
+    protected List<string> _customSchemeNames { get; set; } = new();
 
-    private string? _startUrl { get; set; }
-    private string? _startString { get; set; }
-    private string? _temporaryFilesPath { get; set; }
-    private string? _windowTitle { get; set; }
-    private string? _iconFileName { get; set; }
-    private string? _userAgent { get; set; }
-    private string? _browserControlInitParameters { get; set; }
-    private string? _notificationRegistrationId { get; set; }
+    protected string _startUrl { get; set; } = "";
+    protected string _startString { get; set; } = "";
+    protected string _temporaryFilesPath { get; set; } = "";
+    protected string _windowTitle { get; set; } = "";
+    protected string _iconFileName { get; set; } = "";
+    protected string _userAgent { get; set; } = "";
+    protected string _browserControlInitParameters { get; set; } = "";
+    protected string _notificationRegistrationId { get; set; } = "";
 
-    private bool _transparentEnabled { get; set; }
-    private bool _devToolsEnabled { get; set; }
-    private bool _grantBrowserPermissions { get; set; }
-    private bool _mediaAutoplayEnabled { get; set; }
-    private bool _fileSystemAccessEnabled { get; set; }
-    private bool _webSecurityEnabled { get; set; }
-    private bool _javascriptClipboardAccessEnabled { get; set; }
-    private bool _mediaStreamEnabled { get; set; }
-    private bool _smoothScrollingEnabled { get; set; }
-    private bool _ignoreCertificateErrorsEnabled { get; set; }
-    private bool _notificationsEnabled { get; set; }
+    protected bool _transparentEnabled { get; set; }
+    protected bool _devToolsEnabled { get; set; }
+    protected bool _grantBrowserPermissions { get; set; }
+    protected bool _mediaAutoplayEnabled { get; set; }
+    protected bool _fileSystemAccessEnabled { get; set; }
+    protected bool _webSecurityEnabled { get; set; }
+    protected bool _javascriptClipboardAccessEnabled { get; set; }
+    protected bool _mediaStreamEnabled { get; set; }
+    protected bool _smoothScrollingEnabled { get; set; }
+    protected bool _ignoreCertificateErrorsEnabled { get; set; }
+    protected bool _notificationsEnabled { get; set; }
 
-    private int _zoom { get; set; }
+    protected int _zoom { get; set; }
 
-    private Photino? _parent { get; set; }
-    private PhotinoDialog? _dialog { get; set; }
+    protected Photino? _parent { get; set; }
+    protected PhotinoDialog? _dialog { get; set; }
 
     public bool ContextMenuEnabled { get; set; }
     public int MinWidth { get; set; }
@@ -47,7 +51,7 @@ public abstract class Photino
     public int MaxWidth { get; set; }
     public int MaxHeight { get; set; }
 
-    protected abstract void Show(bool isAlreadyShown);
+    public abstract void Show();
 
     public PhotinoDialog? GetDialog()
     {
@@ -58,51 +62,55 @@ public abstract class Photino
 
     public abstract void ClearBrowserAutoFill();
 
-    public abstract void GetTransparentEnabled(bool enabled);
+    public abstract void Close();
 
-    public abstract void GetContextMenuEnabled(bool enabled);
+    public abstract bool GetTransparentEnabled();
 
-    public abstract void GetDevToolsEnabled(bool enabled);
+    public abstract bool GetContextMenuEnabled();
 
-    public abstract void GetFullScreen(bool fullScreen);
+    public abstract bool GetDevToolsEnabled();
 
-    public abstract void GetGrantBrowserPermissions(bool grant);
+    public abstract bool GetFullScreen();
+
+    public abstract bool GetGrantBrowserPermissions();
 
     public abstract string GetUserAgent();
 
-    public abstract void GetMediaAutoplayEnabled(bool enabled);
+    public abstract bool GetMediaAutoplayEnabled();
 
-    public abstract void GetFileSystemAccessEnabled(bool enabled);
+    public abstract bool GetFileSystemAccessEnabled();
 
-    public abstract void GetWebSecurityEnabled(bool enabled);
+    public abstract bool GetWebSecurityEnabled();
 
-    public abstract void GetJavascriptClipboardAccessEnabled(bool enabled);
+    public abstract bool GetJavascriptClipboardAccessEnabled();
 
-    public abstract void GetMediaStreamEnabled(bool enabled);
+    public abstract bool GetMediaStreamEnabled();
 
-    public abstract void GetSmoothScrollingEnabled(bool enabled);
+    public abstract bool GetSmoothScrollingEnabled();
+
+    public abstract bool GetNotificationsEnabled();
 
     public abstract string GetIconFileName();
 
-    public abstract void GetMaximized(bool isMaximized);
+    public abstract bool GetMaximized();
 
-    public abstract void GetMinimized(bool isMinimized);
+    public abstract bool GetMinimized();
 
-    public abstract void GetPosition(int x, int y);
+    public abstract Point GetPosition();
 
-    public abstract void GetResizable(bool resizable);
+    public abstract bool GetResizable();
 
-    public abstract int GetScreenDpi();
+    public abstract uint GetScreenDpi();
 
-    public abstract void GetSize(int width, int height);
+    public abstract Size GetSize();
 
     public abstract string GetTitle();
 
-    public abstract void GetTopmost(bool topmost);
+    public abstract bool GetTopmost();
 
-    public abstract void GetZoom(int zoom);
+    public abstract int GetZoom();
 
-    public abstract void GetIgnoreCertificateErrorsEnabled(bool enabled);
+    public abstract bool GetIgnoreCertificateErrorsEnabled();
 
     public abstract void NavigateToString(string content);
 
@@ -125,17 +133,17 @@ public abstract class Photino
 
     public abstract void SetMaximized(bool maximized);
 
-    public abstract void SetMaxSize(int width, int height);
+    public abstract void SetMaxSize(Size size);
 
     public abstract void SetMinimized(bool minimized);
 
-    public abstract void SetMinSize(int width, int height);
+    public abstract void SetMinSize(Size size);
 
-    public abstract void SetPosition(int x, int y);
+    public abstract void SetPosition(Point position);
 
     public abstract void SetResizable(bool resizable);
 
-    public abstract void SetSize(int width, int height);
+    public abstract void SetSize(Size size);
 
     public abstract void SetTitle(string title);
 
@@ -149,7 +157,7 @@ public abstract class Photino
 
     public abstract void AddCustomSchemeName(string scheme);
 
-    public abstract void GetAllMonitors(Func<Monitor, int> callback);
+    public abstract List<Monitor> GetAllMonitors();
 
     public abstract void SetClosingCallback(Func<bool> callback);
 

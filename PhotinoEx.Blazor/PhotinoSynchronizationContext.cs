@@ -5,7 +5,7 @@ using System;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using PhotinoEx.Net;
+using PhotinoEx.Core;
 
 #nullable disable warnings
 

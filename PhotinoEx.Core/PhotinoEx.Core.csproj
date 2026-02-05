@@ -8,11 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GtkSharp" Version="3.24.24.95" />
+    <Folder Include="Exceptions\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Exceptions\" />
+    <PackageReference Include="GtkSharp" Version="3.24.24.117-develop" />
+    <PackageReference Include="WebkitGtkSharp" Version="3.24.24.117-develop" />
   </ItemGroup>
 
 </Project>

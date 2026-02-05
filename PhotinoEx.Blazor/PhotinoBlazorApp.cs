@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-using PhotinoEx.Net;
 using System;
 using System.IO;
+using PhotinoEx.Core;
 
 namespace PhotinoEx.Blazor;
 

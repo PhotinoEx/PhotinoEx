@@ -6,13 +6,13 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebView;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
-using PhotinoEx.Net;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using PhotinoEx.Core;
 
 namespace PhotinoEx.Blazor;
 

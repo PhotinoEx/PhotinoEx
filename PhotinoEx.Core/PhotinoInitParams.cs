@@ -1,17 +1,18 @@
-﻿using Monitor = PhotinoEx.Core.Models.Monitor;
+﻿using System.Runtime.InteropServices;
+using Monitor = PhotinoEx.Core.Models.Monitor;
 
 namespace PhotinoEx.Core;
 
 public class PhotinoInitParams
 {
-    public string? StartString { get; set; }
-    public string? StartUrl { get; set; }
-    public string? Title { get; set; }
-    public string? WindowIconFile { get; set; }
-    public string? TemporaryFilesPath { get; set; }
-    public string? UserAgent { get; set; }
-    public string? BrowserControlInitParameters { get; set; }
-    public string? NotificationRegistrationId { get; set; }
+    public string? StartString { get; set; } = "";
+    public string? StartUrl { get; set; } = "";
+    public string? Title { get; set; } = "";
+    public string? WindowIconFile { get; set; } = "";
+    public string? TemporaryFilesPath { get; set; } = "";
+    public string? UserAgent { get; set; } = "";
+    public string? BrowserControlInitParameters { get; set; } = "";
+    public string? NotificationRegistrationId { get; set; } = "";
 
     public Photino? ParentInstance { get; set; }
 
@@ -26,6 +27,7 @@ public class PhotinoInitParams
     public Action? OnFocusIn { get; set; }
     public Action? OnFocusOut { get; set; }
     public Func<Monitor, int>? GetAllMonitors { get; set; }
+    public Func<object>? OnCustomScheme { get; set; } // TODO: this is not correct, but deal with later
 
     public delegate IntPtr WebResourceRequestedCallback(string url, out int outNumBytes, out string outContentType);
 
@@ -64,4 +66,32 @@ public class PhotinoInitParams
     public bool NotificationsEnabled;
 
     public int Size;
+
+    public List<string> GetParamErrors()
+    {
+        var response = new List<string>();
+        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        var startUrl = StartUrl;
+        var startString = StartString;
+        var windowIconFile = WindowIconFile;
+
+        if (string.IsNullOrWhiteSpace(startUrl) && string.IsNullOrWhiteSpace(startString))
+            response.Add("An initial URL or HTML string must be supplied in StartUrl or StartString for the browser control to naviage to.");
+
+        if (Maximized && Minimized)
+            response.Add("Window cannot be both maximized and minimized on startup.");
+
+        if (FullScreen && (Maximized || Minimized))
+            response.Add("FullScreen cannot be combined with Maximized or Minimized");
+
+        if (!string.IsNullOrWhiteSpace(windowIconFile) && !File.Exists(windowIconFile))
+            response.Add($"WindowIconFile: {windowIconFile} cannot be found");
+
+        if (isWindows && Chromeless && (UseOsDefaultLocation || UseOsDefaultSize))
+            response.Add($"Chromeless cannot be used with UseOsDefaultLocation or UseOsDefaultSize on Windows. Size and location must be specified.");
+
+        Size = 0;
+
+        return response;
+    }
 }

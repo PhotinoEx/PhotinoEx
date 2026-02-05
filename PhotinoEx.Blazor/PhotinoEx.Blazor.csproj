@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PhotinoEx.Net\PhotinoEx.Net.csproj"/>
+    <ProjectReference Include="..\PhotinoEx.Core\PhotinoEx.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,39 +2,13 @@ using PhotinoEx.Core.Enums;
 
 namespace PhotinoEx.Core;
 
-public class PhotinoDialog
+public abstract class PhotinoDialog
 {
-    // Windows Only
-    public PhotinoDialog(Photino window)
-    {
-        _window = window;
-    }
+    public abstract string ShowOpenFile(string title, string path, bool multiSelect, string[] filters, int filterCount, out int resultCount);
 
-    // Linux and Apple Only
-    public PhotinoDialog()
-    {
-    }
+    public abstract string ShowOpenFolder(string title, string path, bool multiSelect, out int resultCount);
 
-    // Windows Only
-    private Photino? _window { get; set; }
+    public abstract string ShowSaveFile(string title, string path, string[] filters, int filterCount);
 
-    public string ShowOpenFile(string title, string path, bool multiSelect, string filters, int filterCount, int resultCount)
-    {
-        throw new NotImplementedException();
-    }
-
-    public string ShowOpenFolder(string title, string path, bool multiSelect, int resultCount)
-    {
-        throw new NotImplementedException();
-    }
-
-    public string ShowSaveFile(string title, string path, string filters, int filterCount)
-    {
-        throw new NotImplementedException();
-    }
-
-    public string ShowMessage(string title, string text, DialogButtons buttons, DialogIcon icon)
-    {
-        throw new NotImplementedException();
-    }
+    public abstract DialogResult ShowMessage(string title, string text, DialogButtons buttons, DialogIcon icon);
 }

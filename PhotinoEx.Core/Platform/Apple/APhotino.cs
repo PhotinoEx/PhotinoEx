@@ -1,88 +1,18 @@
-using PhotinoEx.Core.TempModels;
+using PhotinoEx.Core.Models;
 using Monitor = PhotinoEx.Core.Models.Monitor;
+using Point = System.Drawing.Point;
+using Size = System.Drawing.Size;
 
-namespace PhotinoEx.Core;
+namespace PhotinoEx.Core.Platform.Apple;
 
-public class PhotinoWindows : Photino
+public class APhotino : Photino
 {
-    public PhotinoWindows(PhotinoInitParams initParams)
+    public APhotino(PhotinoInitParams initParams)
     {
         throw new NotImplementedException();
     }
 
-    private static HINSTANCE? _hInstance { get; set; }
-    private HWND? _hWnd { get; set; }
-    private WinToastHandler? _toastHandler { get; set; }
-    private object? _webViewEnvironment { get; set; }
-    private object? _webViewWindow { get; set; }
-    private object? _webViewController { get; set; }
-
-    public static void Register(HINSTANCE hInstance)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static void SetWebView2RuntimePath(string runtimePath)
-    {
-        throw new NotImplementedException();
-    }
-
-    public HWND GetHwnd()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void RefitContent()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void FocusWebView2()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void NotifyWebView2WindowMove()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void GetNotificationEnabled(bool enabled)
-    {
-        throw new NotImplementedException();
-    }
-
-    public string ToUTF16String(string source)
-    {
-        throw new NotImplementedException();
-    }
-
-    public string ToUTF8string(string source)
-    {
-        throw new NotImplementedException();
-    }
-
-    private bool EnsureWebViewIsInstalled()
-    {
-        throw new NotImplementedException();
-    }
-
-    private bool InstallWebView2()
-    {
-        throw new NotImplementedException();
-    }
-
-    private void AttachWebView()
-    {
-        throw new NotImplementedException();
-    }
-
-    private bool ToWide(PhotinoInitParams initParams)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override void Show(bool isAlreadyShown)
+    public override void Show()
     {
         throw new NotImplementedException();
     }
@@ -97,27 +27,32 @@ public class PhotinoWindows : Photino
         throw new NotImplementedException();
     }
 
-    public override void GetTransparentEnabled(bool enabled)
+    public override void Close()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetContextMenuEnabled(bool enabled)
+    public override bool GetTransparentEnabled()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetDevToolsEnabled(bool enabled)
+    public override bool GetContextMenuEnabled()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetFullScreen(bool fullScreen)
+    public override bool GetDevToolsEnabled()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetGrantBrowserPermissions(bool grant)
+    public override bool GetFullScreen()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override bool GetGrantBrowserPermissions()
     {
         throw new NotImplementedException();
     }
@@ -127,32 +62,37 @@ public class PhotinoWindows : Photino
         throw new NotImplementedException();
     }
 
-    public override void GetMediaAutoplayEnabled(bool enabled)
+    public override bool GetMediaAutoplayEnabled()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetFileSystemAccessEnabled(bool enabled)
+    public override bool GetFileSystemAccessEnabled()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetWebSecurityEnabled(bool enabled)
+    public override bool GetWebSecurityEnabled()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetJavascriptClipboardAccessEnabled(bool enabled)
+    public override bool GetJavascriptClipboardAccessEnabled()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetMediaStreamEnabled(bool enabled)
+    public override bool GetMediaStreamEnabled()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetSmoothScrollingEnabled(bool enabled)
+    public override bool GetSmoothScrollingEnabled()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override bool GetNotificationsEnabled()
     {
         throw new NotImplementedException();
     }
@@ -162,32 +102,32 @@ public class PhotinoWindows : Photino
         throw new NotImplementedException();
     }
 
-    public override void GetMaximized(bool isMaximized)
+    public override bool GetMaximized()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetMinimized(bool isMinimized)
+    public override bool GetMinimized()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetPosition(int x, int y)
+    public override Point GetPosition()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetResizable(bool resizable)
+    public override bool GetResizable()
     {
         throw new NotImplementedException();
     }
 
-    public override int GetScreenDpi()
+    public override uint GetScreenDpi()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetSize(int width, int height)
+    public override Size GetSize()
     {
         throw new NotImplementedException();
     }
@@ -197,17 +137,17 @@ public class PhotinoWindows : Photino
         throw new NotImplementedException();
     }
 
-    public override void GetTopmost(bool topmost)
+    public override bool GetTopmost()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetZoom(int zoom)
+    public override int GetZoom()
     {
         throw new NotImplementedException();
     }
 
-    public override void GetIgnoreCertificateErrorsEnabled(bool enabled)
+    public override bool GetIgnoreCertificateErrorsEnabled()
     {
         throw new NotImplementedException();
     }
@@ -262,7 +202,7 @@ public class PhotinoWindows : Photino
         throw new NotImplementedException();
     }
 
-    public override void SetMaxSize(int width, int height)
+    public override void SetMaxSize(Size size)
     {
         throw new NotImplementedException();
     }
@@ -272,12 +212,12 @@ public class PhotinoWindows : Photino
         throw new NotImplementedException();
     }
 
-    public override void SetMinSize(int width, int height)
+    public override void SetMinSize(Size size)
     {
         throw new NotImplementedException();
     }
 
-    public override void SetPosition(int x, int y)
+    public override void SetPosition(Point position)
     {
         throw new NotImplementedException();
     }
@@ -287,7 +227,7 @@ public class PhotinoWindows : Photino
         throw new NotImplementedException();
     }
 
-    public override void SetSize(int width, int height)
+    public override void SetSize(Size size)
     {
         throw new NotImplementedException();
     }
@@ -322,7 +262,7 @@ public class PhotinoWindows : Photino
         throw new NotImplementedException();
     }
 
-    public override void GetAllMonitors(Func<Monitor, int> callback)
+    public override List<Monitor> GetAllMonitors()
     {
         throw new NotImplementedException();
     }
