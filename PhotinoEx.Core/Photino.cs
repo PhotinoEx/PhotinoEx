@@ -1,3 +1,4 @@
+using WebKit;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Point = System.Drawing.Point;
 using Size = System.Drawing.Size;
@@ -16,7 +17,7 @@ public abstract class Photino
     protected Action? _onFocusIn { get; set; }
     protected Action? _onFocusOut { get; set; }
     protected Func<Monitor, int>? _getAllMonitors { get; set; }
-    protected Func<object>? _onCustomScheme { get; set; } // TODO: this is not correct, but deal with later
+    protected URISchemeRequestCallback _onCustomScheme { get; set; }
     protected List<string> _customSchemeNames { get; set; } = new();
 
     protected string _startUrl { get; set; } = "";

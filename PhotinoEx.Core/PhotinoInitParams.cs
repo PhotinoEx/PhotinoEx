@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using WebKit;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 
 namespace PhotinoEx.Core;
@@ -27,7 +28,7 @@ public class PhotinoInitParams
     public Action? OnFocusIn { get; set; }
     public Action? OnFocusOut { get; set; }
     public Func<Monitor, int>? GetAllMonitors { get; set; }
-    public Func<object>? OnCustomScheme { get; set; } // TODO: this is not correct, but deal with later
+    public URISchemeRequestCallback OnCustomScheme { get; set; } // TODO: this is not correct, but deal with later
 
     public delegate IntPtr WebResourceRequestedCallback(string url, out int outNumBytes, out string outContentType);
 

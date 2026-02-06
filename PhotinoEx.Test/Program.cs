@@ -19,6 +19,9 @@ class Program
 
         App = appBuilder.Build();
 
+        App.MainWindow.SetDevToolsEnabled(true);
+        App.MainWindow.StartUrl = "/Home";
+
         AppDomain.CurrentDomain.UnhandledException += (_, error) =>
         {
             App.MainWindow.ShowMessage("Fatal exception", error.ExceptionObject.ToString());

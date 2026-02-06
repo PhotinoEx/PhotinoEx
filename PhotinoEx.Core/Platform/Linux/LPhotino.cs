@@ -1,14 +1,16 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using System.Text.Json;
 using Gdk.Internal;
 using Gio;
 using Gtk;
-using PhotinoEx.Core.TempModels;
 using WebKit;
 using Action = System.Action;
 using Application = Gtk.Application;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Window = Gtk.Window;
 using Size = System.Drawing.Size;
+using Settings = WebKit.Settings;
 
 namespace PhotinoEx.Core.Platform.Linux;
 
@@ -118,8 +120,6 @@ public class LPhotino : Photino
         //     G_CALLBACK(on_permission_request),
         //     this);
 
-        AddCustomSchemeHandlers();
-
         if (InitParams.Transparent)
         {
             SetTransparentEnabled(true);
@@ -131,13 +131,12 @@ public class LPhotino : Photino
         }
     }
 
-    [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
     private void App_OnActivate(Gio.Application sender, EventArgs args)
     {
         _webView = WebView.New();
         _webView.HeightRequest = 500;
         _webView.WidthRequest = 500;
-
+        AddCustomSchemeHandlers();
         SetWebkitSettings();
         var contentManager = UserContentManager.New();
 
@@ -244,17 +243,45 @@ public class LPhotino : Photino
 
     public void SetWebkitSettings()
     {
-        Console.WriteLine("SetWebkitSettings");
+        var settings = _webView.GetSettings();
+
+        settings.AllowModalDialogs = true; // default: false
+        settings.AllowTopNavigationToDataUrls = true; // default: false
+        settings.AllowUniversalAccessFromFileUrls = true; // default: false
+        settings.EnableBackForwardNavigationGestures = true; // default: false
+        settings.EnableMediaCapabilities = true; // default: false
+        settings.EnableMockCaptureDevices = true; // default: false
+        settings.EnablePageCache = true; // default: false
+        settings.EnableWebrtc = true; // default: false
+        settings.JavascriptCanOpenWindowsAutomatically = true; // default: false
+
+        settings.AllowFileAccessFromFileUrls = _fileSystemAccessEnabled; // default: false
+        settings.DisableWebSecurity = _webSecurityEnabled; // default: false
+        settings.EnableDeveloperExtras = _devToolsEnabled; // default: false
+        settings.EnableMediaStream = _mediaStreamEnabled; // default: false
+        settings.EnableSmoothScrolling = _smoothScrollingEnabled; // default: true
+        settings.JavascriptCanAccessClipboard = _javascriptClipboardAccessEnabled; // default: false
+        settings.MediaPlaybackRequiresUserGesture = _mediaAutoplayEnabled; // default: false
+        settings.UserAgent = _userAgent; // default: none
+
+        if (!string.IsNullOrEmpty(_browserControlInitParameters))
+        {
+            SetWebkitCustomSettings(settings);
+        }
+
     }
 
-    public void SetWebkitCustomSettings(WebkitSettings settings)
+    public void SetWebkitCustomSettings(Settings settings)
     {
         Console.WriteLine("SetWebkitCustomSettings");
     }
 
     private void AddCustomSchemeHandlers()
     {
-        Console.WriteLine("AddCustomSchemeHandlers");
+        foreach (var customSchemeName in _customSchemeNames)
+        {
+            _webView!.WebContext.RegisterUriScheme(customSchemeName, _onCustomScheme);
+        }
     }
 
     private void HandleWebMessage(UserContentManager contentManager, UserContentManager.ScriptMessageReceivedSignalArgs args)
@@ -268,11 +295,6 @@ public class LPhotino : Photino
             _onWebMessageReceived?.Invoke(message);
         }
     }
-
-    // public override void Center()
-    // {
-    // This no longer is available
-    // }
 
     public override void ClearBrowserAutoFill()
     {
@@ -296,7 +318,8 @@ public class LPhotino : Photino
 
     public override bool GetDevToolsEnabled()
     {
-        throw new NotImplementedException();
+        _devToolsEnabled = _webView.GetSettings().GetEnableDeveloperExtras();
+        return _devToolsEnabled;
     }
 
     public override bool GetFullScreen()
@@ -356,10 +379,6 @@ public class LPhotino : Photino
 
     public override bool GetMaximized()
     {
-        // TODO: check if this works from photino
-        //gboolean maximized = gtk_window_is_maximized(GTK_WINDOW(_window));  //this method doesn't work
-        //*isMaximized = maximized;
-
         return Window!.IsMaximized();
     }
 
@@ -367,19 +386,6 @@ public class LPhotino : Photino
     {
         return (Window!.GetStateFlags() & StateFlags.Prelight) != 0;
     }
-
-    // public override Point GetPosition()
-    // {
-    //     var x = 0;
-    //     var y = 0;
-    //     Window?.GetBounds()
-    //
-    //     return new Point()
-    //     {
-    //         X = x,
-    //         Y = y
-    //     };
-    // }
 
     public override bool GetResizable()
     {
@@ -461,7 +467,12 @@ public class LPhotino : Photino
 
     public override void SendWebMessage(string message)
     {
-        throw new NotImplementedException();
+        var sb = new StringBuilder();
+        sb.Append("__dispatchMessageCallback(\"");
+        sb.Append(JsonSerializer.Serialize(message));
+        sb.Append("\")");
+
+        _webView!.EvaluateJavascriptAsync(sb.ToString()).GetAwaiter();
     }
 
     public override void SetTransparentEnabled(bool enabled)
@@ -476,9 +487,9 @@ public class LPhotino : Photino
 
     public override void SetDevToolsEnabled(bool enabled)
     {
+        Console.WriteLine("setDevToolsEnabled");
         _devToolsEnabled = enabled;
-        // TODO: finish this off
-        throw new NotImplementedException();
+        _webView!.GetSettings().EnableDeveloperExtras = _devToolsEnabled;
     }
 
     public override void SetIconFile(string filename)
@@ -514,17 +525,6 @@ public class LPhotino : Photino
         _isFullScreen = maximized;
     }
 
-    // public override void SetMaxSize(Size size)
-    // {
-    //     _hints = _hints with
-    //     {
-    //         MaxWidth = size.Width,
-    //         MaxHeight = size.Height
-    //     };
-    //
-    //     Window?.SetGeometryHints(Window, _hints, WindowHints.MinSize | WindowHints.MaxSize);
-    // }
-
     public override void SetMinimized(bool minimized)
     {
         if (minimized)
@@ -536,22 +536,6 @@ public class LPhotino : Photino
             Window?.Unminimize();
         }
     }
-
-    // public override void SetMinSize(Size size)
-    // {
-    //     _hints = _hints with
-    //     {
-    //         MinWidth = size.Width,
-    //         MinHeight = size.Height
-    //     };
-    //
-    //     Window?.SetGeometryHints(Window, _hints, WindowHints.MinSize | WindowHints.MaxSize);
-    // }
-
-    // public override void SetPosition(Point position)
-    // {
-    //     Window?.Move(position.X, position.Y);
-    // }
 
     public override void SetResizable(bool resizable)
     {
@@ -575,7 +559,8 @@ public class LPhotino : Photino
 
     public override void SetZoom(int zoom)
     {
-        throw new NotImplementedException();
+        _zoom = zoom;
+        _webView!.SetZoomLevel(_zoom);
     }
 
     public override void ShowNotification(string title, string message)
