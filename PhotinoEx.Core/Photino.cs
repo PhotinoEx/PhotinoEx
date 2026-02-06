@@ -51,14 +51,14 @@ public abstract class Photino
     public int MaxWidth { get; set; }
     public int MaxHeight { get; set; }
 
-    public abstract void Show();
+    // public abstract void Show();
 
     public PhotinoDialog? GetDialog()
     {
         return _dialog;
     }
 
-    public abstract void Center();
+    // public abstract void Center();
 
     public abstract void ClearBrowserAutoFill();
 
@@ -96,7 +96,7 @@ public abstract class Photino
 
     public abstract bool GetMinimized();
 
-    public abstract Point GetPosition();
+    // public abstract Point GetPosition();
 
     public abstract bool GetResizable();
 
@@ -133,13 +133,13 @@ public abstract class Photino
 
     public abstract void SetMaximized(bool maximized);
 
-    public abstract void SetMaxSize(Size size);
+    // public abstract void SetMaxSize(Size size);
+
+    // public abstract void SetMinSize(Size size);
 
     public abstract void SetMinimized(bool minimized);
 
-    public abstract void SetMinSize(Size size);
-
-    public abstract void SetPosition(Point position);
+    // public abstract void SetPosition(Point position);
 
     public abstract void SetResizable(bool resizable);
 

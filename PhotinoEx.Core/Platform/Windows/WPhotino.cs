@@ -85,15 +85,15 @@ public class WPhotino : Photino
         throw new NotImplementedException();
     }
 
-    public override void Show()
-    {
-        throw new NotImplementedException();
-    }
+    // public override void Show()
+    // {
+    //     throw new NotImplementedException();
+    // }
 
-    public override void Center()
-    {
-        throw new NotImplementedException();
-    }
+    // public override void Center()
+    // {
+    //     throw new NotImplementedException();
+    // }
 
     public override void ClearBrowserAutoFill()
     {
@@ -185,10 +185,10 @@ public class WPhotino : Photino
         throw new NotImplementedException();
     }
 
-    public override Point GetPosition()
-    {
-        throw new NotImplementedException();
-    }
+    // public override Point GetPosition()
+    // {
+    //     throw new NotImplementedException();
+    // }
 
     public override bool GetResizable()
     {
@@ -275,25 +275,25 @@ public class WPhotino : Photino
         throw new NotImplementedException();
     }
 
-    public override void SetMaxSize(Size size)
-    {
-        throw new NotImplementedException();
-    }
+    // public override void SetMaxSize(Size size)
+    // {
+    //     throw new NotImplementedException();
+    // }
 
     public override void SetMinimized(bool minimized)
     {
         throw new NotImplementedException();
     }
 
-    public override void SetMinSize(Size size)
-    {
-        throw new NotImplementedException();
-    }
+    // public override void SetMinSize(Size size)
+    // {
+    //     throw new NotImplementedException();
+    // }
 
-    public override void SetPosition(Point position)
-    {
-        throw new NotImplementedException();
-    }
+    // public override void SetPosition(Point position)
+    // {
+    //     throw new NotImplementedException();
+    // }
 
     public override void SetResizable(bool resizable)
     {

@@ -46,7 +46,6 @@ public class PhotinoWindow
             ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Photino")
             : null,
         Title = "Photino",
-        UseOsDefaultLocation = true,
         UseOsDefaultSize = true,
         Zoom = 100,
         MaxHeight = 10000,
@@ -224,29 +223,29 @@ public class PhotinoWindow
     /// <exception cref="ApplicationException">
     /// Thrown if trying to set value after native window is initalized.
     /// </exception>
-    public bool Centered
-    {
-        get
-        {
-            if (_instance is null)
-            {
-                return _startupParameters.CenterOnInitialize;
-            }
-
-            return false;
-        }
-        set
-        {
-            if (_instance is null)
-            {
-                _startupParameters.CenterOnInitialize = value;
-            }
-            else
-            {
-                Invoke(() => _instance.Center());
-            }
-        }
-    }
+    // public bool Centered
+    // {
+    //     get
+    //     {
+    //         if (_instance is null)
+    //         {
+    //             return _startupParameters.CenterOnInitialize;
+    //         }
+    //
+    //         return false;
+    //     }
+    //     set
+    //     {
+    //         if (_instance is null)
+    //         {
+    //             _startupParameters.CenterOnInitialize = value;
+    //         }
+    //         else
+    //         {
+    //             Invoke(() => _instance.Center());
+    //         }
+    //     }
+    // }
 
     /// <summary>
     /// Gets or sets a value indicating whether the native window should be chromeless.
@@ -797,7 +796,7 @@ public class PhotinoWindow
             }
 
             Point position = default;
-            Invoke(() => position = _instance.GetPosition());
+            // Invoke(() => position = _instance.GetPosition());
             return position;
         }
         set
@@ -811,7 +810,7 @@ public class PhotinoWindow
                 }
                 else
                 {
-                    Invoke(() => _instance.SetPosition(Location));
+                    // Invoke(() => _instance.SetPosition(Location));
                 }
             }
         }
@@ -884,7 +883,7 @@ public class PhotinoWindow
                 }
                 else
                 {
-                    Invoke(() => _instance.SetMaxSize(new Size(value.X, value.Y)));
+                    // Invoke(() => _instance.SetMaxSize(new Size(value.X, value.Y)));
                 }
             }
         }
@@ -971,7 +970,7 @@ public class PhotinoWindow
                 }
                 else
                 {
-                    Invoke(() => _instance.SetMinSize(new Size(value.X, value.Y)));
+                    // Invoke(() => _instance.SetMinSize(new Size(value.X, value.Y)));
                 }
             }
         }
@@ -1337,24 +1336,24 @@ public class PhotinoWindow
     /// <exception cref="ApplicationException">
     /// Thrown if trying to set value after native window is initalized.
     /// </exception>
-    public bool UseOsDefaultLocation
-    {
-        get { return _startupParameters.UseOsDefaultLocation; }
-        set
-        {
-            if (_instance is null)
-            {
-                if (UseOsDefaultLocation != value)
-                {
-                    _startupParameters.UseOsDefaultLocation = value;
-                }
-            }
-            else
-            {
-                throw new ApplicationException("UseOsDefaultLocation can only be set before the native window is instantiated.");
-            }
-        }
-    }
+    // public bool UseOsDefaultLocation
+    // {
+    //     get { return _startupParameters.UseOsDefaultLocation; }
+    //     set
+    //     {
+    //         if (_instance is null)
+    //         {
+    //             if (UseOsDefaultLocation != value)
+    //             {
+    //                 _startupParameters.UseOsDefaultLocation = value;
+    //             }
+    //         }
+    //         else
+    //         {
+    //             throw new ApplicationException("UseOsDefaultLocation can only be set before the native window is instantiated.");
+    //         }
+    //     }
+    // }
 
     /// <summary>
     /// When true the native window starts at the OS Default size.
@@ -1732,7 +1731,7 @@ public class PhotinoWindow
     public PhotinoWindow Center()
     {
         Log(".Center()");
-        Centered = true;
+        // Invoke(() => _instance.Center());
         return this;
     }
 
@@ -2432,12 +2431,12 @@ public class PhotinoWindow
     /// Returns the current <see cref="PhotinoWindow"/> instance.
     /// </returns>
     /// <param name="useOsDefault">Whether the OS Default should be used.</param>
-    public PhotinoWindow SetUseOsDefaultLocation(bool useOsDefault)
-    {
-        Log($".SetUseOsDefaultLocation({useOsDefault})");
-        UseOsDefaultLocation = useOsDefault;
-        return this;
-    }
+    // public PhotinoWindow SetUseOsDefaultLocation(bool useOsDefault)
+    // {
+    //     Log($".SetUseOsDefaultLocation({useOsDefault})");
+    //     UseOsDefaultLocation = useOsDefault;
+    //     return this;
+    // }
 
     /// <summary>
     /// When true the native window starts at the OS Default size.
@@ -2531,8 +2530,6 @@ public class PhotinoWindow
             OnWindowCreating();
             try
             {
-                string[] args = [];
-                Invoke(() => Application.Init("test", ref args));
                 Invoke(() => _instance = PhotinoFactory.Create(_startupParameters));
             }
             catch (Exception ex)
@@ -2548,7 +2545,6 @@ public class PhotinoWindow
                 _messageLoopIsStarted = true;
                 try
                 {
-                    Invoke(() => _instance.Show());
                     Invoke(() => _instance.WaitForExit()); // start the message loop. there can only be 1 message loop for all windows.
                 }
                 catch (Exception ex)
@@ -2858,6 +2854,7 @@ public class PhotinoWindow
     #endregion
 
     #region Events
+
     //FLUENT EVENT HANDLER REGISTRATION
     public event EventHandler<Point> WindowLocationChanged;
 

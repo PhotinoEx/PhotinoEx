@@ -27,11 +27,8 @@ public class PhotinoBlazorApp
         MainWindow
             .SetTitle("Photino.Blazor App")
             .SetUseOsDefaultSize(false)
-            .SetUseOsDefaultLocation(false)
             .SetWidth(1000)
-            .SetHeight(900)
-            .SetLeft(450)
-            .SetTop(100);
+            .SetHeight(900);
 
         MainWindow.RegisterCustomSchemeHandler(PhotinoWebViewManager.BlazorAppScheme, HandleWebRequest);
 

@@ -43,7 +43,9 @@ public class PhotinoInitParams
     public int MaxWidth;
     public int MaxHeight;
 
-    public bool CenterOnInitialize;
+    // This is now controlled via the systems option.
+    // public bool CenterOnInitialize;
+    // public bool UseOsDefaultLocation;
     public bool Chromeless;
     public bool Transparent;
     public bool ContextMenuEnabled;
@@ -53,7 +55,6 @@ public class PhotinoInitParams
     public bool Minimized;
     public bool Resizable;
     public bool Topmost;
-    public bool UseOsDefaultLocation;
     public bool UseOsDefaultSize;
     public bool GrantBrowserPermissions;
     public bool MediaAutoplayEnabled;
@@ -70,7 +71,6 @@ public class PhotinoInitParams
     public List<string> GetParamErrors()
     {
         var response = new List<string>();
-        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         var startUrl = StartUrl;
         var startString = StartString;
         var windowIconFile = WindowIconFile;
@@ -86,9 +86,6 @@ public class PhotinoInitParams
 
         if (!string.IsNullOrWhiteSpace(windowIconFile) && !File.Exists(windowIconFile))
             response.Add($"WindowIconFile: {windowIconFile} cannot be found");
-
-        if (isWindows && Chromeless && (UseOsDefaultLocation || UseOsDefaultSize))
-            response.Add($"Chromeless cannot be used with UseOsDefaultLocation or UseOsDefaultSize on Windows. Size and location must be specified.");
 
         Size = 0;
 

@@ -1,186 +1,113 @@
-using Gdk;
+using System.Diagnostics.CodeAnalysis;
+using Gdk.Internal;
+using Gio;
 using Gtk;
 using PhotinoEx.Core.TempModels;
+using WebKit;
 using Action = System.Action;
+using Application = Gtk.Application;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Window = Gtk.Window;
-using WindowType = Gtk.WindowType;
 using Size = System.Drawing.Size;
-using Point = System.Drawing.Point;
 
 namespace PhotinoEx.Core.Platform.Linux;
 
+[SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
 public class LPhotino : Photino
 {
     public LPhotino(PhotinoInitParams initParams)
     {
-        _windowTitle = string.IsNullOrEmpty(initParams.Title) ? "Set a title" : initParams.Title;
-        _startUrl = initParams.StartUrl;
-        _startString = initParams.StartString;
-        _temporaryFilesPath = initParams.TemporaryFilesPath;
-        _userAgent = initParams.UserAgent;
-        _browserControlInitParameters = initParams.BrowserControlInitParameters;
+        InitParams = initParams;
 
-        _transparentEnabled = initParams.Transparent;
-        _devToolsEnabled = initParams.DevToolsEnabled;
-        _grantBrowserPermissions = initParams.GrantBrowserPermissions;
-        _mediaAutoplayEnabled = initParams.MediaAutoplayEnabled;
-        _fileSystemAccessEnabled = initParams.FileSystemAccessEnabled;
-        _webSecurityEnabled = initParams.WebSecurityEnabled;
-        _javascriptClipboardAccessEnabled = initParams.JavascriptClipboardAccessEnabled;
-        _mediaStreamEnabled = initParams.MediaStreamEnabled;
-        _smoothScrollingEnabled = initParams.SmoothScrollingEnabled;
-        _ignoreCertificateErrorsEnabled = initParams.IgnoreCertificateErrorsEnabled;
-        _isFullScreen = initParams.FullScreen;
+        _windowTitle = string.IsNullOrEmpty(InitParams.Title) ? "Set a title" : InitParams.Title;
+        _startUrl = InitParams.StartUrl;
+        _startString = InitParams.StartString;
+        _temporaryFilesPath = InitParams.TemporaryFilesPath;
+        _userAgent = InitParams.UserAgent;
+        _browserControlInitParameters = InitParams.BrowserControlInitParameters;
 
-        ContextMenuEnabled = initParams.ContextMenuEnabled;
+        _transparentEnabled = InitParams.Transparent;
+        _devToolsEnabled = InitParams.DevToolsEnabled;
+        _grantBrowserPermissions = InitParams.GrantBrowserPermissions;
+        _mediaAutoplayEnabled = InitParams.MediaAutoplayEnabled;
+        _fileSystemAccessEnabled = InitParams.FileSystemAccessEnabled;
+        _webSecurityEnabled = InitParams.WebSecurityEnabled;
+        _javascriptClipboardAccessEnabled = InitParams.JavascriptClipboardAccessEnabled;
+        _mediaStreamEnabled = InitParams.MediaStreamEnabled;
+        _smoothScrollingEnabled = InitParams.SmoothScrollingEnabled;
+        _ignoreCertificateErrorsEnabled = InitParams.IgnoreCertificateErrorsEnabled;
+        _isFullScreen = InitParams.FullScreen;
 
-        _zoom = initParams.Zoom;
-        MinWidth = initParams.MinWidth;
-        MinWidth = initParams.MinHeight;
-        MaxWidth = initParams.MaxWidth;
-        MaxHeight = initParams.MaxHeight;
+        ContextMenuEnabled = InitParams.ContextMenuEnabled;
 
-        _onWebMessageReceived = initParams.OnWebMessageReceived;
-        _onResized = initParams.OnResized;
-        _onMoved = initParams.OnMoved;
-        _onClosing = initParams.OnClosing;
-        _onFocusIn = initParams.OnFocusIn;
-        _onFocusOut = initParams.OnFocusOut;
-        _onMaximized = initParams.OnMaximized;
-        _onMinimized = initParams.OnMinimized;
-        _onRestored = initParams.OnRestored;
-        _onCustomScheme = initParams.OnCustomScheme; // TODO: this is not correct, but deal with later
+        _zoom = InitParams.Zoom;
+        MinWidth = InitParams.MinWidth;
+        MinWidth = InitParams.MinHeight;
+        MaxWidth = InitParams.MaxWidth;
+        MaxHeight = InitParams.MaxHeight;
 
-        if (initParams.CustomSchemeNames?.Count > 16)
+        _onWebMessageReceived = InitParams.OnWebMessageReceived;
+        _onResized = InitParams.OnResized;
+        _onMoved = InitParams.OnMoved;
+        _onClosing = InitParams.OnClosing;
+        _onFocusIn = InitParams.OnFocusIn;
+        _onFocusOut = InitParams.OnFocusOut;
+        _onMaximized = InitParams.OnMaximized;
+        _onMinimized = InitParams.OnMinimized;
+        _onRestored = InitParams.OnRestored;
+        _onCustomScheme = InitParams.OnCustomScheme; // TODO: this is not correct, but deal with later
+
+
+        if (InitParams.CustomSchemeNames?.Count > 16)
         {
             throw new ApplicationException("too many custom schemes, 16 max");
         }
 
-        foreach (var schemes in initParams.CustomSchemeNames)
+        foreach (var schemes in InitParams.CustomSchemeNames)
         {
             _customSchemeNames.Add(schemes);
         }
 
-        _parent = initParams.ParentInstance;
-        Window = new Window(WindowType.Toplevel);
+        _parent = InitParams.ParentInstance;
+        App = Application.New($"com.photinoex.App", ApplicationFlags.FlagsNone);
+        WebKit.Module.Initialize();
+        App.OnActivate += App_OnActivate;
         _dialog = new LPhotinoDialog();
-
-        if (initParams.FullScreen)
-        {
-            SetFullScreen(true);
-        }
-        else
-        {
-            if (initParams.Width > initParams.MaxWidth)
-            {
-                initParams.Width = initParams.MaxWidth;
-            }
-
-            if (initParams.Height > initParams.MaxHeight)
-            {
-                initParams.Height = initParams.MaxHeight;
-            }
-
-            if (initParams.Width < initParams.MinWidth)
-            {
-                initParams.Width = initParams.MinWidth;
-            }
-
-            if (initParams.Height < initParams.MinWidth)
-            {
-                initParams.Height = initParams.MinWidth;
-            }
-
-            if (initParams.UseOsDefaultSize)
-            {
-                // gtk_window_set_default_size(GTK_WINDOW(_window), -1, -1);
-                Window.SetDefaultSize(-1, -1);
-            }
-            else
-            {
-                // gtk_window_set_default_size(GTK_WINDOW(_window), initParams->Width, initParams->Height);
-                Window.SetDefaultSize(initParams.Width, initParams.Height);
-            }
-
-            SetMinSize(new Size()
-            {
-                Height = initParams.MinHeight,
-                Width = initParams.MinWidth
-            });
-            SetMaxSize(new Size()
-            {
-                Height = initParams.MaxHeight,
-                Width = initParams.MaxWidth
-            });
-
-            if (initParams.UseOsDefaultLocation)
-            {
-                // gtk_window_set_position(GTK_WINDOW(_window), GTK_WIN_POS_NONE);
-                Window.SetPosition(WindowPosition.None);
-            }
-            else if (initParams.CenterOnInitialize && !initParams.FullScreen)
-            {
-                // gtk_window_set_position(GTK_WINDOW(_window), GTK_WIN_POS_CENTER);
-                Window.SetPosition(WindowPosition.Center);
-            }
-            else
-            {
-                // gtk_window_move(GTK_WINDOW(_window), initParams->Left, initParams->Top);
-                Window.Move(initParams.Left, initParams.Top);
-            }
-        }
 
         SetTitle(_windowTitle);
 
-        if (initParams.Chromeless)
+        if (InitParams.Chromeless)
         {
-            // gtk_window_set_decorated(GTK_WINDOW(_window), false);
-            Window.Decorated = false;
+            Window.SetDecorated(false);
         }
 
-        if (!string.IsNullOrEmpty(initParams.WindowIconFile))
+        if (!string.IsNullOrEmpty(InitParams.WindowIconFile))
         {
-            SetIconFile(initParams.WindowIconFile);
+            SetIconFile(InitParams.WindowIconFile);
         }
 
-        if (initParams.CenterOnInitialize)
-        {
-            Center();
-        }
-
-        if (initParams.Minimized)
+        if (InitParams.Minimized)
         {
             SetMinimized(true);
         }
 
-        if (initParams.Maximized)
+        if (InitParams.Maximized)
         {
             SetMaximized(true);
         }
 
-        if (!initParams.Resizable)
+        if (!InitParams.Resizable)
         {
             SetResizable(false);
         }
 
-        if (initParams.Topmost)
+        if (InitParams.Topmost)
         {
             SetTopmost(true);
         }
 
-        Window.FocusInEvent += OnFocusInEvent;
-        Window.FocusOutEvent += OnFocusOutEvent;
-        Window.WindowStateEvent += (object o, WindowStateEventArgs args) =>
-        {
-            Console.WriteLine($"WindowStateChange: {args.Event.ChangedMask}");
-        };
-        Window.DeleteEvent += (object o, DeleteEventArgs args) =>
-        {
-            Console.WriteLine($"WindowDeleteEvent: {args.Event.Type}");
-            Application.Quit();
-            args.RetVal = true;
-        };
+        // Window.FocusInEvent += OnFocusInEvent;
+        // Window.FocusOutEvent += OnFocusOutEvent;
 
         // These must be called after the webview control is initialized.
         // g_signal_connect(G_OBJECT(_webview), "context-menu",
@@ -193,7 +120,7 @@ public class LPhotino : Photino
 
         AddCustomSchemeHandlers();
 
-        if (initParams.Transparent)
+        if (InitParams.Transparent)
         {
             SetTransparentEnabled(true);
         }
@@ -204,34 +131,125 @@ public class LPhotino : Photino
         }
     }
 
-    private void OnFocusOutEvent(object o, FocusOutEventArgs args)
+    [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
+    private void App_OnActivate(Gio.Application sender, EventArgs args)
     {
-        Console.WriteLine($"FocusOut: {args.Event.Type}");
-    }
+        _webView = WebView.New();
+        _webView.HeightRequest = 500;
+        _webView.WidthRequest = 500;
 
-    private void OnFocusInEvent(object o, FocusInEventArgs args)
-    {
-        Console.WriteLine($"FocusIn: {args.Event.Type}");
+        SetWebkitSettings();
+        var contentManager = UserContentManager.New();
+
+        string scriptSource = @"
+            window.__receiveMessageCallbacks = [];
+            window.__dispatchMessageCallback = function(message) {
+                window.__receiveMessageCallbacks.forEach(function(callback) {
+                    callback(message);
+                });
+            };
+            window.external = {
+                sendMessage: function(message) {
+                    window.webkit.messageHandlers.Photinointerop.postMessage(message);
+                },
+                receiveMessage: function(callback) {
+                    window.__receiveMessageCallbacks.push(callback);
+                }
+            };";
+
+        var script = UserScript.New(
+            scriptSource,
+            UserContentInjectedFrames.AllFrames,
+            UserScriptInjectionTime.Start,
+            null,
+            null
+        );
+
+        contentManager.AddScript(script);
+
+        // Register script message handler
+        contentManager.RegisterScriptMessageHandler("Photinointerop", null);
+
+        // Connect to script message received event
+        contentManager.OnScriptMessageReceived += HandleWebMessage;
+
+        // Navigate to initial content
+        if (!string.IsNullOrEmpty(_startUrl))
+        {
+            NavigateToUrl(_startUrl);
+        }
+        else if (!string.IsNullOrEmpty(_startString))
+        {
+            NavigateToString(_startString);
+        }
+        else
+        {
+            Environment.Exit(0);
+        }
+
+        Window = ApplicationWindow.New((Application) sender);
+        Window!.SetChild(_webView);
+
+        if (InitParams.FullScreen)
+        {
+            Window.Fullscreen();
+        }
+        else
+        {
+            if (InitParams.Width > InitParams.MaxWidth)
+            {
+                InitParams.Width = InitParams.MaxWidth;
+            }
+
+            if (InitParams.Height > InitParams.MaxHeight)
+            {
+                InitParams.Height = InitParams.MaxHeight;
+            }
+
+            if (InitParams.Width < InitParams.MinWidth)
+            {
+                InitParams.Width = InitParams.MinWidth;
+            }
+
+            if (InitParams.Height < InitParams.MinWidth)
+            {
+                InitParams.Height = InitParams.MinWidth;
+            }
+
+            if (InitParams.UseOsDefaultSize)
+            {
+                Window.SetDefaultSize(-1, -1);
+            }
+            else
+            {
+                Window.SetDefaultSize(InitParams.Width, InitParams.Height);
+            }
+        }
+
+        Window.Present();
     }
 
     public int LastHeight { get; set; }
     public int LastWidth { get; set; }
     public int LastTop { get; set; }
     public int LastLeft { get; set; }
+    public Application App { get; set; }
     public Window? Window { get; set; }
+    public PhotinoInitParams InitParams { get; set; }
 
-    private Widget? _webView { get; set; }
-    private Geometry _hints { get; set; }
+    private WebView? _webView { get; set; }
+
+    // private Geometry _hints { get; set; }
     private bool _isFullScreen { get; set; }
 
     public void SetWebkitSettings()
     {
-        throw new NotImplementedException();
+        Console.WriteLine("SetWebkitSettings");
     }
 
     public void SetWebkitCustomSettings(WebkitSettings settings)
     {
-        throw new NotImplementedException();
+        Console.WriteLine("SetWebkitCustomSettings");
     }
 
     private void AddCustomSchemeHandlers()
@@ -239,49 +257,22 @@ public class LPhotino : Photino
         Console.WriteLine("AddCustomSchemeHandlers");
     }
 
-    public override void Show()
+    private void HandleWebMessage(UserContentManager contentManager, UserContentManager.ScriptMessageReceivedSignalArgs args)
     {
-        if (_webView is null)
+        var jsValue = args.Value;
+
+        if (jsValue.IsString())
         {
-            // Webkit stuff
-            var contentManager = new WebKit.UserContentManager();
+            var message = jsValue.ToString();
 
-            _webView = new WebKit.WebView(contentManager);
-
-            SetWebkitSettings();
-
-            Window.Add(_webView);
-
-            string script = @"
-                window.__receiveMessageCallbacks = [];
-                window.__dispatchMessageCallback = function(message) {
-                    window.__receiveMessageCallbacks.forEach(function(callback) { callback(message); });
-                };
-                window.external = {
-                    sendMessage: function(message) {
-                        window.webkit.messageHandlers.Photinointerop.postMessage(message);
-                    },
-                receiveMessage: function(callback) {
-                    window.__receiveMessageCallbacks.push(callback);
-                }
-            ";
-
-            // var userScript = new WebKit.UserScript(
-            //     script,
-            //     WebKit.UserContentInjectedFrames.AllFrames,
-            //     WebKit.UserScriptInjectionTime.Start,
-            //     null,  // whitelist
-            //     null   // blacklist
+            _onWebMessageReceived?.Invoke(message);
         }
-
-        Window!.ShowAll();
     }
 
-    public override void Center()
-    {
-        // check this works
-        Window.SetPosition(WindowPosition.Center);
-    }
+    // public override void Center()
+    // {
+    // This no longer is available
+    // }
 
     public override void ClearBrowserAutoFill()
     {
@@ -369,27 +360,26 @@ public class LPhotino : Photino
         //gboolean maximized = gtk_window_is_maximized(GTK_WINDOW(_window));  //this method doesn't work
         //*isMaximized = maximized;
 
-        return Window!.IsMaximized;
+        return Window!.IsMaximized();
     }
 
     public override bool GetMinimized()
     {
-        // TODO: check this works
-        return (Window!.StateFlags & StateFlags.Prelight) != 0;
+        return (Window!.GetStateFlags() & StateFlags.Prelight) != 0;
     }
 
-    public override Point GetPosition()
-    {
-        var x = 0;
-        var y = 0;
-        Window?.GetPosition(out x, out y);
-
-        return new Point()
-        {
-            X = x,
-            Y = y
-        };
-    }
+    // public override Point GetPosition()
+    // {
+    //     var x = 0;
+    //     var y = 0;
+    //     Window?.GetBounds()
+    //
+    //     return new Point()
+    //     {
+    //         X = x,
+    //         Y = y
+    //     };
+    // }
 
     public override bool GetResizable()
     {
@@ -398,15 +388,34 @@ public class LPhotino : Photino
 
     public override uint GetScreenDpi()
     {
-        var dpi = Window?.Screen.Resolution ?? 0D;
-        return dpi < 0 ? 96u : (uint) dpi;
+        var display = Window?.GetDisplay();
+        if (display is null)
+        {
+            return 96;
+        }
+
+        var monitors = display.GetMonitors();
+        if (monitors.GetNItems() == 0)
+        {
+            return 96;
+        }
+
+        var monitorPtr = monitors.GetItem(0);
+        if (monitorPtr == IntPtr.Zero)
+        {
+            return 96;
+        }
+
+        var montior = new Gdk.Monitor(new MonitorHandle(monitorPtr, false));
+        var scaleFactor = montior.GetScaleFactor();
+
+        return (uint) (scaleFactor * 96);
     }
 
     public override Size GetSize()
     {
-        var width = 0;
-        var height = 0;
-        Window?.GetSize(out width, out height);
+        var width = Window?.GetWidth() ?? 0;
+        var height = Window?.GetHeight() ?? 0;
 
         return new Size()
         {
@@ -417,12 +426,12 @@ public class LPhotino : Photino
 
     public override string GetTitle()
     {
-        return Window!.Title;
+        return Window!.GetTitle();
     }
 
     public override bool GetTopmost()
     {
-        return (Window?.StateFlags & StateFlags.Focused) != 0;
+        return (Window?.GetStateFlags() & StateFlags.Focused) != 0;
     }
 
     public override int GetZoom()
@@ -437,12 +446,12 @@ public class LPhotino : Photino
 
     public override void NavigateToString(string content)
     {
-        Console.WriteLine($"Navigating to string:{content}");
+        _webView!.LoadHtml(content, string.Empty);
     }
 
     public override void NavigateToUrl(string url)
     {
-        Console.WriteLine($"Navigating to url:{url}");
+        _webView!.LoadUri(url);
     }
 
     public override void Restore()
@@ -505,44 +514,44 @@ public class LPhotino : Photino
         _isFullScreen = maximized;
     }
 
-    public override void SetMaxSize(Size size)
-    {
-        _hints = _hints with
-        {
-            MaxWidth = size.Width,
-            MaxHeight = size.Height
-        };
-
-        Window?.SetGeometryHints(Window, _hints, WindowHints.MinSize | WindowHints.MaxSize);
-    }
+    // public override void SetMaxSize(Size size)
+    // {
+    //     _hints = _hints with
+    //     {
+    //         MaxWidth = size.Width,
+    //         MaxHeight = size.Height
+    //     };
+    //
+    //     Window?.SetGeometryHints(Window, _hints, WindowHints.MinSize | WindowHints.MaxSize);
+    // }
 
     public override void SetMinimized(bool minimized)
     {
         if (minimized)
         {
-            Window?.Iconify();
+            Window?.Minimize();
         }
         else
         {
-            Window?.Deiconify();
+            Window?.Unminimize();
         }
     }
 
-    public override void SetMinSize(Size size)
-    {
-        _hints = _hints with
-        {
-            MinWidth = size.Width,
-            MinHeight = size.Height
-        };
+    // public override void SetMinSize(Size size)
+    // {
+    //     _hints = _hints with
+    //     {
+    //         MinWidth = size.Width,
+    //         MinHeight = size.Height
+    //     };
+    //
+    //     Window?.SetGeometryHints(Window, _hints, WindowHints.MinSize | WindowHints.MaxSize);
+    // }
 
-        Window?.SetGeometryHints(Window, _hints, WindowHints.MinSize | WindowHints.MaxSize);
-    }
-
-    public override void SetPosition(Point position)
-    {
-        Window?.Move(position.X, position.Y);
-    }
+    // public override void SetPosition(Point position)
+    // {
+    //     Window?.Move(position.X, position.Y);
+    // }
 
     public override void SetResizable(bool resizable)
     {
@@ -551,17 +560,17 @@ public class LPhotino : Photino
 
     public override void SetSize(Size size)
     {
-        Window!.Resize(size.Width, size.Height);
+        Window!.SetDefaultSize(size.Width, size.Height);
     }
 
     public override void SetTitle(string title)
     {
-        Window?.Title = title;
+        Window?.SetTitle(title);
     }
 
     public override void SetTopmost(bool topmost)
     {
-        Window?.KeepAbove = topmost;
+        Window!.SetStateFlags(StateFlags.Focused, !topmost);
     }
 
     public override void SetZoom(int zoom)
@@ -576,7 +585,7 @@ public class LPhotino : Photino
 
     public override void WaitForExit()
     {
-        Application.Run();
+        App.RunWithSynchronizationContext(null);
     }
 
     public override void AddCustomSchemeName(string scheme)

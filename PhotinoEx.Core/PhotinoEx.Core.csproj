@@ -8,12 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Exceptions\" />
+    <PackageReference Include="GirCore.Gtk-4.0" Version="0.7.0" />
+    <PackageReference Include="GirCore.WebKit-6.0" Version="0.7.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="GtkSharp" Version="3.24.24.117-develop" />
-    <PackageReference Include="WebkitGtkSharp" Version="3.24.24.117-develop" />
-  </ItemGroup>
+
 
 </Project>
