@@ -20,7 +20,6 @@ class Program
         App = appBuilder.Build();
 
         App.MainWindow.SetDevToolsEnabled(true);
-        App.MainWindow.StartUrl = "/Home";
 
         AppDomain.CurrentDomain.UnhandledException += (_, error) =>
         {

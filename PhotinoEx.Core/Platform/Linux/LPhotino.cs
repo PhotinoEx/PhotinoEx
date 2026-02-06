@@ -3,6 +3,8 @@ using System.Text;
 using System.Text.Json;
 using Gdk.Internal;
 using Gio;
+using GLib;
+using GObject;
 using Gtk;
 using WebKit;
 using Action = System.Action;
@@ -48,16 +50,16 @@ public class LPhotino : Photino
         MaxWidth = InitParams.MaxWidth;
         MaxHeight = InitParams.MaxHeight;
 
-        _onWebMessageReceived = InitParams.OnWebMessageReceived;
-        _onResized = InitParams.OnResized;
-        _onMoved = InitParams.OnMoved;
-        _onClosing = InitParams.OnClosing;
-        _onFocusIn = InitParams.OnFocusIn;
-        _onFocusOut = InitParams.OnFocusOut;
-        _onMaximized = InitParams.OnMaximized;
-        _onMinimized = InitParams.OnMinimized;
-        _onRestored = InitParams.OnRestored;
-        _onCustomScheme = InitParams.OnCustomScheme; // TODO: this is not correct, but deal with later
+        _WebMessageReceivedCallback = InitParams.WebMessageRecievedHandler;
+        _resizedCallback = InitParams.ResizedHandler;
+        _movedCallback = InitParams.MovedHandler;
+        _closingCallback = InitParams.ClosingHandler;
+        _facousInCallback = InitParams.FocusInHandler;
+        _focusOutCallback = InitParams.FocusOutHandler;
+        _maximizedCallback = InitParams.MaximizedHandler;
+        _minimizedCallback = InitParams.MinimizedHandler;
+        _restoredCallback = InitParams.RestoredHandler;
+        _customSchemeCallback = InitParams.CustomSchemeHandler;
 
 
         if (InitParams.CustomSchemeNames?.Count > 16)
@@ -72,6 +74,7 @@ public class LPhotino : Photino
 
         _parent = InitParams.ParentInstance;
         App = Application.New($"com.photinoex.App", ApplicationFlags.FlagsNone);
+        App.ResourceBasePath = "/";
         WebKit.Module.Initialize();
         App.OnActivate += App_OnActivate;
         _dialog = new LPhotinoDialog();
@@ -136,11 +139,12 @@ public class LPhotino : Photino
         _webView = WebView.New();
         _webView.HeightRequest = 500;
         _webView.WidthRequest = 500;
+
         AddCustomSchemeHandlers();
         SetWebkitSettings();
-        var contentManager = UserContentManager.New();
+        var contentManager = _webView.GetUserContentManager();
 
-        string scriptSource = @"
+        var scriptSource = @"
             window.__receiveMessageCallbacks = [];
             window.__dispatchMessageCallback = function(message) {
                 window.__receiveMessageCallbacks.forEach(function(callback) {
@@ -149,6 +153,7 @@ public class LPhotino : Photino
             };
             window.external = {
                 sendMessage: function(message) {
+                    console.log(message);
                     window.webkit.messageHandlers.Photinointerop.postMessage(message);
                 },
                 receiveMessage: function(callback) {
@@ -165,14 +170,9 @@ public class LPhotino : Photino
         );
 
         contentManager.AddScript(script);
-
-        // Register script message handler
         contentManager.RegisterScriptMessageHandler("Photinointerop", null);
-
-        // Connect to script message received event
         contentManager.OnScriptMessageReceived += HandleWebMessage;
 
-        // Navigate to initial content
         if (!string.IsNullOrEmpty(_startUrl))
         {
             NavigateToUrl(_startUrl);
@@ -243,7 +243,7 @@ public class LPhotino : Photino
 
     public void SetWebkitSettings()
     {
-        var settings = _webView.GetSettings();
+        var settings = _webView!.GetSettings();
 
         settings.AllowModalDialogs = true; // default: false
         settings.AllowTopNavigationToDataUrls = true; // default: false
@@ -269,19 +269,105 @@ public class LPhotino : Photino
             SetWebkitCustomSettings(settings);
         }
 
+        if (_ignoreCertificateErrorsEnabled)
+        {
+            _webView!.NetworkSession!.SetTlsErrorsPolicy(TLSErrorsPolicy.Ignore);
+        }
+        else
+        {
+            _webView!.NetworkSession!.SetTlsErrorsPolicy(TLSErrorsPolicy.Fail);
+        }
+
+        _webView!.SetSettings(settings);
     }
 
     public void SetWebkitCustomSettings(Settings settings)
     {
-        Console.WriteLine("SetWebkitCustomSettings");
+        using var doc = JsonDocument.Parse(_browserControlInitParameters);
+        var root = doc.RootElement;
+
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidOperationException("Init parameters must be a JSON object");
+        }
+
+        foreach (var property in root.EnumerateObject())
+        {
+            var propertyName = property.Name;
+            var value = property.Value;
+
+            using var gvalue = new Value();
+
+            try
+            {
+                switch (value.ValueKind)
+                {
+                    case JsonValueKind.String:
+                        gvalue.Init(GObject.Type.String);
+                        gvalue.SetString(value.GetString());
+                        break;
+
+                    case JsonValueKind.True:
+                    case JsonValueKind.False:
+                        gvalue.Init(GObject.Type.Boolean);
+                        gvalue.SetBoolean(value.GetBoolean());
+                        break;
+
+                    case JsonValueKind.Number:
+                        if (value.TryGetInt32(out int intValue))
+                        {
+                            gvalue.Init(GObject.Type.Int);
+                            gvalue.SetInt(intValue);
+                        }
+                        else
+                        {
+                            gvalue.Init(GObject.Type.Double);
+                            gvalue.SetDouble(value.GetDouble());
+                        }
+
+                        break;
+
+                    default:
+                        throw new InvalidOperationException(
+                            $"Invalid value type for key: {propertyName}"
+                        );
+                }
+            }
+            catch (Exception ex)
+            {
+                // Optional GTK dialog to match original behavior
+                throw new Exception($"fucked up {ex}");
+            }
+        }
     }
 
     private void AddCustomSchemeHandlers()
     {
         foreach (var customSchemeName in _customSchemeNames)
         {
-            _webView!.WebContext.RegisterUriScheme(customSchemeName, _onCustomScheme);
+            _webView!.WebContext.RegisterUriScheme(customSchemeName, HandleCustomSchemeRequest);
         }
+    }
+
+    private void HandleCustomSchemeRequest(URISchemeRequest request)
+    {
+        // TODO: CWX FILL THIS IN NOW!!
+        var callback = _customSchemeCallback;
+        var uri = request.GetUri();
+        var contentType = "";
+
+        var memoryStream = callback.Invoke(uri, out contentType);
+        var data = memoryStream.ToArray();
+
+        var bytes = Bytes.New(data);
+        var stream = MemoryInputStream.New();
+        stream.AddBytes(bytes);
+
+        request.Finish(
+            stream,
+            data.Length,
+            contentType
+        );
     }
 
     private void HandleWebMessage(UserContentManager contentManager, UserContentManager.ScriptMessageReceivedSignalArgs args)
@@ -292,8 +378,10 @@ public class LPhotino : Photino
         {
             var message = jsValue.ToString();
 
-            _onWebMessageReceived?.Invoke(message);
+            _WebMessageReceivedCallback?.Invoke(message);
         }
+
+        // TODO: CWX THIS MIGHT BE THE NEXT PART
     }
 
     public override void ClearBrowserAutoFill()

@@ -7,19 +7,19 @@ namespace PhotinoEx.Core;
 
 public abstract class Photino
 {
-    protected Action<string>? _onWebMessageReceived { get; set; }
-    protected Action<int, int>? _onResized { get; set; }
-    protected Action? _onMaximized { get; set; }
-    protected Action? _onRestored { get; set; }
-    protected Action? _onMinimized { get; set; }
-    protected Action<int, int>? _onMoved { get; set; }
-    protected Func<bool>? _onClosing { get; set; }
-    protected Action? _onFocusIn { get; set; }
-    protected Action? _onFocusOut { get; set; }
-    protected Func<Monitor, int>? _getAllMonitors { get; set; }
-    protected URISchemeRequestCallback _onCustomScheme { get; set; }
+    protected Action<string>? _WebMessageReceivedCallback { get; set; }
+    protected Action<int, int>? _resizedCallback { get; set; }
+    protected Action? _maximizedCallback { get; set; }
+    protected Action? _restoredCallback { get; set; }
+    protected Action? _minimizedCallback { get; set; }
+    protected Action<int, int>? _movedCallback { get; set; }
+    protected Func<bool>? _closingCallback { get; set; }
+    protected Action? _facousInCallback { get; set; }
+    protected Action? _focusOutCallback { get; set; }
     protected List<string> _customSchemeNames { get; set; } = new();
+    protected PhotinoInitParams.WebResourceRequestedCallback _customSchemeCallback { get; set; }
 
+    protected Func<Monitor, int>? _getAllMonitors { get; set; }
     protected string _startUrl { get; set; } = "";
     protected string _startString { get; set; } = "";
     protected string _temporaryFilesPath { get; set; } = "";
@@ -180,41 +180,41 @@ public abstract class Photino
 
     public bool InvokeClose()
     {
-        return _onClosing?.Invoke() ?? false;
+        return _closingCallback?.Invoke() ?? false;
     }
 
     public void InvokeFocusIn()
     {
-        _onFocusIn?.Invoke();
+        _facousInCallback?.Invoke();
     }
 
     public void InvokeFocusOut()
     {
-        _onFocusOut?.Invoke();
+        _focusOutCallback?.Invoke();
     }
 
     public void InvokeMove(int x, int y)
     {
-        _onMoved?.Invoke(x, y);
+        _movedCallback?.Invoke(x, y);
     }
 
     public void InvokeResize(int width, int height)
     {
-        _onResized?.Invoke(width, height);
+        _resizedCallback?.Invoke(width, height);
     }
 
     public void InvokeMaximized()
     {
-        _onMaximized?.Invoke();
+        _maximizedCallback?.Invoke();
     }
 
     public void InvokeRestored()
     {
-        _onRestored?.Invoke();
+        _restoredCallback?.Invoke();
     }
 
     public void InvokeMinimized()
     {
-        _onMinimized?.Invoke();
+        _minimizedCallback?.Invoke();
     }
 }

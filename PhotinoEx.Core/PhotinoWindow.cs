@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using Gtk;
 using PhotinoEx.Core.Enums;
 using PhotinoEx.Core.Factories;
+using WebKit;
 using Action = System.Action;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
@@ -1583,16 +1584,16 @@ public class PhotinoWindow
         _dotNetParent = parent;
         _managedThreadId = Environment.CurrentManagedThreadId;
 
-        _startupParameters.OnClosing = OnWindowClosing;
-        _startupParameters.OnResized = OnSizeChanged;
-        _startupParameters.OnMaximized = OnMaximized;
-        _startupParameters.OnRestored = OnRestored;
-        _startupParameters.OnMinimized = OnMinimized;
-        _startupParameters.OnMoved = OnLocationChanged;
-        _startupParameters.OnFocusIn = OnFocusIn;
-        _startupParameters.OnFocusOut = OnFocusOut;
-        _startupParameters.OnWebMessageReceived = OnWebMessageReceived;
-        // _startupParameters.OnCustomScheme = OnCustomScheme; TODO: fix this
+        _startupParameters.ClosingHandler = OnWindowClosing;
+        _startupParameters.ResizedHandler = OnSizeChanged;
+        _startupParameters.MaximizedHandler = OnMaximized;
+        _startupParameters.RestoredHandler = OnRestored;
+        _startupParameters.MinimizedHandler = OnMinimized;
+        _startupParameters.MovedHandler = OnLocationChanged;
+        _startupParameters.FocusInHandler = OnFocusIn;
+        _startupParameters.FocusOutHandler = OnFocusOut;
+        _startupParameters.WebMessageRecievedHandler = OnWebMessageReceived;
+        _startupParameters.CustomSchemeHandler = OnCustomScheme;
     }
 
     #region Methods
@@ -3193,47 +3194,23 @@ public class PhotinoWindow
     /// <exception cref="ApplicationException">
     /// Thrown when no handler is registered.
     /// </exception>
-    public object OnCustomScheme(string url) // out int numBytes, out string contentType
+    public MemoryStream OnCustomScheme(string url, out string contentType)
     {
-        return new object();
+        int length = url.IndexOf(':');
+        string scheme = length >= 0 ? url.Substring(0, length).ToLower()
+            : throw new ApplicationException($"URL: '{url}' does not contain a colon.");
 
-        // var colonPos = url.IndexOf(':');
-        //
-        // if (colonPos < 0)
-        // {
-        //     throw new ApplicationException($"URL: '{url}' does not contain a colon.");
-        // }
-        //
-        // var scheme = url.Substring(0, colonPos).ToLower();
-        //
-        // if (!CustomSchemes.ContainsKey(scheme))
-        // {
-        //     throw new ApplicationException($"A handler for the custom scheme '{scheme}' has not been registered.");
-        // }
-        //
-        // var responseStream = CustomSchemes[scheme].Invoke(this, scheme, url, out contentType);
-        //
-        // if (responseStream == null)
-        // {
-        //     // Webview should pass through request to normal handlers (e.g., network)
-        //     // or handle as 404 otherwise
-        //     numBytes = 0;
-        //     return default;
-        // }
-        //
-        // // Read the stream into memory and serve the bytes
-        // // In the future, it would be possible to pass the stream through into C++
-        // using (responseStream)
-        // using (var ms = new MemoryStream())
-        // {
-        //     responseStream.CopyTo(ms);
-        //
-        //     numBytes = (int) ms.Position;
-        //     var buffer = Marshal.AllocHGlobal(numBytes);
-        //     Marshal.Copy(ms.GetBuffer(), 0, buffer, numBytes);
-        //     //_hGlobalToFree.Add(buffer);
-        //     return buffer;
-        // }
+        if (!this.CustomSchemes.ContainsKey(scheme))
+        {
+            throw new ApplicationException($"A handler for the custom scheme '{scheme}' has not been registered.");
+        }
+
+        var result = this.CustomSchemes[scheme].Invoke(this, scheme, url, out contentType);
+
+        var memoryStream = new MemoryStream();
+        result.CopyTo(memoryStream);
+
+        return memoryStream;
     }
 
     #endregion

@@ -17,22 +17,21 @@ public class PhotinoInitParams
 
     public Photino? ParentInstance { get; set; }
 
-    public Action? OnAction { get; set; }
-    public Action<string>? OnWebMessageReceived { get; set; }
-    public Action<int, int>? OnResized { get; set; }
-    public Action? OnMaximized { get; set; }
-    public Action? OnRestored { get; set; }
-    public Action? OnMinimized { get; set; }
-    public Action<int, int>? OnMoved { get; set; }
-    public Func<bool>? OnClosing { get; set; }
-    public Action? OnFocusIn { get; set; }
-    public Action? OnFocusOut { get; set; }
-    public Func<Monitor, int>? GetAllMonitors { get; set; }
-    public URISchemeRequestCallback OnCustomScheme { get; set; } // TODO: this is not correct, but deal with later
-
-    public delegate IntPtr WebResourceRequestedCallback(string url, out int outNumBytes, out string outContentType);
-
+    public Func<bool>? ClosingHandler { get; set; }
+    public Action? FocusInHandler { get; set; }
+    public Action? FocusOutHandler { get; set; }
+    public Action<int, int>? ResizedHandler { get; set; }
+    public Action? MaximizedHandler { get; set; }
+    public Action? RestoredHandler { get; set; }
+    public Action? MinimizedHandler { get; set; }
+    public Action<int, int>? MovedHandler { get; set; }
+    public Action<string>? WebMessageRecievedHandler { get; set; }
     public List<string>? CustomSchemeNames;
+    public WebResourceRequestedCallback CustomSchemeHandler { get; set; } // TODO: this is not correct, but deal with later
+
+    public delegate MemoryStream WebResourceRequestedCallback(string url, out string outContentType);
+
+    public Func<Monitor, int>? GetAllMonitors { get; set; }
 
     public int Left;
     public int Top;
