@@ -10,6 +10,7 @@ using WebKit;
 using Action = System.Action;
 using Application = Gtk.Application;
 using Monitor = PhotinoEx.Core.Models.Monitor;
+using Notification = Gio.Notification;
 using Window = Gtk.Window;
 using Size = System.Drawing.Size;
 using Settings = WebKit.Settings;
@@ -17,10 +18,13 @@ using Settings = WebKit.Settings;
 namespace PhotinoEx.Core.Platform.Linux;
 
 [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
+[SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
 public class LPhotino : Photino
 {
     public LPhotino(PhotinoInitParams initParams)
     {
+        _syncContext = SynchronizationContext.Current ?? new SynchronizationContext();
+
         InitParams = initParams;
 
         _windowTitle = string.IsNullOrEmpty(InitParams.Title) ? "Set a title" : InitParams.Title;
@@ -54,7 +58,7 @@ public class LPhotino : Photino
         _resizedCallback = InitParams.ResizedHandler;
         _movedCallback = InitParams.MovedHandler;
         _closingCallback = InitParams.ClosingHandler;
-        _facousInCallback = InitParams.FocusInHandler;
+        _focusInCallback = InitParams.FocusInHandler;
         _focusOutCallback = InitParams.FocusOutHandler;
         _maximizedCallback = InitParams.MaximizedHandler;
         _minimizedCallback = InitParams.MinimizedHandler;
@@ -67,7 +71,7 @@ public class LPhotino : Photino
             throw new ApplicationException("too many custom schemes, 16 max");
         }
 
-        foreach (var schemes in InitParams.CustomSchemeNames)
+        foreach (var schemes in InitParams.CustomSchemeNames ?? [])
         {
             _customSchemeNames.Add(schemes);
         }
@@ -83,7 +87,7 @@ public class LPhotino : Photino
 
         if (InitParams.Chromeless)
         {
-            Window.SetDecorated(false);
+            Window!.SetDecorated(false);
         }
 
         if (!string.IsNullOrEmpty(InitParams.WindowIconFile))
@@ -147,9 +151,7 @@ public class LPhotino : Photino
         var scriptSource = @"
             window.__receiveMessageCallbacks = [];
             window.__dispatchMessageCallback = function(message) {
-                window.__receiveMessageCallbacks.forEach(function(callback) {
-                    callback(message);
-                });
+                window.__receiveMessageCallbacks.forEach(function(callback) { callback(message); });
             };
             window.external = {
                 sendMessage: function(message) {
@@ -235,10 +237,8 @@ public class LPhotino : Photino
     public Application App { get; set; }
     public Window? Window { get; set; }
     public PhotinoInitParams InitParams { get; set; }
-
+    private SynchronizationContext _syncContext;
     private WebView? _webView { get; set; }
-
-    // private Geometry _hints { get; set; }
     private bool _isFullScreen { get; set; }
 
     public void SetWebkitSettings()
@@ -351,12 +351,11 @@ public class LPhotino : Photino
 
     private void HandleCustomSchemeRequest(URISchemeRequest request)
     {
-        // TODO: CWX FILL THIS IN NOW!!
         var callback = _customSchemeCallback;
         var uri = request.GetUri();
-        var contentType = "";
+        string contentType;
 
-        var memoryStream = callback.Invoke(uri, out contentType);
+        var memoryStream = callback!.Invoke(uri, out contentType);
         var data = memoryStream.ToArray();
 
         var bytes = Bytes.New(data);
@@ -380,8 +379,6 @@ public class LPhotino : Photino
 
             _WebMessageReceivedCallback?.Invoke(message);
         }
-
-        // TODO: CWX THIS MIGHT BE THE NEXT PART
     }
 
     public override void ClearBrowserAutoFill()
@@ -520,7 +517,7 @@ public class LPhotino : Photino
 
     public override string GetTitle()
     {
-        return Window!.GetTitle();
+        return Window!.GetTitle() ?? "";
     }
 
     public override bool GetTopmost()
@@ -556,9 +553,9 @@ public class LPhotino : Photino
     public override void SendWebMessage(string message)
     {
         var sb = new StringBuilder();
-        sb.Append("__dispatchMessageCallback(\"");
+        sb.Append("__dispatchMessageCallback(");
         sb.Append(JsonSerializer.Serialize(message));
-        sb.Append("\")");
+        sb.Append(")");
 
         _webView!.EvaluateJavascriptAsync(sb.ToString()).GetAwaiter();
     }
@@ -582,7 +579,7 @@ public class LPhotino : Photino
 
     public override void SetIconFile(string filename)
     {
-        throw new NotImplementedException();
+
     }
 
     public override void SetFullScreen(bool fullScreen)
@@ -653,7 +650,10 @@ public class LPhotino : Photino
 
     public override void ShowNotification(string title, string message)
     {
-        throw new NotImplementedException();
+        var test = new Notification();
+        test.SetBody(message);
+        test.SetTitle(title);
+        App.SendNotification(null, test);
     }
 
     public override void WaitForExit()
@@ -663,7 +663,7 @@ public class LPhotino : Photino
 
     public override void AddCustomSchemeName(string scheme)
     {
-        throw new NotImplementedException();
+        _customSchemeNames.Add(scheme);
     }
 
     public override List<Monitor> GetAllMonitors()
@@ -673,46 +673,52 @@ public class LPhotino : Photino
 
     public override void SetClosingCallback(Func<bool> callback)
     {
-        throw new NotImplementedException();
+        _closingCallback = callback;
     }
 
     public override void SetFocusInCallback(Action callback)
     {
-        throw new NotImplementedException();
+        _focusInCallback = callback;
     }
 
     public override void SetFocusOutCallback(Action callback)
     {
-        throw new NotImplementedException();
+        _focusOutCallback = callback;
     }
 
     public override void SetMovedCallback(Action<int, int> callback)
     {
-        throw new NotImplementedException();
+        _movedCallback = callback;
     }
 
     public override void SetResizedCallback(Action<int, int> callback)
     {
-        throw new NotImplementedException();
+        _resizedCallback = callback;
     }
 
     public override void SetMaximizedCallback(Action callback)
     {
-        throw new NotImplementedException();
+        _maximizedCallback = callback;
     }
 
     public override void SetRestoredCallback(Action callback)
     {
-        throw new NotImplementedException();
+        _restoredCallback = callback;
     }
 
     public override void SetMinimizedCallback(Action callback)
     {
-        throw new NotImplementedException();
+        _minimizedCallback = callback;
     }
 
     public override void Invoke(Action callback)
     {
-        throw new NotImplementedException();
+        if (SynchronizationContext.Current == _syncContext)
+        {
+            callback();
+            return;
+        }
+
+        _syncContext.Send(_ => callback(), null);
     }
 }

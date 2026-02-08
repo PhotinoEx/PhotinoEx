@@ -2520,7 +2520,7 @@ public class PhotinoWindow
         //fill in the fixed size array of custom scheme names
         foreach (var name in CustomSchemes.Take(16))
         {
-            _startupParameters.CustomSchemeNames.Add(name.Key);
+            _startupParameters.CustomSchemeNames!.Add(name.Key);
         }
 
         _startupParameters.ParentInstance = _dotNetParent?._instance ?? null;

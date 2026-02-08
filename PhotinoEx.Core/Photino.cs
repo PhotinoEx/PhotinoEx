@@ -1,6 +1,4 @@
-using WebKit;
 using Monitor = PhotinoEx.Core.Models.Monitor;
-using Point = System.Drawing.Point;
 using Size = System.Drawing.Size;
 
 namespace PhotinoEx.Core;
@@ -14,10 +12,10 @@ public abstract class Photino
     protected Action? _minimizedCallback { get; set; }
     protected Action<int, int>? _movedCallback { get; set; }
     protected Func<bool>? _closingCallback { get; set; }
-    protected Action? _facousInCallback { get; set; }
+    protected Action? _focusInCallback { get; set; }
     protected Action? _focusOutCallback { get; set; }
     protected List<string> _customSchemeNames { get; set; } = new();
-    protected PhotinoInitParams.WebResourceRequestedCallback _customSchemeCallback { get; set; }
+    protected PhotinoInitParams.WebResourceRequestedCallback? _customSchemeCallback { get; set; }
 
     protected Func<Monitor, int>? _getAllMonitors { get; set; }
     protected string _startUrl { get; set; } = "";
@@ -185,7 +183,7 @@ public abstract class Photino
 
     public void InvokeFocusIn()
     {
-        _facousInCallback?.Invoke();
+        _focusInCallback?.Invoke();
     }
 
     public void InvokeFocusOut()

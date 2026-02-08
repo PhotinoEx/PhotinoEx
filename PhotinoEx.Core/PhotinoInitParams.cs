@@ -1,19 +1,17 @@
-﻿using System.Runtime.InteropServices;
-using WebKit;
-using Monitor = PhotinoEx.Core.Models.Monitor;
+﻿using Monitor = PhotinoEx.Core.Models.Monitor;
 
 namespace PhotinoEx.Core;
 
 public class PhotinoInitParams
 {
-    public string? StartString { get; set; } = "";
-    public string? StartUrl { get; set; } = "";
-    public string? Title { get; set; } = "";
-    public string? WindowIconFile { get; set; } = "";
-    public string? TemporaryFilesPath { get; set; } = "";
-    public string? UserAgent { get; set; } = "";
-    public string? BrowserControlInitParameters { get; set; } = "";
-    public string? NotificationRegistrationId { get; set; } = "";
+    public string StartString { get; set; } = "";
+    public string StartUrl { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string WindowIconFile { get; set; } = "";
+    public string TemporaryFilesPath { get; set; } = "";
+    public string UserAgent { get; set; } = "";
+    public string BrowserControlInitParameters { get; set; } = "";
+    public string NotificationRegistrationId { get; set; } = "";
 
     public Photino? ParentInstance { get; set; }
 
@@ -27,7 +25,7 @@ public class PhotinoInitParams
     public Action<int, int>? MovedHandler { get; set; }
     public Action<string>? WebMessageRecievedHandler { get; set; }
     public List<string>? CustomSchemeNames;
-    public WebResourceRequestedCallback CustomSchemeHandler { get; set; } // TODO: this is not correct, but deal with later
+    public WebResourceRequestedCallback? CustomSchemeHandler { get; set; }
 
     public delegate MemoryStream WebResourceRequestedCallback(string url, out string outContentType);
 

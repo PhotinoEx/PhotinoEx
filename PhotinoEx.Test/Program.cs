@@ -5,9 +5,9 @@ namespace PhotinoEx.Test;
 
 class Program
 {
-    private static ManifestEmbeddedFileProvider EmbedProvider { get; set; }
+    private static ManifestEmbeddedFileProvider? EmbedProvider { get; set; }
 
-    public static PhotinoBlazorApp App { get; set; }
+    public static PhotinoBlazorApp? App { get; set; }
 
     [STAThread]
     private static void Main(string[] args)
@@ -23,7 +23,7 @@ class Program
 
         AppDomain.CurrentDomain.UnhandledException += (_, error) =>
         {
-            App.MainWindow.ShowMessage("Fatal exception", error.ExceptionObject.ToString());
+            App.MainWindow.ShowMessage("Fatal exception", error.ExceptionObject.ToString() ?? "");
         };
 
         App.Run();

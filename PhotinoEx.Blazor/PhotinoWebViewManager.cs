@@ -107,29 +107,19 @@ public class PhotinoWebViewManager : WebViewManager
     private async Task messagePump()
     {
         var reader = _channel.Reader;
-        try
+
+        while (true)
         {
-            while (true)
-            {
-                var message = await reader.ReadAsync();
-                _window.SendWebMessage(message);
-            }
-        }
-        catch (ChannelClosedException)
-        {
+            var message = await reader.ReadAsync();
+            _window.SendWebMessage(message);
         }
     }
 
     protected override ValueTask DisposeAsyncCore()
     {
         //complete channel
-        try
-        {
-            _channel.Writer.Complete();
-        }
-        catch
-        {
-        }
+        _channel.Writer.Complete();
+
 
         //continue disposing
         return base.DisposeAsyncCore();
