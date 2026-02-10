@@ -1,13 +1,12 @@
-using PhotinoEx.Core.Models;
+using PhotinoEx.Core.Enums;
 using Monitor = PhotinoEx.Core.Models.Monitor;
-using Point = System.Drawing.Point;
 using Size = System.Drawing.Size;
 
-namespace PhotinoEx.Core.Platform.Apple;
+namespace PhotinoEx.Core;
 
-public class APhotino : Photino
+public class ApplePhotino : Photino
 {
-    public APhotino(PhotinoInitParams initParams)
+    public ApplePhotino(PhotinoInitParams initParams)
     {
         throw new NotImplementedException();
     }
@@ -303,6 +302,26 @@ public class APhotino : Photino
     }
 
     public override void SetMinimizedCallback(Action callback)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override string ShowOpenFile(string title, string path, bool multiSelect, string[] filters, int filterCount, out int resultCount)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override string ShowOpenFolder(string title, string path, bool multiSelect, out int resultCount)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override string ShowSaveFile(string title, string path, string[] filters, int filterCount)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override DialogResult ShowMessage(string title, string text, DialogButtons buttons, DialogIcon icon)
     {
         throw new NotImplementedException();
     }

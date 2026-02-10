@@ -1,4 +1,5 @@
-﻿using Monitor = PhotinoEx.Core.Models.Monitor;
+﻿using System.Runtime.Versioning;
+using Monitor = PhotinoEx.Core.Models.Monitor;
 
 namespace PhotinoEx.Core;
 
@@ -8,7 +9,7 @@ public class PhotinoInitParams
     public string StartUrl { get; set; } = "";
     public string Title { get; set; } = "";
     public string WindowIconFile { get; set; } = "";
-    public string TemporaryFilesPath { get; set; } = "";
+    public string? TemporaryFilesPath { get; set; } = "";
     public string UserAgent { get; set; } = "";
     public string BrowserControlInitParameters { get; set; } = "";
     public string NotificationRegistrationId { get; set; } = "";
@@ -31,8 +32,11 @@ public class PhotinoInitParams
 
     public Func<Monitor, int>? GetAllMonitors { get; set; }
 
+    [SupportedOSPlatform("windows")]
     public int Left;
+    [SupportedOSPlatform("windows")]
     public int Top;
+
     public int Width;
     public int Height;
     public int Zoom;
@@ -41,9 +45,11 @@ public class PhotinoInitParams
     public int MaxWidth;
     public int MaxHeight;
 
-    // This is now controlled via the systems option.
-    // public bool CenterOnInitialize;
-    // public bool UseOsDefaultLocation;
+    [SupportedOSPlatform("windows")]
+    public bool CenterOnInitialize;
+    [SupportedOSPlatform("windows")]
+    public bool UseOsDefaultLocation;
+
     public bool Chromeless;
     public bool Transparent;
     public bool ContextMenuEnabled;

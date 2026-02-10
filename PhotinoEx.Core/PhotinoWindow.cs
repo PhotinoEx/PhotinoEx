@@ -1,8 +1,6 @@
 using System.Runtime.InteropServices;
-using Gtk;
+using System.Runtime.Versioning;
 using PhotinoEx.Core.Enums;
-using PhotinoEx.Core.Factories;
-using WebKit;
 using Action = System.Action;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
@@ -17,24 +15,14 @@ public class PhotinoWindow
     /// <summary>
     /// Parameters sent to Photino.Native to start a new instance of a Photino.Native window.
     /// </summary>
-    /// <param name="Resizable">Indicates whether the window is resizable.</param>
-    /// <param name="ContextMenuEnabled">Specifies whether the context menu is enabled.</param>
-    /// <param name="CustomSchemeNames">An array of strings representing custom scheme names.</param>
-    /// <param name="DevToolsEnabled">Specifies whether developer tools are enabled.</param>
-    /// <param name="GrantBrowserPermissions">Indicates whether browser permissions are granted.</param>
-    /// <param name="TemporaryFilesPath">Defines the path for temporary files.</param>
-    /// <param name="Title">Sets the title of the window.</param>
-    /// <param name="UseOsDefaultLocation">Specifies whether the window should use the OS default location.</param>
-    /// <param name="UseOsDefaultSize">Indicates whether the window should use the OS default size.</param>
-    /// <param name="Zoom">Sets the zoom level for the window.</param>
     private PhotinoInitParams _startupParameters = new()
     {
-        Resizable = true, //These values can't be initialized within the struct itself. Set required defaults.
+        Resizable = true,
         ContextMenuEnabled = true,
         CustomSchemeNames = new(),
         DevToolsEnabled = true,
         GrantBrowserPermissions = true,
-        UserAgent = "Photino WebView",
+        UserAgent = "PhotinoEx WebView",
         MediaAutoplayEnabled = true,
         FileSystemAccessEnabled = true,
         WebSecurityEnabled = true,
@@ -44,9 +32,9 @@ public class PhotinoWindow
         IgnoreCertificateErrorsEnabled = false,
         NotificationsEnabled = true,
         TemporaryFilesPath = IsWindowsPlatform
-            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Photino")
+            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PhotinoEx")
             : null,
-        Title = "Photino",
+        Title = "PhotinoEx",
         UseOsDefaultSize = true,
         Zoom = 100,
         MaxHeight = 10000,
@@ -88,7 +76,7 @@ public class PhotinoWindow
     /// <summary>
     /// Indicates the version of MacOS
     /// </summary>
-    public static Version MacOsVersion
+    public static Version? MacOsVersion
     {
         get { return IsMacOsPlatform ? Version.Parse(RuntimeInformation.OSDescription.Split(' ')[1]) : null; }
     }
@@ -2468,6 +2456,7 @@ public class PhotinoWindow
     /// </returns>
     /// <seealso href="https://docs.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution" />
     /// <param name="data">Runtime path for WebView2</param>
+    [SupportedOSPlatform("windows")]
     public PhotinoWindow Win32SetWebView2Path(string data)
     {
         if (IsWindowsPlatform)
@@ -2730,7 +2719,7 @@ public class PhotinoWindow
         string result = null;
         var nativeFilters = GetNativeFilters(filters);
 
-        Invoke(() => { result = _instance.GetDialog()!.ShowSaveFile(title, defaultPath, nativeFilters, filters.Length); });
+        Invoke(() => { result = _instance.ShowSaveFile(title, defaultPath, nativeFilters, filters.Length); });
 
         return result;
     }
@@ -2769,7 +2758,7 @@ public class PhotinoWindow
         DialogIcon icon = DialogIcon.Info)
     {
         var result = DialogResult.Cancel;
-        Invoke(() => result = _instance.GetDialog()!.ShowMessage(title, text, buttons, icon));
+        Invoke(() => result = _instance.ShowMessage(title, text, buttons, icon));
         return result;
     }
 

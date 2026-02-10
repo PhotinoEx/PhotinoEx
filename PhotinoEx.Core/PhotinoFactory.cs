@@ -1,27 +1,24 @@
 using System.Runtime.InteropServices;
-using PhotinoEx.Core.Platform.Apple;
-using PhotinoEx.Core.Platform.Linux;
-using PhotinoEx.Core.Platform.Windows;
 
-namespace PhotinoEx.Core.Factories;
+namespace PhotinoEx.Core;
 
-public static class PhotinoFactory
+internal static class PhotinoFactory
 {
     public static Photino Create(PhotinoInitParams initParams)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            return new LPhotino(initParams);
+            return new LinuxPhotino(initParams);
         }
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            return new WPhotino(initParams);
+            return new WindowsPhotino(initParams);
         }
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            return new APhotino(initParams);
+            return new ApplePhotino(initParams);
         }
 
         throw new NotSupportedException("Unsupported platform");

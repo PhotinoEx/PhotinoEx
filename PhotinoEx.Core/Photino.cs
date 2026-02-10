@@ -1,3 +1,4 @@
+using PhotinoEx.Core.Enums;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
 
@@ -42,22 +43,12 @@ public abstract class Photino
     protected int _zoom { get; set; }
 
     protected Photino? _parent { get; set; }
-    protected PhotinoDialog? _dialog { get; set; }
 
     public bool ContextMenuEnabled { get; set; }
     public int MinWidth { get; set; }
     public int MinHeight { get; set; }
     public int MaxWidth { get; set; }
     public int MaxHeight { get; set; }
-
-    // public abstract void Show();
-
-    public PhotinoDialog? GetDialog()
-    {
-        return _dialog;
-    }
-
-    // public abstract void Center();
 
     public abstract void ClearBrowserAutoFill();
 
@@ -94,8 +85,6 @@ public abstract class Photino
     public abstract bool GetMaximized();
 
     public abstract bool GetMinimized();
-
-    // public abstract Point GetPosition();
 
     public abstract bool GetResizable();
 
@@ -138,8 +127,6 @@ public abstract class Photino
 
     public abstract void SetMinimized(bool minimized);
 
-    // public abstract void SetPosition(Point position);
-
     public abstract void SetResizable(bool resizable);
 
     public abstract void SetSize(Size size);
@@ -173,6 +160,14 @@ public abstract class Photino
     public abstract void SetRestoredCallback(Action callback);
 
     public abstract void SetMinimizedCallback(Action callback);
+
+    public abstract string ShowOpenFile(string title, string path, bool multiSelect, string[] filters, int filterCount, out int resultCount);
+
+    public abstract string ShowOpenFolder(string title, string path, bool multiSelect, out int resultCount);
+
+    public abstract string ShowSaveFile(string title, string path, string[] filters, int filterCount);
+
+    public abstract DialogResult ShowMessage(string title, string text, DialogButtons buttons, DialogIcon icon);
 
     public abstract void Invoke(Action callback);
 
