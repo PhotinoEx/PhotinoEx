@@ -797,7 +797,7 @@ public class WindowsPhotino : Photino
         {
             if (!string.IsNullOrWhiteSpace(_webview2RuntimePath) || EnsureWebViewIsInstalled())
             {
-                AttachWebView().ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext).GetAwaiter().GetResult();
+                AttachWebView().Wait();
             }
             else
             {
