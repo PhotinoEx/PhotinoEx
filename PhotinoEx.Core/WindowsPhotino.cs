@@ -159,7 +159,7 @@ public class WindowsPhotino : Photino
         Register();
 
         _hwnd = DLLImports.CreateWindowEx(
-            0,
+            initParams.Transparent ? Constants.WS_EX_LAYERED : 0,
             "Photino",
             _windowTitle,
             initParams.Chromeless || initParams.FullScreen ? Constants.WS_POPUP : Constants.WS_OVERLAPPEDWINDOW,
@@ -169,21 +169,6 @@ public class WindowsPhotino : Photino
             _hInstance,
             IntPtr.Zero
         );
-
-        // handle = User32.CreateWindowEx(
-        //     styles, int
-        //     appOptions.Title, string
-        //     appOptions.Title, string
-        //     WinApiConsts.WS_OVERLAPPEDWINDOW | WinApiConsts.WS_VISIBLE, uint
-        //     (int)test.X, int
-        //     (int)test.Y, int
-        //     appOptions.Width, int
-        //     appOptions.Height, int
-        //     IntPtr.Zero, IntPtr
-        //     IntPtr.Zero, IntPtr
-        //     windowClass.hInstance, IntPtr
-        //     IntPtr.Zero IntPtr
-        // );
         HWNDToPhotino.Add(_hwnd, this);
 
         if (string.IsNullOrEmpty(initParams.WindowIconFile))
@@ -235,12 +220,9 @@ public class WindowsPhotino : Photino
         window.cbClsExtra = 0;
         window.cbWndExtra = 0;
         window.hInstance = _hInstance;
-        window.hIcon = default; // TODO: come back too
-        window.hCursor = default; // TODO: come back too
         window.hbrBackground = IsDarkModeEnabled() ? darkBrush : lightBrush;
         window.lpszMenuName = IntPtr.Zero;
         window.lpszClassName = "Photino";
-        window.hIconSm = default; // TODO: come back too
 
         DLLImports.RegisterClassEx(ref window);
         DLLImports.SetThreadDpiAwarenessContext(-3);
@@ -622,8 +604,7 @@ public class WindowsPhotino : Photino
 
     private async Task AttachWebView()
     {
-        try
-        {
+
             var runtimePath = string.IsNullOrWhiteSpace(_webview2RuntimePath) ? _webview2RuntimePath : null;
 
             // size_t runtimePathLen = wcsnlen(_webview2RuntimePath, _countof(_webview2RuntimePath));
@@ -683,7 +664,7 @@ public class WindowsPhotino : Photino
             }
 
             var options = new CoreWebView2EnvironmentOptions();
-            _webViewEnvironment = await CoreWebView2Environment.CreateAsync(runtimePath, _temporaryFilesPath, options);
+            _webViewEnvironment = await CoreWebView2Environment.CreateAsync();
             _webViewController = await _webViewEnvironment.CreateCoreWebView2ControllerAsync(_hwnd);
             _webViewWindow = _webViewController.CoreWebView2;
 
@@ -773,12 +754,6 @@ public class WindowsPhotino : Photino
             RefitContent();
 
             FocusWebView2();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
     }
 
     public void Show(bool isAlreadyShown)
