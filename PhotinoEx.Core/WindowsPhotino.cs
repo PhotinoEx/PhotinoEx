@@ -522,69 +522,27 @@ public class WindowsPhotino : Photino
 
     public void RefitContent()
     {
-        // if (_webviewController)
-        // {
-        //     RECT bounds;
-        //     GetClientRect(_hWnd, &bounds);
-        //     _webviewController->put_Bounds(bounds);
-        // }
+        if (_webViewController is not null)
+        {
+            DLLImports.GetClientRect(_hwnd, out var rect);
+            _webViewController.Bounds = new Rectangle(new Point(rect.Left, rect.Top), new Size(rect.Width, rect.Top));
+        }
     }
 
     public void FocusWebView2()
     {
-        // if (_webviewController)
-        // {
-        //     _webviewController->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
-        // }
+        if (_webViewController is not null)
+        {
+            _webViewController.MoveFocus(CoreWebView2MoveFocusReason.Programmatic);
+        }
     }
 
     public void NotifyWebView2WindowMove()
     {
-        // if (_webviewController)
-        // {
-        //     //MessageBox(nullptr, L"NotifyWebView2WindowMove() was called!", L"", MB_OK);
-        //     _webviewController->NotifyParentWindowPositionChanged();
-        // }
-    }
-
-    public string ToUTF16String(string source)
-    {
-        // AutoString response;
-        // std::wstring* wideBuffer = new std::wstring();
-        // int inLen = (int)strlen((char*)source);
-        // int result = MultiByteToWideChar(CP_UTF8, 0, (char*)source, inLen, NULL, 0);
-        // if (result < 0)
-        // {
-        //     response = (AutoString)"UTF8 to UTF16 convert failed";
-        // }
-        // else
-        // {
-        //     wideBuffer->resize(result, 0);
-        //     result = MultiByteToWideChar(CP_UTF8, 0, (char*)source, inLen, &(*wideBuffer)[0], result);
-        //     response = (AutoString)wideBuffer->c_str();
-        // }
-        // return response;
-        return "";
-    }
-
-    public string ToUTF8string(string source)
-    {
-        // AutoString response;
-        // std::string* stringBuffer = new std::string();
-        // int inLen = (int)wcslen(source);
-        // int result = WideCharToMultiByte(CP_UTF8, 0, (LPCWCH)source, inLen, NULL, 0, NULL, 0);
-        // if (result < 0)
-        // {
-        //     response = (AutoString)"UTF8 to UTF16 convert failed";
-        // }
-        // else
-        // {
-        //     stringBuffer->resize(result, 0);
-        //     result = WideCharToMultiByte(CP_UTF8, 0, (LPCWCH)source, inLen, &(*stringBuffer)[0], result, NULL, 0);
-        //     response = (AutoString)stringBuffer->c_str();
-        // }
-        // return response;
-        return "";
+        if (_webViewController is not null)
+        {
+            _webViewController.NotifyParentWindowPositionChanged();
+        }
     }
 
     private bool EnsureWebViewIsInstalled()
