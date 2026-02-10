@@ -157,7 +157,7 @@ public class WindowsPhotino : Photino
         }
 
         _hwnd = DLLImports.CreateWindowEx(
-            initParams.Transparent ? Constants.WS_EX_LAYERED : 0,
+            0,
             "Photino",
             _windowTitle,
             initParams.Chromeless || initParams.FullScreen ? Constants.WS_POPUP : Constants.WS_OVERLAPPEDWINDOW,
