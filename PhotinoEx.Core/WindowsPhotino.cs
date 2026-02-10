@@ -680,7 +680,8 @@ public class WindowsPhotino : Photino
         }
 
         var options = new CoreWebView2EnvironmentOptions();
-        _webViewEnvironment = await CoreWebView2Environment.CreateAsync();
+        options.AdditionalBrowserArguments = sb.ToString();
+        _webViewEnvironment = await CoreWebView2Environment.CreateAsync(runtimePath, _temporaryFilesPath, options);
         _webViewController = await _webViewEnvironment.CreateCoreWebView2ControllerAsync(_hwnd);
         _webViewWindow = _webViewController.CoreWebView2;
 
@@ -784,7 +785,7 @@ public class WindowsPhotino : Photino
         // so defer it until here. This unfortunately means you can't call the Navigate methods
         // until the window is shown.
 
-        if (_webViewController is null)
+        if (_webViewController is not null)
         {
             if (!string.IsNullOrWhiteSpace(_webview2RuntimePath) || EnsureWebViewIsInstalled())
             {
