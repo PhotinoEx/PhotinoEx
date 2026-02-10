@@ -604,8 +604,7 @@ public class WindowsPhotino : Photino
     {
         try
         {
-            var runtimepathlen = _webview2RuntimePath.Length;
-            var runtimePath = runtimepathlen > 0 ? _webview2RuntimePath : null;
+            var runtimePath = string.IsNullOrWhiteSpace(_webview2RuntimePath) ? _webview2RuntimePath : null;
 
             // size_t runtimePathLen = wcsnlen(_webview2RuntimePath, _countof(_webview2RuntimePath));
             // PCWSTR runtimePath = runtimePathLen > 0 ? &_webview2RuntimePath[0] : nullptr;
