@@ -77,26 +77,26 @@ public class WindowsPhotino : Photino
 
         if (_params.UseOsDefaultSize)
         {
-            _params.Width = Constants.CW_USEDEFAULT;
-            _params.Height = Constants.CW_USEDEFAULT;
+            _params.Width = unchecked((int) Constants.CW_USEDEFAULT);
+            _params.Height = unchecked((int) Constants.CW_USEDEFAULT);
         }
         else
         {
             if (_params.Width < 0)
             {
-                _params.Width = Constants.CW_USEDEFAULT;
+                _params.Width = unchecked((int) Constants.CW_USEDEFAULT);
             }
 
             if (_params.Height < 0)
             {
-                _params.Height = Constants.CW_USEDEFAULT;
+                _params.Height = unchecked((int) Constants.CW_USEDEFAULT);
             }
         }
 
         if (_params.UseOsDefaultLocation)
         {
-            _params.Left = Constants.CW_USEDEFAULT;
-            _params.Top = Constants.CW_USEDEFAULT;
+            _params.Left = unchecked((int) Constants.CW_USEDEFAULT);
+            _params.Top = unchecked((int) Constants.CW_USEDEFAULT);
         }
 
         if (_params.FullScreen)
@@ -419,7 +419,7 @@ public class WindowsPhotino : Photino
         return DLLImports.DefWindowProc(hwnd, msg, wParam, lParam);
     }
 
-    private const int WM_USER_INVOKE = (Constants.WM_USER + 0x0002);
+    private const uint WM_USER_INVOKE = (Constants.WM_USER + 0x0002);
     private IntPtr messageLoopRootWindowHandle;
     private Dictionary<IntPtr, WindowsPhotino> HWNDToPhotino = [];
 
@@ -765,7 +765,7 @@ public class WindowsPhotino : Photino
     {
         if (!isAlreadyShown)
         {
-            DLLImports.ShowWindow(_hwnd, Constants.SW_SHOWDEFAULT);
+            DLLImports.ShowWindow(_hwnd, unchecked((int) Constants.SW_SHOWDEFAULT));
         }
 
         DLLImports.UpdateWindow(_hwnd);
@@ -1013,7 +1013,7 @@ public class WindowsPhotino : Photino
 
     public override void Restore()
     {
-        DLLImports.ShowWindow(_hwnd, Constants.SW_RESTORE);
+        DLLImports.ShowWindow(_hwnd, unchecked((int) Constants.SW_RESTORE));
     }
 
     public override void SendWebMessage(string message)

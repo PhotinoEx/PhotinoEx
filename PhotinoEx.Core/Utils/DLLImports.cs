@@ -30,8 +30,8 @@ internal static class DLLImports
     public static extern ushort RegisterClassEx([In] ref WNDCLASSEX lpwcx);
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern IntPtr CreateWindowEx(int dwExStyle, string lpClassName, string lpWindowName,
-        int dwStyle, int x, int y, int nWidth, int nHeight, IntPtr hWndParent, IntPtr hMenu, IntPtr hInstance,
+    public static extern IntPtr CreateWindowEx(uint dwExStyle, string lpClassName, string lpWindowName,
+        uint dwStyle, int x, int y, int nWidth, int nHeight, IntPtr hWndParent, IntPtr hMenu, IntPtr hInstance,
         IntPtr lpParam
     );
 
@@ -69,10 +69,10 @@ internal static class DLLImports
     public static extern int GetSystemMetrics(int nIndex);
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+    public static extern int SetWindowLong(IntPtr hWnd, int nIndex, uint dwNewLong);
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+    public static extern uint GetWindowLong(IntPtr hWnd, int nIndex);
 
     [DllImport("user32.dll", EntryPoint = "SetClassLongPtr", SetLastError = true)]
     public static extern IntPtr SetClassLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
@@ -102,10 +102,10 @@ internal static class DLLImports
     public static extern int SetWindowPos(IntPtr hwnd, IntPtr hwndInsertAfter, int x, int y, int cx, int cy, uint flags);
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool ShowWindow(IntPtr hwnd, int nCmdShow);
+    public static extern bool ShowWindow(IntPtr hwnd, uint nCmdShow);
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern int GetWindowLongPtr(IntPtr hwnd, int nIndex);
+    public static extern uint GetWindowLongPtr(IntPtr hwnd, int nIndex);
 
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
     public static extern bool SetWindowText(IntPtr hwnd, String lpString);
