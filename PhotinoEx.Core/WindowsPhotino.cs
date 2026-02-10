@@ -789,7 +789,20 @@ public class WindowsPhotino : Photino
         {
             if (!string.IsNullOrWhiteSpace(_webview2RuntimePath) || EnsureWebViewIsInstalled())
             {
-                AttachWebView().Wait();
+                // Start the async operation
+                var attachTask = AttachWebView();
+
+                // Pump messages while waiting
+                while (!attachTask.IsCompleted)
+                {
+                    if (DLLImports.PeekMessage(out MSG msg, IntPtr.Zero, 0, 0, Constants.PM_REMOVE))
+                    {
+                        DLLImports.TranslateMessage(ref msg);
+                        DLLImports.DispatchMessage(ref msg);
+                    }
+                }
+
+                attachTask.GetAwaiter().GetResult();
             }
             else
             {

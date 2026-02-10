@@ -116,6 +116,9 @@ internal static class DLLImports
     [DllImport("user32.dll", SetLastError = true)]
     public static extern void SetThreadDpiAwarenessContext(int dpiContext);
 
+    [DllImport("user32.dll")]
+    public static extern bool PeekMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg);
+
     public delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
     #endregion

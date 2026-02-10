@@ -68,6 +68,8 @@ public class Constants
     public const int HWND_TOPMOST = -1;
     public const int HWND_TOP = 0;
     public const int HWND_BOTTOM = 1;
+
+    public const uint PM_REMOVE = 0x0001;
 }
 
 [StructLayout(LayoutKind.Sequential)]
