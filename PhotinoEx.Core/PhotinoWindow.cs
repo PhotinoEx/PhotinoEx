@@ -212,29 +212,30 @@ public class PhotinoWindow
     /// <exception cref="ApplicationException">
     /// Thrown if trying to set value after native window is initalized.
     /// </exception>
-    // public bool Centered
-    // {
-    //     get
-    //     {
-    //         if (_instance is null)
-    //         {
-    //             return _startupParameters.CenterOnInitialize;
-    //         }
-    //
-    //         return false;
-    //     }
-    //     set
-    //     {
-    //         if (_instance is null)
-    //         {
-    //             _startupParameters.CenterOnInitialize = value;
-    //         }
-    //         else
-    //         {
-    //             Invoke(() => _instance.Center());
-    //         }
-    //     }
-    // }
+    [SupportedOSPlatform("windows")]
+    public bool Centered
+    {
+        get
+        {
+            if (_instance is null)
+            {
+                return _startupParameters.CenterOnInitialize;
+            }
+
+            return false;
+        }
+        set
+        {
+            if (_instance is null)
+            {
+                _startupParameters.CenterOnInitialize = value;
+            }
+            else
+            {
+                Invoke(() => ((WindowsPhotino)_instance).Center());
+            }
+        }
+    }
 
     /// <summary>
     /// Gets or sets a value indicating whether the native window should be chromeless.
@@ -872,7 +873,7 @@ public class PhotinoWindow
                 }
                 else
                 {
-                    // Invoke(() => _instance.SetMaxSize(new Size(value.X, value.Y)));
+                    Invoke(() => ((WindowsPhotino)_instance).SetMaxSize(new Size(value.X, value.Y)));
                 }
             }
         }
@@ -959,7 +960,7 @@ public class PhotinoWindow
                 }
                 else
                 {
-                    // Invoke(() => _instance.SetMinSize(new Size(value.X, value.Y)));
+                    Invoke(() => ((WindowsPhotino)_instance).SetMinSize(new Size(value.X, value.Y)));
                 }
             }
         }
@@ -1325,24 +1326,25 @@ public class PhotinoWindow
     /// <exception cref="ApplicationException">
     /// Thrown if trying to set value after native window is initalized.
     /// </exception>
-    // public bool UseOsDefaultLocation
-    // {
-    //     get { return _startupParameters.UseOsDefaultLocation; }
-    //     set
-    //     {
-    //         if (_instance is null)
-    //         {
-    //             if (UseOsDefaultLocation != value)
-    //             {
-    //                 _startupParameters.UseOsDefaultLocation = value;
-    //             }
-    //         }
-    //         else
-    //         {
-    //             throw new ApplicationException("UseOsDefaultLocation can only be set before the native window is instantiated.");
-    //         }
-    //     }
-    // }
+    [SupportedOSPlatform("windows")]
+    public bool UseOsDefaultLocation
+    {
+        get { return _startupParameters.UseOsDefaultLocation; }
+        set
+        {
+            if (_instance is null)
+            {
+                if (UseOsDefaultLocation != value)
+                {
+                    _startupParameters.UseOsDefaultLocation = value;
+                }
+            }
+            else
+            {
+                throw new ApplicationException("UseOsDefaultLocation can only be set before the native window is instantiated.");
+            }
+        }
+    }
 
     /// <summary>
     /// When true the native window starts at the OS Default size.
@@ -2420,12 +2422,12 @@ public class PhotinoWindow
     /// Returns the current <see cref="PhotinoWindow"/> instance.
     /// </returns>
     /// <param name="useOsDefault">Whether the OS Default should be used.</param>
-    // public PhotinoWindow SetUseOsDefaultLocation(bool useOsDefault)
-    // {
-    //     Log($".SetUseOsDefaultLocation({useOsDefault})");
-    //     UseOsDefaultLocation = useOsDefault;
-    //     return this;
-    // }
+    public PhotinoWindow SetUseOsDefaultLocation(bool useOsDefault)
+    {
+        Log($".SetUseOsDefaultLocation({useOsDefault})");
+        UseOsDefaultLocation = useOsDefault;
+        return this;
+    }
 
     /// <summary>
     /// When true the native window starts at the OS Default size.
@@ -2461,7 +2463,7 @@ public class PhotinoWindow
     {
         if (IsWindowsPlatform)
         {
-            // Invoke(() => Photino_setWebView2RuntimePath_win32(_nativeType, data)); TODO: Fix
+            Invoke(() => ((WindowsPhotino)_instance).SetWebView2RuntimePath(data));
         }
         else
         {

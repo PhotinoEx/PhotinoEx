@@ -121,10 +121,6 @@ public abstract class Photino
 
     public abstract void SetMaximized(bool maximized);
 
-    // public abstract void SetMaxSize(Size size);
-
-    // public abstract void SetMinSize(Size size);
-
     public abstract void SetMinimized(bool minimized);
 
     public abstract void SetResizable(bool resizable);
