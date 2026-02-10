@@ -785,7 +785,7 @@ public class WindowsPhotino : Photino
         // so defer it until here. This unfortunately means you can't call the Navigate methods
         // until the window is shown.
 
-        if (_webViewController is not null)
+        if (_webViewController is null)
         {
             if (!string.IsNullOrWhiteSpace(_webview2RuntimePath) || EnsureWebViewIsInstalled())
             {
