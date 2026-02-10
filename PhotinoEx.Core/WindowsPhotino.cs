@@ -565,18 +565,19 @@ public class WindowsPhotino : Photino
 
     private bool EnsureWebViewIsInstalled()
     {
-        // LPWSTR* versionInfo = new wchar_t* [100];
-        // HRESULT ensureInstalledResult = GetAvailableCoreWebView2BrowserVersionString(nullptr, versionInfo);
-        //
-        // if (ensureInstalledResult != S_OK)
-        //     return InstallWebView2();
-        //
-        // return true;
+        var versionInfo = CoreWebView2Environment.GetAvailableBrowserVersionString();
+
+        if (string.IsNullOrWhiteSpace(versionInfo))
+        {
+            return InstallWebView2();
+        }
+
         return true;
     }
 
     private bool InstallWebView2()
     {
+        Console.WriteLine("install webview");
         // const wchar_t* srcURL = L"https://go.microsoft.com/fwlink/p/?LinkId=2124703";
         // const wchar_t* destFile = L"MicrosoftEdgeWebview2Setup.exe";
         //
