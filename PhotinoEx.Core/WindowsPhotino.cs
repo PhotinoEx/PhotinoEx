@@ -600,7 +600,7 @@ public class WindowsPhotino : Photino
         return true;
     }
 
-    private void AttachWebView()
+    private async Task AttachWebView()
     {
         try
         {
@@ -663,63 +663,50 @@ public class WindowsPhotino : Photino
             }
 
             var options = new CoreWebView2EnvironmentOptions();
-            var environment = CoreWebView2Environment.CreateAsync(runtimePath, _temporaryFilesPath, options);
-            environment.GetAwaiter().OnCompleted((() =>
+            _webViewEnvironment = await CoreWebView2Environment.CreateAsync(runtimePath, _temporaryFilesPath, options);
+            _webViewController = await _webViewEnvironment.CreateCoreWebView2ControllerAsync(_hwnd);
+            _webViewWindow = _webViewController.CoreWebView2;
+
+            var settings = _webViewWindow.Settings;
+            settings.AreHostObjectsAllowed = true;
+            settings.IsScriptEnabled = true;
+            settings.AreDefaultScriptDialogsEnabled = true;
+            settings.IsWebMessageEnabled = true;
+
+            var webtoken = await _webViewWindow.AddScriptToExecuteOnDocumentCreatedAsync(
+                "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { callback(e.data); }); } };");
+            _webViewWindow.WebMessageReceived += (_, args) =>
             {
-                if (environment.IsFaulted)
+                var message = args.TryGetWebMessageAsString();
+                _WebMessageReceivedCallback(message);
+            };
+
+            _webViewWindow.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
+            _webViewWindow.WebResourceRequested += (_, args) =>
+            {
+                var request = args.Request;
+
+                var uri = request.Uri;
+                var colonPos = uri.IndexOf(":", StringComparison.Ordinal);
+                if (colonPos > 0)
                 {
-                    return;
+                    var scheme = uri.Substring(0, colonPos);
+                    if (_customSchemeNames.Contains(scheme))
+                    {
+                        var callback = _customSchemeCallback;
+
+                        var memoryStream = callback!.Invoke(uri, out var contentType);
+
+                        var response = _webViewEnvironment.CreateWebResourceResponse(
+                            memoryStream,
+                            200,
+                            "OK",
+                            $"Content-Type: {contentType}");
+
+                        args.Response = response;
+                    }
                 }
-
-                _webViewEnvironment = environment.Result;
-
-                var awaiter = _webViewEnvironment.CreateCoreWebView2ControllerAsync(_hwnd).GetAwaiter();
-                awaiter.OnCompleted((() =>
-                {
-                    _webViewController = awaiter.GetResult();
-                    _webViewWindow = _webViewController.CoreWebView2;
-                    var settings = _webViewWindow.Settings;
-                    settings.AreHostObjectsAllowed = true;
-                    settings.IsScriptEnabled = true;
-                    settings.AreDefaultScriptDialogsEnabled = true;
-                    settings.IsWebMessageEnabled = true;
-
-                    var webtoken = _webViewWindow.AddScriptToExecuteOnDocumentCreatedAsync(
-                        "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { callback(e.data); }); } };");
-                    _webViewWindow.WebMessageReceived += (_, args) =>
-                    {
-                        var message = args.TryGetWebMessageAsString();
-                        _WebMessageReceivedCallback(message);
-                    };
-
-                    _webViewWindow.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
-                    _webViewWindow.WebResourceRequested += (_, args) =>
-                    {
-                        var request = args.Request;
-
-                        var uri = request.Uri;
-                        var colonPos = uri.IndexOf(":", StringComparison.Ordinal);
-                        if (colonPos > 0)
-                        {
-                            var scheme = uri.Substring(0, colonPos);
-                            if (_customSchemeNames.Contains(scheme))
-                            {
-                                var callback = _customSchemeCallback;
-
-                                var memoryStream = callback!.Invoke(uri, out var contentType);
-
-                                var response = _webViewEnvironment.CreateWebResourceResponse(
-                                    memoryStream,
-                                    200,
-                                    "OK",
-                                    $"Content-Type: {contentType}");
-
-                                args.Response = response;
-                            }
-                        }
-                    };
-                }));
-            }));
+            };
 
             _webViewWindow?.PermissionRequested += (sender, args) =>
             {
@@ -790,7 +777,7 @@ public class WindowsPhotino : Photino
         {
             if (!string.IsNullOrWhiteSpace(_webview2RuntimePath) || EnsureWebViewIsInstalled())
             {
-                AttachWebView();
+                AttachWebView().ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext).GetAwaiter().GetResult();
             }
             else
             {
