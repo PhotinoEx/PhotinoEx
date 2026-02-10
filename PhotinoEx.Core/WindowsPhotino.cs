@@ -156,6 +156,8 @@ public class WindowsPhotino : Photino
             initParams.Width = initParams.MinWidth;
         }
 
+        Register();
+
         _hwnd = DLLImports.CreateWindowEx(
             0,
             "Photino",
@@ -164,9 +166,24 @@ public class WindowsPhotino : Photino
             initParams.Left, initParams.Top, initParams.Width, initParams.Height,
             IntPtr.Zero,
             IntPtr.Zero,
-            _hInstance ?? IntPtr.Zero,
+            _hInstance,
             IntPtr.Zero
         );
+
+        // handle = User32.CreateWindowEx(
+        //     styles, int
+        //     appOptions.Title, string
+        //     appOptions.Title, string
+        //     WinApiConsts.WS_OVERLAPPEDWINDOW | WinApiConsts.WS_VISIBLE, uint
+        //     (int)test.X, int
+        //     (int)test.Y, int
+        //     appOptions.Width, int
+        //     appOptions.Height, int
+        //     IntPtr.Zero, IntPtr
+        //     IntPtr.Zero, IntPtr
+        //     windowClass.hInstance, IntPtr
+        //     IntPtr.Zero IntPtr
+        // );
         HWNDToPhotino.Add(_hwnd, this);
 
         if (string.IsNullOrEmpty(initParams.WindowIconFile))
@@ -196,7 +213,7 @@ public class WindowsPhotino : Photino
         Show(initParams.Minimized || initParams.Maximized);
     }
 
-    private IntPtr? _hInstance { get; set; }
+    private IntPtr _hInstance { get; set; }
     private IntPtr _hwnd { get; set; }
     private WinToastHandler? _toastHandler { get; set; }
     private CoreWebView2Environment? _webViewEnvironment { get; set; }
@@ -207,9 +224,9 @@ public class WindowsPhotino : Photino
     private PhotinoInitParams _params { get; set; }
     private SynchronizationContext _syncContext;
 
-    public void Register(IntPtr hInstance)
+    public void Register()
     {
-        _hInstance = hInstance;
+        _hInstance = DLLImports.GetModuleHandle(null);
 
         var window = new WNDCLASSEX();
         window.cbSize = (uint) Marshal.SizeOf(typeof(WNDCLASSEX));
@@ -217,13 +234,16 @@ public class WindowsPhotino : Photino
         window.lpfnWndProc = Marshal.GetFunctionPointerForDelegate(WindowProc);
         window.cbClsExtra = 0;
         window.cbWndExtra = 0;
-        window.hInstance = hInstance;
+        window.hInstance = _hInstance;
         window.hIcon = default; // TODO: come back too
         window.hCursor = default; // TODO: come back too
         window.hbrBackground = IsDarkModeEnabled() ? darkBrush : lightBrush;
         window.lpszMenuName = IntPtr.Zero;
         window.lpszClassName = "Photino";
         window.hIconSm = default; // TODO: come back too
+
+        DLLImports.RegisterClassEx(ref window);
+        DLLImports.SetThreadDpiAwarenessContext(-3);
     }
 
     private IntPtr WindowProc(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam)
