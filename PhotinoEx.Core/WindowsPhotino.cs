@@ -231,7 +231,7 @@ public class WindowsPhotino : Photino
         var window = new WNDCLASSEX();
         window.cbSize = (uint) Marshal.SizeOf(typeof(WNDCLASSEX));
         window.style = Constants.CS_HREDRAW | Constants.CS_VREDRAW;
-        window.lpfnWndProc = Marshal.GetFunctionPointerForDelegate(WindowProc);
+        window.lpfnWndProc = Marshal.GetFunctionPointerForDelegate(new DLLImports.WndProcDelegate(WindowProc));
         window.cbClsExtra = 0;
         window.cbWndExtra = 0;
         window.hInstance = _hInstance;
