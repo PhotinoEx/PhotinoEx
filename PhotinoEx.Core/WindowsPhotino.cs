@@ -169,6 +169,14 @@ public class WindowsPhotino : Photino
             _hInstance,
             IntPtr.Zero
         );
+
+        if (_hwnd == IntPtr.Zero)
+        {
+            uint errorCode = DLLImports.GetLastError();
+            Console.WriteLine($"Error creating window. Error Code: {errorCode}");
+            return;
+        }
+
         HWNDToPhotino.Add(_hwnd, this);
 
         if (string.IsNullOrEmpty(initParams.WindowIconFile))
@@ -224,7 +232,15 @@ public class WindowsPhotino : Photino
         window.lpszMenuName = IntPtr.Zero;
         window.lpszClassName = "Photino";
 
-        DLLImports.RegisterClassEx(ref window);
+        var classAtom = DLLImports.RegisterClassEx(ref window);
+
+        if (classAtom == 0)
+        {
+            uint errorCode = DLLImports.GetLastError();
+            Console.WriteLine($"Error creating window. Error Code: {errorCode}");
+            return;
+        }
+
         DLLImports.SetThreadDpiAwarenessContext(-3);
     }
 
@@ -604,156 +620,155 @@ public class WindowsPhotino : Photino
 
     private async Task AttachWebView()
     {
+        var runtimePath = string.IsNullOrWhiteSpace(_webview2RuntimePath) ? _webview2RuntimePath : null;
 
-            var runtimePath = string.IsNullOrWhiteSpace(_webview2RuntimePath) ? _webview2RuntimePath : null;
-
-            // size_t runtimePathLen = wcsnlen(_webview2RuntimePath, _countof(_webview2RuntimePath));
-            // PCWSTR runtimePath = runtimePathLen > 0 ? &_webview2RuntimePath[0] : nullptr;
-            //
-            // //TODO: Implement special startup strings.
-            // //https://peter.sh/experiments/chromium-command-line-switches/
-            // //https://learn.microsoft.com/en-us/dotnet/api/microsoft.web.webview2.core.corewebview2environmentoptions.additionalbrowserarguments?view=webview2-dotnet-1.0.1938.49&viewFallbackFrom=webview2-dotnet-1.0.1901.177view%3Dwebview2-1.0.1901.177
-            // //https://www.chromium.org/developers/how-tos/run-chromium-with-flags/
-            //Add together all 7 special startup strings, plus the generic one passed by the user to make one big string. Try not to duplicate anything. Separate with spaces.
+        // size_t runtimePathLen = wcsnlen(_webview2RuntimePath, _countof(_webview2RuntimePath));
+        // PCWSTR runtimePath = runtimePathLen > 0 ? &_webview2RuntimePath[0] : nullptr;
+        //
+        // //TODO: Implement special startup strings.
+        // //https://peter.sh/experiments/chromium-command-line-switches/
+        // //https://learn.microsoft.com/en-us/dotnet/api/microsoft.web.webview2.core.corewebview2environmentoptions.additionalbrowserarguments?view=webview2-dotnet-1.0.1938.49&viewFallbackFrom=webview2-dotnet-1.0.1901.177view%3Dwebview2-1.0.1901.177
+        // //https://www.chromium.org/developers/how-tos/run-chromium-with-flags/
+        //Add together all 7 special startup strings, plus the generic one passed by the user to make one big string. Try not to duplicate anything. Separate with spaces.
 
 
-            var sb = new StringBuilder();
-            if (!string.IsNullOrWhiteSpace(_userAgent))
+        var sb = new StringBuilder();
+        if (!string.IsNullOrWhiteSpace(_userAgent))
+        {
+            sb.Append($"--user-agent=\"{_userAgent}\" ");
+        }
+
+        if (_mediaAutoplayEnabled)
+        {
+            sb.Append("--autoplay-policy=no-user-gesture-required ");
+        }
+
+        if (_fileSystemAccessEnabled)
+        {
+            sb.Append("--allow-file-access-from-files ");
+        }
+
+        if (!_webSecurityEnabled)
+        {
+            sb.Append("--disable-web-security ");
+        }
+
+        if (_javascriptClipboardAccessEnabled)
+        {
+            sb.Append("--enable-javascript-clipboard-access ");
+        }
+
+        if (_mediaStreamEnabled)
+        {
+            sb.Append("--enable-usermedia-screen-capturing ");
+        }
+
+        if (!_smoothScrollingEnabled)
+        {
+            sb.Append("--disable-smooth-scrolling ");
+        }
+
+        if (_ignoreCertificateErrorsEnabled)
+        {
+            sb.Append("--ignore-certificate-errors ");
+        }
+
+        if (!string.IsNullOrWhiteSpace(_browserControlInitParameters))
+        {
+            sb.Append(_browserControlInitParameters); //e.g.--hide-scrollbars
+        }
+
+        var options = new CoreWebView2EnvironmentOptions();
+        _webViewEnvironment = await CoreWebView2Environment.CreateAsync();
+        _webViewController = await _webViewEnvironment.CreateCoreWebView2ControllerAsync(_hwnd);
+        _webViewWindow = _webViewController.CoreWebView2;
+
+        var settings = _webViewWindow.Settings;
+        settings.AreHostObjectsAllowed = true;
+        settings.IsScriptEnabled = true;
+        settings.AreDefaultScriptDialogsEnabled = true;
+        settings.IsWebMessageEnabled = true;
+
+        var webtoken = await _webViewWindow.AddScriptToExecuteOnDocumentCreatedAsync(
+            "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { callback(e.data); }); } };");
+        _webViewWindow.WebMessageReceived += (_, args) =>
+        {
+            var message = args.TryGetWebMessageAsString();
+            _WebMessageReceivedCallback(message);
+        };
+
+        _webViewWindow.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
+        _webViewWindow.WebResourceRequested += (_, args) =>
+        {
+            var request = args.Request;
+
+            var uri = request.Uri;
+            var colonPos = uri.IndexOf(":", StringComparison.Ordinal);
+            if (colonPos > 0)
             {
-                sb.Append($"--user-agent=\"{_userAgent}\" ");
-            }
-
-            if (_mediaAutoplayEnabled)
-            {
-                sb.Append("--autoplay-policy=no-user-gesture-required ");
-            }
-
-            if (_fileSystemAccessEnabled)
-            {
-                sb.Append("--allow-file-access-from-files ");
-            }
-
-            if (!_webSecurityEnabled)
-            {
-                sb.Append("--disable-web-security ");
-            }
-
-            if (_javascriptClipboardAccessEnabled)
-            {
-                sb.Append("--enable-javascript-clipboard-access ");
-            }
-
-            if (_mediaStreamEnabled)
-            {
-                sb.Append("--enable-usermedia-screen-capturing ");
-            }
-
-            if (!_smoothScrollingEnabled)
-            {
-                sb.Append("--disable-smooth-scrolling ");
-            }
-
-            if (_ignoreCertificateErrorsEnabled)
-            {
-                sb.Append("--ignore-certificate-errors ");
-            }
-
-            if (!string.IsNullOrWhiteSpace(_browserControlInitParameters))
-            {
-                sb.Append(_browserControlInitParameters); //e.g.--hide-scrollbars
-            }
-
-            var options = new CoreWebView2EnvironmentOptions();
-            _webViewEnvironment = await CoreWebView2Environment.CreateAsync();
-            _webViewController = await _webViewEnvironment.CreateCoreWebView2ControllerAsync(_hwnd);
-            _webViewWindow = _webViewController.CoreWebView2;
-
-            var settings = _webViewWindow.Settings;
-            settings.AreHostObjectsAllowed = true;
-            settings.IsScriptEnabled = true;
-            settings.AreDefaultScriptDialogsEnabled = true;
-            settings.IsWebMessageEnabled = true;
-
-            var webtoken = await _webViewWindow.AddScriptToExecuteOnDocumentCreatedAsync(
-                "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { callback(e.data); }); } };");
-            _webViewWindow.WebMessageReceived += (_, args) =>
-            {
-                var message = args.TryGetWebMessageAsString();
-                _WebMessageReceivedCallback(message);
-            };
-
-            _webViewWindow.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
-            _webViewWindow.WebResourceRequested += (_, args) =>
-            {
-                var request = args.Request;
-
-                var uri = request.Uri;
-                var colonPos = uri.IndexOf(":", StringComparison.Ordinal);
-                if (colonPos > 0)
+                var scheme = uri.Substring(0, colonPos);
+                if (_customSchemeNames.Contains(scheme))
                 {
-                    var scheme = uri.Substring(0, colonPos);
-                    if (_customSchemeNames.Contains(scheme))
-                    {
-                        var callback = _customSchemeCallback;
+                    var callback = _customSchemeCallback;
 
-                        var memoryStream = callback!.Invoke(uri, out var contentType);
+                    var memoryStream = callback!.Invoke(uri, out var contentType);
 
-                        var response = _webViewEnvironment.CreateWebResourceResponse(
-                            memoryStream,
-                            200,
-                            "OK",
-                            $"Content-Type: {contentType}");
+                    var response = _webViewEnvironment.CreateWebResourceResponse(
+                        memoryStream,
+                        200,
+                        "OK",
+                        $"Content-Type: {contentType}");
 
-                        args.Response = response;
-                    }
+                    args.Response = response;
                 }
-            };
-
-            _webViewWindow?.PermissionRequested += (sender, args) =>
-            {
-                if (_grantBrowserPermissions)
-                {
-                    args.State = CoreWebView2PermissionState.Allow;
-                }
-            };
-
-            if (string.IsNullOrWhiteSpace(_startUrl))
-            {
-                NavigateToUrl(_startUrl);
             }
-            else if (string.IsNullOrWhiteSpace(_startString))
-            {
-                NavigateToString(_startString);
-            }
-            else
-            {
-                // MessageBox(nullptr, L"Neither StartUrl nor StartString was specified", L"Native Initialization Failed", MB_OK);
-                // exit(0);
-            }
+        };
 
-            if (!ContextMenuEnabled)
+        _webViewWindow?.PermissionRequested += (sender, args) =>
+        {
+            if (_grantBrowserPermissions)
             {
-                SetContextMenuEnabled(false);
+                args.State = CoreWebView2PermissionState.Allow;
             }
+        };
 
-            if (!_devToolsEnabled)
-            {
-                SetDevToolsEnabled(false);
-            }
+        if (string.IsNullOrWhiteSpace(_startUrl))
+        {
+            NavigateToUrl(_startUrl);
+        }
+        else if (string.IsNullOrWhiteSpace(_startString))
+        {
+            NavigateToString(_startString);
+        }
+        else
+        {
+            // MessageBox(nullptr, L"Neither StartUrl nor StartString was specified", L"Native Initialization Failed", MB_OK);
+            // exit(0);
+        }
 
-            if (_transparentEnabled)
-            {
-                SetTransparentEnabled(true);
-            }
+        if (!ContextMenuEnabled)
+        {
+            SetContextMenuEnabled(false);
+        }
 
-            if (_zoom != 100)
-            {
-                SetZoom(_zoom);
-            }
+        if (!_devToolsEnabled)
+        {
+            SetDevToolsEnabled(false);
+        }
 
-            RefitContent();
+        if (_transparentEnabled)
+        {
+            SetTransparentEnabled(true);
+        }
 
-            FocusWebView2();
+        if (_zoom != 100)
+        {
+            SetZoom(_zoom);
+        }
+
+        RefitContent();
+
+        FocusWebView2();
     }
 
     public void Show(bool isAlreadyShown)
