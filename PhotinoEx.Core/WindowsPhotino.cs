@@ -1506,7 +1506,7 @@ public class WindowsPhotino : Photino
 
     public override void Invoke(Action callback)
     {
-        GCHandle callbackHandle = GCHandle.Alloc(callback);
+        var callbackHandle = GCHandle.Alloc(callback);
 
         try
         {
@@ -1517,11 +1517,4 @@ public class WindowsPhotino : Photino
             callbackHandle.Free();
         }
     }
-}
-
-public class InvokeWaitInfo
-{
-    public bool isCompleted;
-    public object lockObject = new object();
-    public ManualResetEvent completionNotifier = new ManualResetEvent(false);
 }
