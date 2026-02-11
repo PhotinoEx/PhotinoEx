@@ -692,7 +692,7 @@ public class WindowsPhotino : Photino
         settings.IsWebMessageEnabled = true;
 
         var webtoken = await _webViewWindow.AddScriptToExecuteOnDocumentCreatedAsync(
-            "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { callback(e.data); }); } };");
+            "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { console.log(e.data); callback(e.data); }); } };");
         _webViewWindow.WebMessageReceived += (_, args) =>
         {
             var message = args.TryGetWebMessageAsString();

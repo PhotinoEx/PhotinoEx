@@ -26,6 +26,11 @@ class Program
             App.MainWindow.ShowMessage("Fatal exception", error.ExceptionObject.ToString() ?? "");
         };
 
+        App.MainWindow.WebMessageReceived += (sender, s) =>
+        {
+            Console.WriteLine(s);
+        };
+
         App.Run();
     }
 }
