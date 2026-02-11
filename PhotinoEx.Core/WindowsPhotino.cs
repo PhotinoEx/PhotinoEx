@@ -543,7 +543,7 @@ public class WindowsPhotino : Photino
         if (_webViewController is not null)
         {
             DLLImports.GetClientRect(_hwnd, out var rect);
-            _webViewController.Bounds = new Rectangle(new Point(rect.Left, rect.Top), new Size(rect.Width, rect.Top));
+            _webViewController.Bounds = new Rectangle(new Point(0, 0), new Size(rect.Right - rect.Left, rect.Bottom - rect.Top));
         }
     }
 
