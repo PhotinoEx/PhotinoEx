@@ -426,8 +426,8 @@ public class WindowsPhotino : Photino
                 {
                     if (HWNDToPhotino.TryGetValue(hwnd, out var photino))
                     {
-                        //Photino->NotifyWebView2WindowMove();
-                        //Photino->RefitContent();
+                        NotifyWebView2WindowMove();
+                        RefitContent();
                     }
 
                     break;
@@ -745,7 +745,7 @@ public class WindowsPhotino : Photino
         else
         {
             // MessageBox(nullptr, L"Neither StartUrl nor StartString was specified", L"Native Initialization Failed", MB_OK);
-            // exit(0);
+            Environment.Exit(69);
         }
 
         if (!ContextMenuEnabled)
@@ -769,7 +769,6 @@ public class WindowsPhotino : Photino
         }
 
         RefitContent();
-
         FocusWebView2();
     }
 
@@ -789,10 +788,8 @@ public class WindowsPhotino : Photino
         {
             if (!string.IsNullOrWhiteSpace(_webview2RuntimePath) || EnsureWebViewIsInstalled())
             {
-                // Start the async operation
                 var attachTask = AttachWebView();
 
-                // Pump messages while waiting
                 while (!attachTask.IsCompleted)
                 {
                     if (DLLImports.PeekMessage(out MSG msg, IntPtr.Zero, 0, 0, Constants.PM_REMOVE))
