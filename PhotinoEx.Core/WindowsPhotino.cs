@@ -734,11 +734,11 @@ public class WindowsPhotino : Photino
             }
         };
 
-        if (string.IsNullOrWhiteSpace(_startUrl))
+        if (!string.IsNullOrEmpty(_startUrl))
         {
             NavigateToUrl(_startUrl);
         }
-        else if (string.IsNullOrWhiteSpace(_startString))
+        else if (!string.IsNullOrEmpty(_startString))
         {
             NavigateToString(_startString);
         }
