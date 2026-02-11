@@ -695,6 +695,7 @@ public class WindowsPhotino : Photino
             "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { console.log(e.data); callback(e.data); }); } };");
         _webViewWindow.WebMessageReceived += (_, args) =>
         {
+            Console.WriteLine(args.TryGetWebMessageAsString());
             var message = args.TryGetWebMessageAsString();
             _WebMessageReceivedCallback(message);
         };
