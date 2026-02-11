@@ -1668,11 +1668,11 @@ public class PhotinoWindow
 
         // For bundled app it can be necessary to consider
         // the app context base directory. Check there too.
-        if (File.Exists(absolutePath) == false)
+        if (!File.Exists(absolutePath))
         {
             absolutePath = $"{AppContext.BaseDirectory}/{path}";
 
-            if (File.Exists(absolutePath) == false)
+            if (!File.Exists(absolutePath))
             {
                 Log($" ** File \"{path}\" could not be found.");
                 return this;
