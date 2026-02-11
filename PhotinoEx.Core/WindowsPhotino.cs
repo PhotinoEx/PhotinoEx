@@ -336,25 +336,12 @@ public class WindowsPhotino : Photino
                 }
             case WM_USER_INVOKE:
                 {
-                    var callback = Marshal.PtrToStructure<Action>(wParam);
+                    var callbackHandle = GCHandle.FromIntPtr(wParam);
+                    var callback = (Action)callbackHandle.Target;
+
                     callback?.Invoke();
 
-                    if (lParam != IntPtr.Zero)
-                    {
-                        var waitInfo = Marshal.PtrToStructure<InvokeWaitInfo>(lParam);
-
-                        if (waitInfo != null)
-                        {
-                            lock (waitInfo.lockObject)
-                            {
-                                waitInfo.isCompleted = true;
-                            }
-
-                            waitInfo.completionNotifier.Set();
-                        }
-                    }
-
-                    return 0;
+                    return IntPtr.Zero;
                 }
             case Constants.WM_GETMINMAXINFO:
                 {
@@ -1519,20 +1506,15 @@ public class WindowsPhotino : Photino
 
     public override void Invoke(Action callback)
     {
-        var waitInfo = new InvokeWaitInfo();
-        var marshalled = Marshal.GetFunctionPointerForDelegate(callback);
-        IntPtr waitInfoPtr = Marshal.AllocHGlobal(Marshal.SizeOf<InvokeWaitInfo>());
+        GCHandle callbackHandle = GCHandle.Alloc(callback);
 
         try
         {
-            Marshal.StructureToPtr(waitInfo, waitInfoPtr, false);
-
-            DLLImports.SendMessage(_hwnd, WM_USER_INVOKE, marshalled, waitInfoPtr);
+            DLLImports.SendMessage(_hwnd, WM_USER_INVOKE, GCHandle.ToIntPtr(callbackHandle), IntPtr.Zero);
         }
         finally
         {
-            // TODO: Add return values, exception handling, etc.
-            Marshal.FreeHGlobal(waitInfoPtr);
+            callbackHandle.Free();
         }
     }
 }
