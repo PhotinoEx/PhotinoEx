@@ -61,7 +61,7 @@ public class PhotinoWebViewManager : WebViewManager
             SingleWriter = false,
             AllowSynchronousContinuations = false
         });
-        Task.Run(messagePump);
+        Task.Run(MessagePump);
     }
 
     public Stream HandleWebRequest(object sender, string schema, string url, out string contentType)
@@ -104,7 +104,7 @@ public class PhotinoWebViewManager : WebViewManager
         }
     }
 
-    private async Task messagePump()
+    private async Task MessagePump()
     {
         var reader = _channel.Reader;
 
