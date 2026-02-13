@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Runtime.InteropServices;
@@ -564,55 +565,28 @@ public class WindowsPhotino : Photino
 
     private bool InstallWebView2()
     {
-        Console.WriteLine("install webview");
-        // const wchar_t* srcURL = L"https://go.microsoft.com/fwlink/p/?LinkId=2124703";
-        // const wchar_t* destFile = L"MicrosoftEdgeWebview2Setup.exe";
-        //
-        // if (S_OK == URLDownloadToFile(NULL, srcURL, destFile, 0, NULL))
-        // {
-        //     LPWSTR command = new wchar_t[100]{ L"MicrosoftEdgeWebview2Setup.exe\0" };	//add these switches? /silent /install
-        //
-        //     STARTUPINFO si;
-        //     PROCESS_INFORMATION pi;
-        //
-        //     ZeroMemory(&si, sizeof(si));
-        //     si.cb = sizeof(si);
-        //     ZeroMemory(&pi, sizeof(pi));
-        //
-        //     bool success = CreateProcess(
-        //         NULL,		// No module name (use command line)
-        //         command,	// Command line
-        //         NULL,       // Process handle not inheritable
-        //         NULL,       // Thread handle not inheritable
-        //         FALSE,      // Set handle inheritance to FALSE
-        //         0,          // No creation flags
-        //         NULL,       // Use parent's environment block
-        //         NULL,       // Use parent's starting directory
-        //         &si,        // Pointer to STARTUPINFO structure
-        //         &pi);		// Pointer to PROCESS_INFORMATION structure
-        //
-        //     if(success)
-        //     {
-        //         // wait for the installation to complete
-        //         WaitForSingleObject(pi.hProcess, INFINITE);
-        //         CloseHandle(pi.hProcess);
-        //         CloseHandle(pi.hThread);
-        //     }
-        //
-        //     return success;
-        // }
-        //
-        // return false;
-        return true;
+        var srcUrl = "https://go.microsoft.com/fwlink/p/?LinkId=2124703";
+
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = srcUrl,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to open URL: {ex}");
+        }
+
+        return false;
     }
 
     private async Task AttachWebView()
     {
         var runtimePath = string.IsNullOrWhiteSpace(_webview2RuntimePath) ? _webview2RuntimePath : null;
 
-        // size_t runtimePathLen = wcsnlen(_webview2RuntimePath, _countof(_webview2RuntimePath));
-        // PCWSTR runtimePath = runtimePathLen > 0 ? &_webview2RuntimePath[0] : nullptr;
-        //
         // //TODO: Implement special startup strings.
         // //https://peter.sh/experiments/chromium-command-line-switches/
         // //https://learn.microsoft.com/en-us/dotnet/api/microsoft.web.webview2.core.corewebview2environmentoptions.additionalbrowserarguments?view=webview2-dotnet-1.0.1938.49&viewFallbackFrom=webview2-dotnet-1.0.1901.177view%3Dwebview2-1.0.1901.177
@@ -663,7 +637,7 @@ public class WindowsPhotino : Photino
 
         if (!string.IsNullOrWhiteSpace(_browserControlInitParameters))
         {
-            sb.Append(_browserControlInitParameters); //e.g.--hide-scrollbars
+            sb.Append(_browserControlInitParameters); // e.g. --hide-scrollbars
         }
 
         var options = new CoreWebView2EnvironmentOptions();
@@ -678,7 +652,7 @@ public class WindowsPhotino : Photino
         settings.AreDefaultScriptDialogsEnabled = true;
         settings.IsWebMessageEnabled = true;
 
-        var webtoken = await _webViewWindow.AddScriptToExecuteOnDocumentCreatedAsync(
+        await _webViewWindow.AddScriptToExecuteOnDocumentCreatedAsync(
             "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { console.log(e.data); callback(e.data); }); } };");
         _webViewWindow.WebMessageReceived += (_, args) =>
         {
@@ -732,7 +706,7 @@ public class WindowsPhotino : Photino
         }
         else
         {
-            // MessageBox(nullptr, L"Neither StartUrl nor StartString was specified", L"Native Initialization Failed", MB_OK);
+            Console.WriteLine("Neither StartUrl nor StartString was specified");
             Environment.Exit(69);
         }
 
