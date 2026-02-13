@@ -1,0 +1,8 @@
+   This project is a fork of TryPhotino
+   Original repository: https://github.com/tryphotino
+   Copyright 2019-2024 Original contributors to TryPhotino
+   Licensed under Apache License 2.0
+
+   Modifications Copyright 2025 CWXDEV
+   - Complete rewrite of module Photino.NET
+   - Project restructured
