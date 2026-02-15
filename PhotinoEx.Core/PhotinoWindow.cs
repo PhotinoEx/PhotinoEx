@@ -232,7 +232,7 @@ public class PhotinoWindow
             }
             else
             {
-                Invoke(() => ((WindowsPhotino)_instance).Center());
+                Invoke(() => ((WindowsPhotino) _instance).Center());
             }
         }
     }
@@ -873,7 +873,7 @@ public class PhotinoWindow
                 }
                 else
                 {
-                    Invoke(() => ((WindowsPhotino)_instance).SetMaxSize(new Size(value.X, value.Y)));
+                    Invoke(() => ((WindowsPhotino) _instance).SetMaxSize(new Size(value.X, value.Y)));
                 }
             }
         }
@@ -960,7 +960,7 @@ public class PhotinoWindow
                 }
                 else
                 {
-                    Invoke(() => ((WindowsPhotino)_instance).SetMinSize(new Size(value.X, value.Y)));
+                    Invoke(() => ((WindowsPhotino) _instance).SetMinSize(new Size(value.X, value.Y)));
                 }
             }
         }
@@ -2463,7 +2463,7 @@ public class PhotinoWindow
     {
         if (IsWindowsPlatform)
         {
-            Invoke(() => ((WindowsPhotino)_instance).SetWebView2RuntimePath(data));
+            Invoke(() => ((WindowsPhotino) _instance).SetWebView2RuntimePath(data));
         }
         else
         {
@@ -2585,17 +2585,6 @@ public class PhotinoWindow
     /// Thrown when the window is not initialized.
     /// </exception>
     /// <param name="message">Message as string</param>
-    public void SendWebMessage(string message)
-    {
-        Log($".SendWebMessage({message})");
-        if (_instance is null)
-        {
-            throw new ApplicationException("SendWebMessage cannot be called until after the Photino window is initialized.");
-        }
-
-        Invoke(() => _instance.SendWebMessage(message));
-    }
-
     public async Task SendWebMessageAsync(string message)
     {
         await Task.Run(() =>
@@ -2619,15 +2608,18 @@ public class PhotinoWindow
     /// </exception>
     /// <param name="title">The title of the notification</param>
     /// <param name="body">The text of the notification</param>
-    public void SendNotification(string title, string body)
+    public async Task SendNotificationAsync(string title, string body)
     {
-        Log($".SendNotification({title}, {body})");
-        if (_instance is null)
+        await Task.Run(() =>
         {
-            throw new ApplicationException("SendNotification cannot be called until after the Photino window is initialized.");
-        }
+            Log($".SendNotification({title}, {body})");
+            if (_instance is null)
+            {
+                throw new ApplicationException("SendNotification cannot be called until after the Photino window is initialized.");
+            }
 
-        Invoke(() => _instance.ShowNotification(title, body));
+            Invoke(() => _instance.ShowNotification(title, body));
+        });
     }
 
     /// <summary>
@@ -2642,12 +2634,15 @@ public class PhotinoWindow
     /// <param name="title">Title of the dialog</param>
     /// <param name="defaultPath">Default path. Defaults to <see cref="Environment.SpecialFolder.MyDocuments"/></param>
     /// <param name="multiSelect">Whether multiple selections are allowed</param>
-    /// <param name="filters">Array of <see cref="Extensions"/> for filtering.</param>
+    /// <param name="filterPatterns">Array for filtering.</param>
     /// <returns>Array of file paths as strings</returns>
-    public string[] ShowOpenFile(string title = "Choose file", string defaultPath = null, bool multiSelect = false,
-        (string Name, string[] Extensions)[] filters = null)
+    private List<string> ShowOpenFileDialog(string title = "Choose file", string? defaultPath = null, bool multiSelect = false,
+        List<string>? filterPatterns = null)
     {
-        return ShowOpenDialog(false, title, defaultPath, multiSelect, filters);
+        List<string>? results = null;
+        Invoke(async () => { results = await _instance.ShowOpenFileAsync(title, defaultPath, multiSelect, filterPatterns); });
+
+        return results!;
     }
 
     /// <summary>
@@ -2662,12 +2657,12 @@ public class PhotinoWindow
     /// <param name="title">Title of the dialog</param>
     /// <param name="defaultPath">Default path. Defaults to <see cref="Environment.SpecialFolder.MyDocuments"/></param>
     /// <param name="multiSelect">Whether multiple selections are allowed</param>
-    /// <param name="filters">Array of <see cref="Extensions"/> for filtering.</param>
+    /// <param name="filterPatterns">List of filtering.</param>
     /// <returns>Array of file paths as strings</returns>
-    public async Task<string[]> ShowOpenFileAsync(string title = "Choose file", string defaultPath = null, bool multiSelect = false,
-        (string Name, string[] Extensions)[] filters = null)
+    public async Task<List<string>> ShowOpenFileDialogAsync(string title = "Choose file", string? defaultPath = null, bool multiSelect = false,
+        List<string>? filterPatterns = null)
     {
-        return await Task.Run(() => ShowOpenFile(title, defaultPath, multiSelect, filters));
+        return await Task.Run(() => ShowOpenFileDialog(title, defaultPath, multiSelect, filterPatterns));
     }
 
     /// <summary>
@@ -2680,9 +2675,12 @@ public class PhotinoWindow
     /// <param name="defaultPath">Default path. Defaults to <see cref="Environment.SpecialFolder.MyDocuments"/></param>
     /// <param name="multiSelect">Whether multiple selections are allowed</param>
     /// <returns>Array of folder paths as strings</returns>
-    public string[] ShowOpenFolder(string title = "Select folder", string defaultPath = null, bool multiSelect = false)
+    private List<string> ShowOpenFolderDialog(string title = "Select folder", string? defaultPath = null, bool multiSelect = false)
     {
-        return ShowOpenDialog(true, title, defaultPath, multiSelect, null);
+        List<string>? results = null;
+        Invoke(() => { results = _instance.ShowOpenFolder(title, defaultPath, multiSelect); });
+
+        return results!;
     }
 
     /// <summary>
@@ -2695,9 +2693,10 @@ public class PhotinoWindow
     /// <param name="defaultPath">Default path. Defaults to <see cref="Environment.SpecialFolder.MyDocuments"/></param>
     /// <param name="multiSelect">Whether multiple selections are allowed</param>
     /// <returns>Array of folder paths as strings</returns>
-    public async Task<string[]> ShowOpenFolderAsync(string title = "Choose file", string defaultPath = null, bool multiSelect = false)
+    public async Task<List<string>> ShowOpenFolderDialogAsync(string title = "Choose file", string? defaultPath = null,
+        bool multiSelect = false)
     {
-        return await Task.Run(() => ShowOpenFolder(title, defaultPath, multiSelect));
+        return await Task.Run(() => ShowOpenFolderDialog(title, defaultPath, multiSelect));
     }
 
     /// <summary>
@@ -2711,17 +2710,18 @@ public class PhotinoWindow
     /// </exception>
     /// <param name="title">Title of the dialog</param>
     /// <param name="defaultPath">Default path. Defaults to <see cref="Environment.SpecialFolder.MyDocuments"/></param>
-    /// <param name="filters">Array of <see cref="Extensions"/> for filtering.</param>
+    /// <param name="filterPatterns">Array for filtering.</param>
     /// <returns></returns>
-    public string ShowSaveFile(string title = "Save file", string defaultPath = null, (string Name, string[] Extensions)[] filters = null)
+    private string ShowSaveFileDialog(string title = "Save file", string? defaultPath = null,
+        List<string>? filterPatterns = null)
     {
         defaultPath ??= Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        filters ??= Array.Empty<(string, string[])>();
+        filterPatterns ??= new List<string>();
 
-        string result = null;
-        var nativeFilters = GetNativeFilters(filters);
+        string result = "";
+        var nativeFilters = GetNativeFilters(filterPatterns);
 
-        Invoke(() => { result = _instance.ShowSaveFile(title, defaultPath, nativeFilters, filters.Length); });
+        Invoke(() => { result = _instance.ShowSaveFile(title, defaultPath, nativeFilters); });
 
         return result;
     }
@@ -2737,12 +2737,12 @@ public class PhotinoWindow
     /// </exception>
     /// <param name="title">Title of the dialog</param>
     /// <param name="defaultPath">Default path. Defaults to <see cref="Environment.SpecialFolder.MyDocuments"/></param>
-    /// <param name="filters">Array of <see cref="Extensions"/> for filtering.</param>
+    /// <param name="filterPatterns">Array of <see cref="Extensions"/> for filtering.</param>
     /// <returns></returns>
-    public async Task<string> ShowSaveFileAsync(string title = "Choose file", string defaultPath = null,
-        (string Name, string[] Extensions)[] filters = null)
+    public async Task<string?> ShowSaveFileDialogAsync(string title = "Choose file", string? defaultPath = null,
+        List<string>? filterPatterns = null)
     {
-        return await Task.Run(() => ShowSaveFile(title, defaultPath, filters));
+        return await Task.Run(() => ShowSaveFileDialog(title, defaultPath, filterPatterns));
     }
 
     /// <summary>
@@ -2756,55 +2756,12 @@ public class PhotinoWindow
     /// <param name="buttons">Available interaction buttons <see cref="DialogButtons"/></param>
     /// <param name="icon">Icon of the dialog <see cref="DialogButtons"/></param>
     /// <returns><see cref="DialogResult" /></returns>
-    public DialogResult ShowMessage(string title, string text, DialogButtons buttons = DialogButtons.Ok,
+    public DialogResult ShowMessageDialog(string title, string text, DialogButtons buttons = DialogButtons.Ok,
         DialogIcon icon = DialogIcon.Info)
     {
         var result = DialogResult.Cancel;
         Invoke(() => result = _instance.ShowMessage(title, text, buttons, icon));
         return result;
-    }
-
-    /// <summary>
-    /// Show a native open dialog.
-    /// </summary>
-    /// <param name="foldersOnly">Whether files are hidden</param>
-    /// <param name="title">Title of the dialog</param>
-    /// <param name="defaultPath">Default path. Defaults to <see cref="Environment.SpecialFolder.MyDocuments"/></param>
-    /// <param name="multiSelect">Whether multiple selections are allowed</param>
-    /// <param name="filters">Array of <see cref="Extensions"/> for filtering.</param>
-    /// <returns>Array of paths</returns>
-    private string[] ShowOpenDialog(bool foldersOnly, string title, string defaultPath, bool multiSelect,
-        (string Name, string[] Extensions)[] filters)
-    {
-        // TODO: Fix
-        // defaultPath ??= Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        // filters ??= Array.Empty<(string, string[])>();
-
-        var results = Array.Empty<string>();
-        // var nativeFilters = GetNativeFilters(filters, foldersOnly);
-        //
-        // Invoke(() =>
-        // {
-        //     var resultCount = 0;
-        //     var ptrResults = foldersOnly
-        //         ? _instance.GetDialog()!.ShowOpenFolder(title, defaultPath, multiSelect, out resultCount)
-        //         : _instance.GetDialog()!.ShowOpenFile(title, defaultPath, multiSelect, nativeFilters, nativeFilters.Length,
-        //             out resultCount);
-        //     if (resultCount == 0)
-        //     {
-        //         return;
-        //     }
-        //
-        //     var ptrArray = new IntPtr[resultCount];
-        //     results = new string[resultCount];
-        //     // Marshal.Copy(ptrResults, ptrArray, 0, resultCount);
-        //     for (var i = 0; i < resultCount; i++)
-        //     {
-        //         results[i] = Marshal.PtrToStringAuto(ptrArray[i]);
-        //     }
-        // });
-
-        return results;
     }
 
     /// <summary>
@@ -2828,16 +2785,16 @@ public class PhotinoWindow
     /// <param name="filters"></param>
     /// <param name="empty"></param>
     /// <returns>String array of filters</returns>
-    private static string[] GetNativeFilters((string Name, string[] Extensions)[] filters, bool empty = false)
+    private static List<string> GetNativeFilters(List<string> filters, bool empty = false)
     {
-        var nativeFilters = Array.Empty<string>();
-        if (!empty && filters is { Length: > 0 })
+        var nativeFilters = new List<string>();
+        if (!empty && filters.Any())
         {
-            nativeFilters = IsMacOsPlatform
-                ? filters.SelectMany(t => t.Extensions.Select(s => s == "*" ? s : s.TrimStart('*', '.'))).ToArray()
-                : filters.Select(t =>
-                        $"{t.Name}|{t.Extensions.Select(s => s.StartsWith('.') ? $"*{s}" : !s.StartsWith("*.") ? $"*.{s}" : s).Aggregate((e1, e2) => $"{e1};{e2}")}")
-                    .ToArray();
+            // nativeFilters = IsMacOsPlatform
+            //     ? filters.Select(t => t.Select(s => s == "*" ? s : s.TrimStart('*', '.'))).ToList()
+            //     : filters.Select(t =>
+            //             $"{t.Name}|{t.Extensions.Select(s => s.StartsWith('.') ? $"*{s}" : !s.StartsWith("*.") ? $"*.{s}" : s).Aggregate((e1, e2) => $"{e1};{e2}")}")
+            //         .ToList();
         }
 
         return nativeFilters;
@@ -3188,7 +3145,8 @@ public class PhotinoWindow
     public MemoryStream OnCustomScheme(string url, out string contentType)
     {
         int length = url.IndexOf(':');
-        string scheme = length >= 0 ? url.Substring(0, length).ToLower()
+        string scheme = length >= 0
+            ? url.Substring(0, length).ToLower()
             : throw new ApplicationException($"URL: '{url}' does not contain a colon.");
 
         if (!this.CustomSchemes.ContainsKey(scheme))

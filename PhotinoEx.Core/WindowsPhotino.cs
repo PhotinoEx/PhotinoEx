@@ -1336,7 +1336,7 @@ public class WindowsPhotino : Photino
         return "";
     }
 
-    public override string ShowOpenFile(string title, string path, bool multiSelect, string[] filters, int filterCount, out int resultCount)
+    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<string>? filterPatterns)
     {
         // HRESULT hr;
         // title = _window->ToUTF16String(title);
@@ -1365,11 +1365,10 @@ public class WindowsPhotino : Photino
         //     pfd->Release();
         // }
         // return nullptr;
-        resultCount = 0;
-        return "";
+        return new List<string>();
     }
 
-    public override string ShowOpenFolder(string title, string path, bool multiSelect, out int resultCount)
+    public override List<string> ShowOpenFolder(string title, string? path, bool multiSelect)
     {
         // HRESULT hr;
         // title = _window->ToUTF16String(title);
@@ -1396,11 +1395,10 @@ public class WindowsPhotino : Photino
         //     pfd->Release();
         // }
         // return nullptr;
-        resultCount = 0;
-        return "";
+        return new List<string>();
     }
 
-    public override string ShowSaveFile(string title, string path, string[] filters, int filterCount)
+    public override string ShowSaveFile(string title, string? path, List<string> filterPatterns)
     {
         // HRESULT hr;
         // title = _window->ToUTF16String(title);

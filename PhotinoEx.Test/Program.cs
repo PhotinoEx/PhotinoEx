@@ -23,7 +23,7 @@ class Program
 
         AppDomain.CurrentDomain.UnhandledException += (_, error) =>
         {
-            App.MainWindow.ShowMessage("Fatal exception", error.ExceptionObject.ToString() ?? "");
+            App.MainWindow.ShowMessageDialog("Fatal exception", error.ExceptionObject.ToString() ?? "");
         };
 
         App.MainWindow.WebMessageReceived += (sender, s) =>

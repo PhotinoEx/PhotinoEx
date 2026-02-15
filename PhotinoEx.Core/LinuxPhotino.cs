@@ -6,10 +6,16 @@ using Gio;
 using GLib;
 using GObject;
 using Gtk;
+using Gtk.Internal;
 using PhotinoEx.Core.Enums;
+using PhotinoEx.Core.Models;
 using WebKit;
 using Action = System.Action;
 using Application = Gtk.Application;
+using ApplicationWindow = Gtk.ApplicationWindow;
+using AsyncResult = Gio.Internal.AsyncResult;
+using FileDialog = Gtk.FileDialog;
+using FileFilter = Gtk.FileFilter;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Notification = Gio.Notification;
 using Window = Gtk.Window;
@@ -114,18 +120,6 @@ public class LinuxPhotino : Photino
             SetTopmost(true);
         }
 
-        // Window.FocusInEvent += OnFocusInEvent;
-        // Window.FocusOutEvent += OnFocusOutEvent;
-
-        // These must be called after the webview control is initialized.
-        // g_signal_connect(G_OBJECT(_webview), "context-menu",
-        //     G_CALLBACK(on_webview_context_menu),
-        //     this);
-        //
-        // g_signal_connect(G_OBJECT(_webview), "permission-request",
-        //     G_CALLBACK(on_permission_request),
-        //     this);
-
         if (_params.Transparent)
         {
             SetTransparentEnabled(true);
@@ -226,13 +220,22 @@ public class LinuxPhotino : Photino
             }
         }
 
+        // TODO: fix this
+        // Window.FocusInEvent += OnFocusInEvent;
+        // Window.FocusOutEvent += OnFocusOutEvent;
+
+        // These must be called after the webview control is initialized.
+        // g_signal_connect(G_OBJECT(_webview), "context-menu",
+        //     G_CALLBACK(on_webview_context_menu),
+        //     this);
+        //
+        // g_signal_connect(G_OBJECT(_webview), "permission-request",
+        //     G_CALLBACK(on_permission_request),
+        //     this);
+
         _window.Present();
     }
 
-    public int LastHeight { get; set; }
-    public int LastWidth { get; set; }
-    public int LastTop { get; set; }
-    public int LastLeft { get; set; }
     private Application _application { get; set; }
     private Window? _window { get; set; }
     private PhotinoInitParams _params { get; set; }
@@ -578,7 +581,7 @@ public class LinuxPhotino : Photino
 
     public override void SetIconFile(string filename)
     {
-
+        _window?.SetIconName(filename);
     }
 
     public override void SetFullScreen(bool fullScreen)
@@ -649,6 +652,7 @@ public class LinuxPhotino : Photino
 
     public override void ShowNotification(string title, string message)
     {
+        // TODO: expand this to include icons/type of notification - e.g. error
         var test = new Notification();
         test.SetBody(message);
         test.SetTitle(title);
@@ -667,7 +671,39 @@ public class LinuxPhotino : Photino
 
     public override List<Monitor> GetAllMonitors()
     {
-        throw new NotImplementedException();
+        var display = _window?.GetDisplay();
+        if (display is null)
+        {
+            throw new Exception("Something went wrong getting display from GTK4");
+        }
+
+        var monitors = display.GetMonitors();
+        var count = monitors.GetNItems();
+
+        var monitorList = new List<Monitor>();
+
+        if (count == 0)
+        {
+            return monitorList;
+        }
+
+        for (uint i = 0; i < count; i++)
+        {
+            // TODO: Test this returns what we actually want
+            var monitorPtr = monitors.GetItem(i);
+            var mont = new Gdk.Monitor(new MonitorHandle(monitorPtr, false));
+            monitorList.Add(new Monitor(new MonitorRect()
+            {
+                Height = mont.HeightMm,
+                Width = mont.WidthMm
+            }, new MonitorRect()
+            {
+                Height = mont.HeightMm,
+                Width = mont.WidthMm
+            }, mont.Scale));
+        }
+
+        return monitorList;
     }
 
     public override void SetClosingCallback(Func<bool> callback)
@@ -721,25 +757,58 @@ public class LinuxPhotino : Photino
         _syncContext.Send(_ => callback(), null);
     }
 
-    public override string ShowOpenFile(string title, string path, bool multiSelect, string[] filters, int filterCount, out int resultCount)
+    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<string>? filterPatterns)
     {
-        var result = $"{title}:{path}:{multiSelect}:{string.Concat(filters)}:{filterCount}";
-        Console.WriteLine(result);
-        resultCount = 1;
-        return result;
+        var dialog = FileDialog.New();
+        dialog.SetTitle("Select a File");
+
+        var filter = FileFilter.New();
+        filter.Name = "FilterPatterns";
+        foreach (var s in filterPatterns ?? new List<string>())
+        {
+            filter.AddPattern(s); // *.txt
+        }
+
+        var results = new List<string>();
+
+        if (multiSelect)
+        {
+            var files = await dialog.OpenMultipleAsync(_window);
+
+            for (uint i = 0; i < files?.GetNItems(); i++)
+            {
+                var item = files.GetObject(i) as Gio.File;
+                if (item is null)
+                {
+                    return results;
+                }
+
+                results.Add(item.GetPath());
+            }
+        }
+        else
+        {
+            var file = await dialog.OpenAsync(_window);
+
+            if (file is not null)
+            {
+                var pathToUse = file.GetPath();
+                results.Add(pathToUse);
+            }
+        }
+
+        return results;
     }
 
-    public override string ShowOpenFolder(string title, string path, bool multiSelect, out int resultCount)
+    public override List<string> ShowOpenFolder(string title, string? path, bool multiSelect)
     {
-        var result = $"{title}:{path}:{multiSelect}";
-        Console.WriteLine(result);
-        resultCount = 1;
-        return result;
+        Console.WriteLine($"{title}:{path}:{multiSelect}");
+        return new List<string>();
     }
 
-    public override string ShowSaveFile(string title, string path, string[] filters, int filterCount)
+    public override string ShowSaveFile(string title, string? path, List<string> filterPatterns)
     {
-        var result = $"{title}:{path}:{string.Concat(filters)}:{filterCount}";
+        var result = $"{title}:{path}:{string.Concat(filterPatterns)}";
         Console.WriteLine(result);
         return result;
     }

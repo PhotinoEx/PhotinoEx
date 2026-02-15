@@ -306,17 +306,17 @@ public class ApplePhotino : Photino
         throw new NotImplementedException();
     }
 
-    public override string ShowOpenFile(string title, string path, bool multiSelect, string[] filters, int filterCount, out int resultCount)
+    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<string>? filterPatterns)
     {
         throw new NotImplementedException();
     }
 
-    public override string ShowOpenFolder(string title, string path, bool multiSelect, out int resultCount)
+    public override List<string> ShowOpenFolder(string title, string? path, bool multiSelect)
     {
         throw new NotImplementedException();
     }
 
-    public override string ShowSaveFile(string title, string path, string[] filters, int filterCount)
+    public override string ShowSaveFile(string title, string? path, List<string> filterPatterns)
     {
         throw new NotImplementedException();
     }

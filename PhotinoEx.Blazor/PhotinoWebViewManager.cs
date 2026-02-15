@@ -111,7 +111,7 @@ public class PhotinoWebViewManager : WebViewManager
         while (true)
         {
             var message = await reader.ReadAsync();
-            _window.SendWebMessage(message);
+            await _window.SendWebMessageAsync(message);
         }
     }
 

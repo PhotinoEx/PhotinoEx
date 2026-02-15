@@ -1,6 +1,11 @@
 @page "/"
 <h3>Home</h3>
+<button @onclick="OpenFile">ClickMe</button>
 
 @code {
 
+    private async Task OpenFile()
+    {
+        await Program.App?.MainWindow.ShowOpenFileDialogAsync(multiSelect: true);
+    }
 }
