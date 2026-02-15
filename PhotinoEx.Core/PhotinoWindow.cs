@@ -2623,29 +2623,6 @@ public class PhotinoWindow
     }
 
     /// <summary>
-    /// Show an open file dialog native to the OS.
-    /// </summary>
-    /// <remarks>
-    /// Filter names are not used on macOS. Use async version for PhotinoEx.Blazor as syncronous version crashes.
-    /// </remarks>
-    /// <exception cref="ApplicationException">
-    /// Thrown when the window is not initialized.
-    /// </exception>
-    /// <param name="title">Title of the dialog</param>
-    /// <param name="defaultPath">Default path. Defaults to <see cref="Environment.SpecialFolder.MyDocuments"/></param>
-    /// <param name="multiSelect">Whether multiple selections are allowed</param>
-    /// <param name="filterPatterns">Array for filtering.</param>
-    /// <returns>Array of file paths as strings</returns>
-    private List<string> ShowOpenFileDialog(string title = "Choose file", string? defaultPath = null, bool multiSelect = false,
-        List<string>? filterPatterns = null)
-    {
-        List<string>? results = null;
-        Invoke(async () => { results = await _instance.ShowOpenFileAsync(title, defaultPath, multiSelect, filterPatterns); });
-
-        return results!;
-    }
-
-    /// <summary>
     /// Async version is required for PhotinoEx.Blazor
     /// </summary>
     /// <remarks>
@@ -2662,25 +2639,7 @@ public class PhotinoWindow
     public async Task<List<string>> ShowOpenFileDialogAsync(string title = "Choose file", string? defaultPath = null, bool multiSelect = false,
         List<string>? filterPatterns = null)
     {
-        return await Task.Run(() => ShowOpenFileDialog(title, defaultPath, multiSelect, filterPatterns));
-    }
-
-    /// <summary>
-    /// Show an open folder dialog native to the OS.
-    /// </summary>
-    /// <exception cref="ApplicationException">
-    /// Thrown when the window is not initialized.
-    /// </exception>
-    /// <param name="title">Title of the dialog</param>
-    /// <param name="defaultPath">Default path. Defaults to <see cref="Environment.SpecialFolder.MyDocuments"/></param>
-    /// <param name="multiSelect">Whether multiple selections are allowed</param>
-    /// <returns>Array of folder paths as strings</returns>
-    private List<string> ShowOpenFolderDialog(string title = "Select folder", string? defaultPath = null, bool multiSelect = false)
-    {
-        List<string>? results = null;
-        Invoke(() => { results = _instance.ShowOpenFolder(title, defaultPath, multiSelect); });
-
-        return results!;
+        return await _instance.ShowOpenFileAsync(title, defaultPath, multiSelect, filterPatterns);
     }
 
     /// <summary>
@@ -2696,34 +2655,7 @@ public class PhotinoWindow
     public async Task<List<string>> ShowOpenFolderDialogAsync(string title = "Choose file", string? defaultPath = null,
         bool multiSelect = false)
     {
-        return await Task.Run(() => ShowOpenFolderDialog(title, defaultPath, multiSelect));
-    }
-
-    /// <summary>
-    /// Show an save folder dialog native to the OS.
-    /// </summary>
-    /// <remarks>
-    /// Filter names are not used on macOS.
-    /// </remarks>
-    /// <exception cref="ApplicationException">
-    /// Thrown when the window is not initialized.
-    /// </exception>
-    /// <param name="title">Title of the dialog</param>
-    /// <param name="defaultPath">Default path. Defaults to <see cref="Environment.SpecialFolder.MyDocuments"/></param>
-    /// <param name="filterPatterns">Array for filtering.</param>
-    /// <returns></returns>
-    private string ShowSaveFileDialog(string title = "Save file", string? defaultPath = null,
-        List<string>? filterPatterns = null)
-    {
-        defaultPath ??= Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        filterPatterns ??= new List<string>();
-
-        string result = "";
-        var nativeFilters = GetNativeFilters(filterPatterns);
-
-        Invoke(() => { result = _instance.ShowSaveFile(title, defaultPath, nativeFilters); });
-
-        return result;
+        return await _instance.ShowOpenFolderAsync(title, defaultPath, multiSelect);
     }
 
     /// <summary>
@@ -2742,7 +2674,13 @@ public class PhotinoWindow
     public async Task<string?> ShowSaveFileDialogAsync(string title = "Choose file", string? defaultPath = null,
         List<string>? filterPatterns = null)
     {
-        return await Task.Run(() => ShowSaveFileDialog(title, defaultPath, filterPatterns));
+        defaultPath ??= Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        filterPatterns ??= new List<string>();
+
+        string result = "";
+        var nativeFilters = GetNativeFilters(filterPatterns);
+
+        return await _instance.ShowSaveFileAsync(title, defaultPath, nativeFilters);
     }
 
     /// <summary>

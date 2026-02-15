@@ -311,12 +311,12 @@ public class ApplePhotino : Photino
         throw new NotImplementedException();
     }
 
-    public override List<string> ShowOpenFolder(string title, string? path, bool multiSelect)
+    public override Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
     {
         throw new NotImplementedException();
     }
 
-    public override string ShowSaveFile(string title, string? path, List<string> filterPatterns)
+    public override Task<string> ShowSaveFileAsync(string title, string? path, List<string>? filterPatterns)
     {
         throw new NotImplementedException();
     }

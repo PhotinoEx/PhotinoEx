@@ -11,11 +11,15 @@ using PhotinoEx.Core.Enums;
 using PhotinoEx.Core.Models;
 using WebKit;
 using Action = System.Action;
+using AlertDialog = Gtk.AlertDialog;
 using Application = Gtk.Application;
 using ApplicationWindow = Gtk.ApplicationWindow;
 using AsyncResult = Gio.Internal.AsyncResult;
+using Dialog = Gtk.Dialog;
+using File = Gio.File;
 using FileDialog = Gtk.FileDialog;
 using FileFilter = Gtk.FileFilter;
+using MessageDialog = Gtk.MessageDialog;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Notification = Gio.Notification;
 using Window = Gtk.Window;
@@ -760,7 +764,7 @@ public class LinuxPhotino : Photino
     public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<string>? filterPatterns)
     {
         var dialog = FileDialog.New();
-        dialog.SetTitle("Select a File");
+        dialog.SetTitle(title);
 
         var filter = FileFilter.New();
         filter.Name = "FilterPatterns";
@@ -771,51 +775,195 @@ public class LinuxPhotino : Photino
 
         var results = new List<string>();
 
-        if (multiSelect)
+        try
         {
-            var files = await dialog.OpenMultipleAsync(_window);
-
-            for (uint i = 0; i < files?.GetNItems(); i++)
+            if (multiSelect)
             {
-                var item = files.GetObject(i) as Gio.File;
-                if (item is null)
-                {
-                    return results;
-                }
+                var files = await dialog.OpenMultipleAsync(_window);
 
-                results.Add(item.GetPath());
+                for (uint i = 0; i < files?.GetNItems(); i++)
+                {
+                    var item = files.GetObject(i) as File;
+                    if (item is null)
+                    {
+                        return results;
+                    }
+
+                    results.Add(item.GetPath());
+                }
+            }
+            else
+            {
+                var file = await dialog.OpenAsync(_window);
+
+                if (file is not null)
+                {
+                    var pathToUse = file.GetPath();
+                    results.Add(pathToUse);
+                }
             }
         }
-        else
+        catch (Exception e)
         {
-            var file = await dialog.OpenAsync(_window);
-
-            if (file is not null)
-            {
-                var pathToUse = file.GetPath();
-                results.Add(pathToUse);
-            }
+            Console.WriteLine(e);
         }
 
         return results;
     }
 
-    public override List<string> ShowOpenFolder(string title, string? path, bool multiSelect)
+    /// <summary>
+    /// TODO: GTK4 currently does not allow multiselect on folders. the api is there, just does not let me multiselect
+    /// </summary>
+    /// <param name="title"></param>
+    /// <param name="path"></param>
+    /// <param name="multiSelect"></param>
+    /// <returns></returns>
+    public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
     {
-        Console.WriteLine($"{title}:{path}:{multiSelect}");
-        return new List<string>();
+        var dialog = FileDialog.New();
+        dialog.SetTitle(title);
+
+        var results = new List<string>();
+
+        try
+        {
+            if (multiSelect)
+            {
+                var files = await dialog.SelectMultipleFoldersAsync(_window);
+
+                for (uint i = 0; i < files?.GetNItems(); i++)
+                {
+                    var item = files.GetObject(i) as File;
+                    if (item is null)
+                    {
+                        return results;
+                    }
+
+                    results.Add(item.GetPath());
+                }
+            }
+            else
+            {
+                var file = await dialog.SelectFolderAsync(_window);
+
+                if (file is not null)
+                {
+                    var pathToUse = file.GetPath();
+                    results.Add(pathToUse);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+
+        return results;
     }
 
-    public override string ShowSaveFile(string title, string? path, List<string> filterPatterns)
+    public override async Task<string> ShowSaveFileAsync(string title, string? path, List<string>? filterPatterns)
     {
-        var result = $"{title}:{path}:{string.Concat(filterPatterns)}";
-        Console.WriteLine(result);
-        return result;
+        var dialog = FileDialog.New();
+        dialog.SetTitle(title);
+
+        var filter = FileFilter.New();
+        filter.Name = "FilterPatterns";
+        foreach (var s in filterPatterns ?? new List<string>())
+        {
+            filter.AddPattern(s); // *.txt
+        }
+
+        File? file = null;
+        try
+        {
+            file = await dialog.SaveAsync(_window);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+
+        if (file is null)
+        {
+            return "";
+        }
+
+        return file.GetPath();
     }
 
     public override DialogResult ShowMessage(string title, string text, DialogButtons buttons, DialogIcon icon)
     {
-        Console.WriteLine($"{title}:{text}:{buttons}:{icon}");
-        return DialogResult.Ok;
+        var dialog = new MessageDialog();
+        dialog.SetTitle(title);
+        dialog.SecondaryText = text;
+        dialog.SetModal(true);
+        dialog.SetParent(_window);
+
+        switch (buttons)
+        {
+            case DialogButtons.Ok:
+                {
+                    dialog.AddButton("Ok", (int) DialogResult.Ok);
+                    break;
+                }
+            case DialogButtons.OkCancel:
+                {
+                    dialog.AddButton("Ok", (int) DialogResult.Ok);
+                    dialog.AddButton("Cancel", (int) DialogResult.Cancel);
+                    break;
+                }
+            case DialogButtons.YesNo:
+                {
+                    dialog.AddButton("Yes", (int) DialogResult.Yes);
+                    dialog.AddButton("No", (int) DialogResult.No);
+                    break;
+                }
+            case DialogButtons.YesNoCancel:
+                {
+                    dialog.AddButton("Yes", (int) DialogResult.Yes);
+                    dialog.AddButton("No", (int) DialogResult.No);
+                    dialog.AddButton("Cancel", (int) DialogResult.Cancel);
+                    break;
+                }
+            case DialogButtons.RetryCancel:
+                {
+                    dialog.AddButton("Retry", (int) DialogResult.Retry);
+                    dialog.AddButton("Cancel", (int) DialogResult.Cancel);
+                    break;
+                }
+            case DialogButtons.AbortRetryIgnore:
+                {
+                    dialog.AddButton("Abort", (int) DialogResult.Abort);
+                    dialog.AddButton("Retry", (int) DialogResult.Retry);
+                    dialog.AddButton("Cancel", (int) DialogResult.Cancel);
+                    break;
+                }
+            default:
+                dialog.AddButton("Ok", (int) DialogResult.Ok);
+                break;
+        }
+
+        // switch (result)
+        // {
+        //     case ResponseType.Close:
+        //         return DialogResult.Cancel;
+        //     case (int) DialogResult.Ok:
+        //         return DialogResult.Ok;
+        //     case (int) DialogResult.Yes:
+        //         return DialogResult.Yes;
+        //     case (int) DialogResult.No:
+        //         return DialogResult.No;
+        //     case (int) DialogResult.Cancel:
+        //         return DialogResult.Cancel;
+        //     case (int) DialogResult.Abort:
+        //         return DialogResult.Abort;
+        //     case (int) DialogResult.Retry:
+        //         return DialogResult.Retry;
+        //     case (int) DialogResult.Ignore:
+        //         return DialogResult.Ignore;
+        //     default:
+        //         return DialogResult.Cancel;
+        // }
+        return DialogResult.Abort;
     }
 }

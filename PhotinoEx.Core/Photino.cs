@@ -159,9 +159,9 @@ public abstract class Photino
 
     public abstract Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<string>? filterPatterns);
 
-    public abstract List<string> ShowOpenFolder(string title, string? path, bool multiSelect);
+    public abstract Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect);
 
-    public abstract string ShowSaveFile(string title, string? path, List<string> filterPatterns);
+    public abstract Task<string> ShowSaveFileAsync(string title, string? path, List<string>? filterPatterns);
 
     public abstract DialogResult ShowMessage(string title, string text, DialogButtons buttons, DialogIcon icon);
 

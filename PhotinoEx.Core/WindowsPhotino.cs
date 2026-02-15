@@ -1368,7 +1368,7 @@ public class WindowsPhotino : Photino
         return new List<string>();
     }
 
-    public override List<string> ShowOpenFolder(string title, string? path, bool multiSelect)
+    public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
     {
         // HRESULT hr;
         // title = _window->ToUTF16String(title);
@@ -1398,7 +1398,7 @@ public class WindowsPhotino : Photino
         return new List<string>();
     }
 
-    public override string ShowSaveFile(string title, string? path, List<string> filterPatterns)
+    public override async Task<string> ShowSaveFileAsync(string title, string? path, List<string>? filterPatterns)
     {
         // HRESULT hr;
         // title = _window->ToUTF16String(title);
