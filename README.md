@@ -10,10 +10,10 @@ Currently do not use this in production. Once feature parity is done, i'll start
 - [ ] Linux support.
     - [x] Update to GTK4.
     - [x] Update to Webkit6
-    - [ ] folder/file opening
+    - [x] Folder/File opening
 - [ ] Windows support.
     - [ ] Dark Mode
-    - [ ] folder/file opening
+    - [ ] Folder/File opening
 - [ ] Mac support. (currently dont have an environment to test)
 
 
