@@ -209,9 +209,9 @@ public class WindowsPhotino : Photino
     private IntPtr _hInstance { get; set; }
     private IntPtr _hwnd { get; set; }
     private WinToastHandler? _toastHandler { get; set; }
-    private CoreWebView2Environment? _webViewEnvironment { get; set; }
-    private CoreWebView2? _webViewWindow { get; set; }
-    private CoreWebView2Controller? _webViewController { get; set; }
+    public CoreWebView2Environment? WebViewEnvironment { get; private set; }
+    public CoreWebView2? WebViewWindow { get; private set; }
+    public CoreWebView2Controller? WebViewController { get; private set; }
     private IntPtr darkBrush;
     private IntPtr lightBrush;
     private PhotinoInitParams _params { get; set; }
@@ -527,26 +527,26 @@ public class WindowsPhotino : Photino
 
     public void RefitContent()
     {
-        if (_webViewController is not null)
+        if (WebViewController is not null)
         {
             DLLImports.GetClientRect(_hwnd, out var rect);
-            _webViewController.Bounds = new Rectangle(new Point(0, 0), new Size(rect.Right - rect.Left, rect.Bottom - rect.Top));
+            WebViewController.Bounds = new Rectangle(new Point(0, 0), new Size(rect.Right - rect.Left, rect.Bottom - rect.Top));
         }
     }
 
     public void FocusWebView2()
     {
-        if (_webViewController is not null)
+        if (WebViewController is not null)
         {
-            _webViewController.MoveFocus(CoreWebView2MoveFocusReason.Programmatic);
+            WebViewController.MoveFocus(CoreWebView2MoveFocusReason.Programmatic);
         }
     }
 
     public void NotifyWebView2WindowMove()
     {
-        if (_webViewController is not null)
+        if (WebViewController is not null)
         {
-            _webViewController.NotifyParentWindowPositionChanged();
+            WebViewController.NotifyParentWindowPositionChanged();
         }
     }
 
@@ -641,27 +641,27 @@ public class WindowsPhotino : Photino
 
         var options = new CoreWebView2EnvironmentOptions();
         options.AdditionalBrowserArguments = sb.ToString();
-        _webViewEnvironment = await CoreWebView2Environment.CreateAsync(runtimePath, _temporaryFilesPath, options);
-        _webViewController = await _webViewEnvironment.CreateCoreWebView2ControllerAsync(_hwnd);
-        _webViewWindow = _webViewController.CoreWebView2;
+        WebViewEnvironment = await CoreWebView2Environment.CreateAsync(runtimePath, _temporaryFilesPath, options);
+        WebViewController = await WebViewEnvironment.CreateCoreWebView2ControllerAsync(_hwnd);
+        WebViewWindow = WebViewController.CoreWebView2;
 
-        var settings = _webViewWindow.Settings;
+        var settings = WebViewWindow.Settings;
         settings.AreHostObjectsAllowed = true;
         settings.IsScriptEnabled = true;
         settings.AreDefaultScriptDialogsEnabled = true;
         settings.IsWebMessageEnabled = true;
 
-        await _webViewWindow.AddScriptToExecuteOnDocumentCreatedAsync(
+        await WebViewWindow.AddScriptToExecuteOnDocumentCreatedAsync(
             "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { console.log(e.data); callback(e.data); }); } };");
-        _webViewWindow.WebMessageReceived += (_, args) =>
+        WebViewWindow.WebMessageReceived += (_, args) =>
         {
             Console.WriteLine(args.TryGetWebMessageAsString());
             var message = args.TryGetWebMessageAsString();
             _WebMessageReceivedCallback?.Invoke(message);
         };
 
-        _webViewWindow.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
-        _webViewWindow.WebResourceRequested += (_, args) =>
+        WebViewWindow.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
+        WebViewWindow.WebResourceRequested += (_, args) =>
         {
             var request = args.Request;
 
@@ -676,7 +676,7 @@ public class WindowsPhotino : Photino
 
                     var memoryStream = callback!.Invoke(uri, out var contentType);
 
-                    var response = _webViewEnvironment.CreateWebResourceResponse(
+                    var response = WebViewEnvironment.CreateWebResourceResponse(
                         memoryStream,
                         200,
                         "OK",
@@ -687,7 +687,7 @@ public class WindowsPhotino : Photino
             }
         };
 
-        _webViewWindow?.PermissionRequested += (_, args) =>
+        WebViewWindow?.PermissionRequested += (_, args) =>
         {
             if (_grantBrowserPermissions)
             {
@@ -745,7 +745,7 @@ public class WindowsPhotino : Photino
         // so defer it until here. This unfortunately means you can't call the Navigate methods
         // until the window is shown.
 
-        if (_webViewController is null)
+        if (WebViewController is null)
         {
             if (!string.IsNullOrWhiteSpace(_webview2RuntimePath) || EnsureWebViewIsInstalled())
             {
@@ -829,17 +829,17 @@ public class WindowsPhotino : Photino
 
     public override bool GetTransparentEnabled()
     {
-        return _webViewController!.DefaultBackgroundColor.A == 0;
+        return WebViewController!.DefaultBackgroundColor.A == 0;
     }
 
     public override bool GetContextMenuEnabled()
     {
-        return _webViewWindow!.Settings.AreDefaultContextMenusEnabled;
+        return WebViewWindow!.Settings.AreDefaultContextMenusEnabled;
     }
 
     public override bool GetDevToolsEnabled()
     {
-        return _webViewWindow!.Settings.AreDevToolsEnabled;
+        return WebViewWindow!.Settings.AreDevToolsEnabled;
     }
 
     public override bool GetFullScreen()
@@ -972,7 +972,7 @@ public class WindowsPhotino : Photino
 
     public override int GetZoom()
     {
-        var rawValue = _webViewController!.ZoomFactor;
+        var rawValue = WebViewController!.ZoomFactor;
         rawValue = (rawValue * 100.0) + 0.5;
         return (int) rawValue;
     }
@@ -984,12 +984,12 @@ public class WindowsPhotino : Photino
 
     public override void NavigateToString(string content)
     {
-        _webViewWindow!.NavigateToString(content);
+        WebViewWindow!.NavigateToString(content);
     }
 
     public override void NavigateToUrl(string url)
     {
-        _webViewWindow!.Navigate(url);
+        WebViewWindow!.Navigate(url);
     }
 
     public override void Restore()
@@ -999,26 +999,26 @@ public class WindowsPhotino : Photino
 
     public override void SendWebMessage(string message)
     {
-        _webViewWindow!.PostWebMessageAsString(message);
+        WebViewWindow!.PostWebMessageAsString(message);
     }
 
     public override void SetTransparentEnabled(bool enabled)
     {
-        var background = _webViewController!.DefaultBackgroundColor;
-        _webViewController!.DefaultBackgroundColor = Color.FromArgb(enabled ? 0 : 255, background);
-        _webViewWindow!.Reload();
+        var background = WebViewController!.DefaultBackgroundColor;
+        WebViewController!.DefaultBackgroundColor = Color.FromArgb(enabled ? 0 : 255, background);
+        WebViewWindow!.Reload();
     }
 
     public override void SetContextMenuEnabled(bool enabled)
     {
-        _webViewWindow!.Settings.AreDefaultContextMenusEnabled = enabled;
-        _webViewWindow.Reload();
+        WebViewWindow!.Settings.AreDefaultContextMenusEnabled = enabled;
+        WebViewWindow.Reload();
     }
 
     public override void SetDevToolsEnabled(bool enabled)
     {
-        _webViewWindow!.Settings.AreDevToolsEnabled = enabled;
-        _webViewWindow.Reload();
+        WebViewWindow!.Settings.AreDevToolsEnabled = enabled;
+        WebViewWindow.Reload();
     }
 
     public override void SetIconFile(string filename)
@@ -1193,7 +1193,7 @@ public class WindowsPhotino : Photino
 
     public override void SetZoom(int zoom)
     {
-        _webViewController!.ZoomFactor = zoom / 100.0;
+        WebViewController!.ZoomFactor = zoom / 100.0;
     }
 
     public override void ShowNotification(string title, string message)
