@@ -961,7 +961,7 @@ public class WindowsPhotino : Photino
 
     public override bool GetTopmost()
     {
-        var styles = DLLImports.GetWindowLong(_hwnd, Constants.GWL_STYLE);
+        var styles = DLLImports.GetWindowLong(_hwnd, Constants.GWL_EXSTYLE);
         if ((styles & Constants.WS_EX_TOPMOST) != 0)
         {
             return true;
@@ -1170,7 +1170,7 @@ public class WindowsPhotino : Photino
 
     public override void SetTopmost(bool topmost)
     {
-        var style = DLLImports.GetWindowLongPtr(_hwnd, Constants.GWL_STYLE);
+        var style = DLLImports.GetWindowLongPtr(_hwnd, Constants.GWL_EXSTYLE);
         if (topmost)
         {
             style |= Constants.WS_EX_TOPMOST;
@@ -1180,7 +1180,7 @@ public class WindowsPhotino : Photino
             style &= (~Constants.WS_EX_TOPMOST);
         }
 
-        DLLImports.SetWindowLong(_hwnd, Constants.GWL_STYLE, style);
+        DLLImports.SetWindowLong(_hwnd, Constants.GWL_EXSTYLE, style);
         DLLImports.SetWindowPos(_hwnd,
             topmost ? Constants.HWND_TOPMOST : Constants.HWND_NOTOPMOST,
             0,
