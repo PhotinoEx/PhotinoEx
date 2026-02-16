@@ -70,6 +70,12 @@ public class Constants
     public const int HWND_BOTTOM = 1;
 
     public const uint PM_REMOVE = 0x0001;
+
+    public const int OFN_EXPLORER = 0x00080000;
+    public const int OFN_FILEMUSTEXIST = 0x00001000;
+    public const int OFN_PATHMUSTEXIST = 0x00000800;
+    public const int OFN_ALLOWMULTISELECT = 0x00000200;
+    public const int OFN_OVERWRITEPROMPT = 0x00000002;
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -159,4 +165,32 @@ public struct MINMAXINFO
     public POINT ptMaxPosition { get; set; }
     public POINT ptMinTrackSize { get; set; }
     public POINT ptMaxTrackSize { get; set; }
+}
+
+[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+public struct OPENFILENAME
+{
+    public int lStructSize;
+    public IntPtr hwndOwner;
+    public IntPtr hInstance;
+    public string lpstrFilter;
+    public string lpstrCustomFilter;
+    public int nMaxCustFilter;
+    public int nFilterIndex;
+    public string lpstrFile;
+    public int nMaxFile;
+    public string lpstrFileTitle;
+    public int nMaxFileTitle;
+    public string lpstrInitialDir;
+    public string lpstrTitle;
+    public int Flags;
+    public short nFileOffset;
+    public short nFileExtension;
+    public string lpstrDefExt;
+    public IntPtr lCustData;
+    public IntPtr lpfnHook;
+    public string lpTemplateName;
+    public IntPtr pvReserved;
+    public int dwReserved;
+    public int FlagsEx;
 }

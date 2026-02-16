@@ -122,4 +122,15 @@ internal static class DLLImports
     public delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
     #endregion
+
+    #region Comdlg
+
+    [DllImport("comdlg32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern bool GetOpenFileName(ref OPENFILENAME ofn);
+
+    [DllImport("comdlg32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern bool GetSaveFileName(ref OPENFILENAME ofn);
+
+    #endregion
+
 }
