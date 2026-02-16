@@ -179,7 +179,7 @@ public class WindowsPhotino : Photino
 
         HWNDToPhotino.Add(_hwnd, this);
 
-        if (string.IsNullOrEmpty(_params.WindowIconFile))
+        if (!string.IsNullOrEmpty(_params.WindowIconFile))
         {
             SetIconFile(_params.WindowIconFile);
         }
@@ -1062,10 +1062,11 @@ public class WindowsPhotino : Photino
 
     public override void SetIconFile(string filename)
     {
-        var icon = DLLImports.LoadImage(_hInstance, filename, Constants.IMAGE_ICON, 0, 0, Constants.LR_LOADFROMFILE | Constants.LR_DEFAULTSIZE |  Constants.LR_SHARED);
+        var iconSmall = DLLImports.LoadImage(_hInstance, filename, Constants.IMAGE_ICON, 16, 16, Constants.LR_LOADFROMFILE | Constants.LR_DEFAULTSIZE |  Constants.LR_SHARED);
+        var iconBig = DLLImports.LoadImage(_hInstance, filename, Constants.IMAGE_ICON, 32, 32, Constants.LR_LOADFROMFILE | Constants.LR_DEFAULTSIZE |  Constants.LR_SHARED);
 
-        DLLImports.SendMessage(_hwnd, Constants.WM_SETICON, Constants.ICON_BIG, icon);
-        DLLImports.SendMessage(_hwnd, Constants.WM_SETICON, Constants.ICON_SMALL, icon);
+        DLLImports.SendMessage(_hwnd, Constants.WM_SETICON, Constants.ICON_BIG, iconBig);
+        DLLImports.SendMessage(_hwnd, Constants.WM_SETICON, Constants.ICON_SMALL, iconSmall);
 
         _iconFileName = filename;
     }
