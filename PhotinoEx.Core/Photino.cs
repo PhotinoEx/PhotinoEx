@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Runtime.Versioning;
 using PhotinoEx.Core.Enums;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
@@ -101,6 +102,8 @@ public abstract class Photino
 
     public abstract bool GetIgnoreCertificateErrorsEnabled();
 
+    [SupportedOSPlatform("windows")]
+    [SupportedOSPlatform("MacOs")]
     public abstract Point GetPosition();
 
     public abstract void NavigateToString(string content);
@@ -118,6 +121,8 @@ public abstract class Photino
 
     public abstract void SetDevToolsEnabled(bool enabled);
 
+    [SupportedOSPlatform("windows")]
+    [SupportedOSPlatform("MacOs")]
     public abstract void SetPosition(Point newLocation);
 
     public abstract void SetIconFile(string filename);
