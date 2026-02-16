@@ -695,7 +695,7 @@ public class WindowsPhotino : Photino
             "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { callback(e.data); }); } };");
         WebViewWindow.WebMessageReceived += (_, args) =>
         {
-            Console.WriteLine(args.TryGetWebMessageAsString());
+            // Console.WriteLine(args.TryGetWebMessageAsString());
             var message = args.TryGetWebMessageAsString();
             _WebMessageReceivedCallback?.Invoke(message);
         };
@@ -1419,7 +1419,7 @@ public class WindowsPhotino : Photino
             }
 
             // Show dialog
-            int hr = dialog!.Show(_hInstance);
+            int hr = dialog!.Show(_hwnd);
 
             if (hr == Constants.ERROR_CANCELLED)
             {
