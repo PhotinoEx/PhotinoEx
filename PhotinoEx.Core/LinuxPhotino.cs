@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Text.Json;
 using Gdk.Internal;
@@ -88,48 +89,6 @@ public class LinuxPhotino : Photino
         _application = Application.New($"com.photinoex.App", ApplicationFlags.FlagsNone);
         WebKit.Module.Initialize();
         _application.OnActivate += ApplicationOnActivate;
-
-        SetTitle(_windowTitle);
-
-        if (_params.Chromeless)
-        {
-            _window!.SetDecorated(false);
-        }
-
-        if (!string.IsNullOrEmpty(_params.WindowIconFile))
-        {
-            SetIconFile(_params.WindowIconFile);
-        }
-
-        if (_params.Minimized)
-        {
-            SetMinimized(true);
-        }
-
-        if (_params.Maximized)
-        {
-            SetMaximized(true);
-        }
-
-        if (!_params.Resizable)
-        {
-            SetResizable(false);
-        }
-
-        if (_params.Topmost)
-        {
-            SetTopmost(true);
-        }
-
-        if (_params.Transparent)
-        {
-            SetTransparentEnabled(true);
-        }
-
-        if (_zoom != 100)
-        {
-            SetZoom(_zoom);
-        }
     }
 
     private void ApplicationOnActivate(Gio.Application sender, EventArgs args)
@@ -233,6 +192,48 @@ public class LinuxPhotino : Photino
         // g_signal_connect(G_OBJECT(_webview), "permission-request",
         //     G_CALLBACK(on_permission_request),
         //     this);
+
+        SetTitle("test");
+
+        if (_params.Chromeless)
+        {
+            _window!.SetDecorated(false);
+        }
+
+        if (!string.IsNullOrEmpty(_params.WindowIconFile))
+        {
+            SetIconFile(_params.WindowIconFile);
+        }
+
+        if (_params.Minimized)
+        {
+            SetMinimized(true);
+        }
+
+        if (_params.Maximized)
+        {
+            SetMaximized(true);
+        }
+
+        if (!_params.Resizable)
+        {
+            SetResizable(false);
+        }
+
+        if (_params.Topmost)
+        {
+            SetTopmost(true);
+        }
+
+        if (_params.Transparent)
+        {
+            SetTransparentEnabled(true);
+        }
+
+        if (_zoom != 100)
+        {
+            SetZoom(_zoom);
+        }
 
         _window.Present();
     }
@@ -440,14 +441,18 @@ public class LinuxPhotino : Photino
         return _webSecurityEnabled;
     }
 
+    [SupportedOSPlatform("windows")]
+    [SupportedOSPlatform("MacOs")]
     public override Point GetPosition()
     {
-        throw new NotImplementedException();
+        return new Point(0, 0);
     }
 
+    [SupportedOSPlatform("windows")]
+    [SupportedOSPlatform("MacOs")]
     public override void SetPosition(Point newLocation)
     {
-        throw new NotImplementedException();
+        // do nothing, cuz
     }
 
     public override bool GetJavascriptClipboardAccessEnabled()
@@ -530,7 +535,7 @@ public class LinuxPhotino : Photino
 
     public override string GetTitle()
     {
-        return _window!.GetTitle() ?? "";
+        return _window?.GetTitle() ?? "";
     }
 
     public override bool GetTopmost()
@@ -550,12 +555,12 @@ public class LinuxPhotino : Photino
 
     public override void NavigateToString(string content)
     {
-        _webView!.LoadHtml(content, string.Empty);
+        _webView?.LoadHtml(content, string.Empty);
     }
 
     public override void NavigateToUrl(string url)
     {
-        _webView!.LoadUri(url);
+        _webView?.LoadUri(url);
     }
 
     public override void Restore()
@@ -570,7 +575,7 @@ public class LinuxPhotino : Photino
         sb.Append(JsonSerializer.Serialize(message));
         sb.Append(")");
 
-        _webView!.EvaluateJavascriptAsync(sb.ToString()).GetAwaiter();
+        _webView?.EvaluateJavascriptAsync(sb.ToString()).GetAwaiter();
     }
 
     public override void SetTransparentEnabled(bool enabled)
@@ -590,6 +595,10 @@ public class LinuxPhotino : Photino
         _webView!.GetSettings().EnableDeveloperExtras = _devToolsEnabled;
     }
 
+    /// <summary>
+    /// IMPORTANT: This does not work on Wayland, its ignored for the .desktop file, blame wayland
+    /// </summary>
+    /// <param name="filename"></param>
     public override void SetIconFile(string filename)
     {
         _window?.SetIconName(filename);
