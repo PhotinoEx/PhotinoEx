@@ -17,6 +17,7 @@ using ApplicationWindow = Gtk.ApplicationWindow;
 using File = Gio.File;
 using FileDialog = Gtk.FileDialog;
 using FileFilter = Gtk.FileFilter;
+using PhotinoExFileFilter = PhotinoEx.Core.Models.FileFilter;
 using MessageDialog = Gtk.MessageDialog;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Notification = Gio.Notification;
@@ -799,16 +800,16 @@ public class LinuxPhotino : Photino
         _syncContext.Send(_ => callback(), null);
     }
 
-    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, Dictionary<string, string>? filterPatterns)
+    public override async Task<List<string>?> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<PhotinoExFileFilter>? filterPatterns)
     {
         var dialog = FileDialog.New();
         dialog.SetTitle(title);
 
         var filter = FileFilter.New();
         filter.Name = "FilterPatterns";
-        foreach (var s in filterPatterns?.Values.ToList() ?? new List<string>())
+        foreach (var s in filterPatterns ?? new List<PhotinoExFileFilter>())
         {
-            filter.AddPattern(s); // *.txt
+            filter.AddPattern(s.Spec); // *.txt
         }
 
         var results = new List<string>();
@@ -856,7 +857,7 @@ public class LinuxPhotino : Photino
     /// <param name="path"></param>
     /// <param name="multiSelect"></param>
     /// <returns></returns>
-    public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
+    public override async Task<List<string>?> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
     {
         var dialog = FileDialog.New();
         dialog.SetTitle(title);
@@ -899,16 +900,16 @@ public class LinuxPhotino : Photino
         return results;
     }
 
-    public override async Task<string> ShowSaveFileAsync(string title, string? path, Dictionary<string, string>? filterPatterns)
+    public override async Task<string?> ShowSaveFileAsync(string title, string? path, List<PhotinoExFileFilter>? filterPatterns)
     {
         var dialog = FileDialog.New();
         dialog.SetTitle(title);
 
         var filter = FileFilter.New();
         filter.Name = "FilterPatterns";
-        foreach (var s in filterPatterns?.Values.ToList() ?? new List<string>())
+        foreach (var filters in filterPatterns ?? new List<PhotinoExFileFilter>())
         {
-            filter.AddPattern(s); // *.txt
+            filter.AddPattern(filters.Spec); // *.txt
         }
 
         File? file = null;

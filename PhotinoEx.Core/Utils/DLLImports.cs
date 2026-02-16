@@ -129,14 +129,4 @@ internal static class DLLImports
 
     #endregion
 
-    #region Comdlg
-
-    [DllImport("comdlg32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    public static extern bool GetOpenFileName(ref OPENFILENAME ofn);
-
-    [DllImport("comdlg32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    public static extern bool GetSaveFileName(ref OPENFILENAME ofn);
-
-    #endregion
-
 }

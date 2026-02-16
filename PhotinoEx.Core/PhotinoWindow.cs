@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using PhotinoEx.Core.Enums;
+using PhotinoEx.Core.Models;
 using Action = System.Action;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
@@ -2635,8 +2636,8 @@ public class PhotinoWindow
     /// <param name="multiSelect">Whether multiple selections are allowed</param>
     /// <param name="filterPatterns">List of filtering.</param>
     /// <returns>Array of file paths as strings</returns>
-    public async Task<List<string>> ShowOpenFileDialogAsync(string title = "Choose file", string? defaultPath = null, bool multiSelect = false,
-        Dictionary<string, string>? filterPatterns = null)
+    public async Task<List<string>?> ShowOpenFileDialogAsync(string title = "Choose file", string? defaultPath = null, bool multiSelect = false,
+        List<FileFilter>? filterPatterns = null)
     {
         return await _instance!.ShowOpenFileAsync(title, defaultPath, multiSelect, filterPatterns);
     }
@@ -2651,7 +2652,7 @@ public class PhotinoWindow
     /// <param name="defaultPath">Default path. Defaults to <see cref="Environment.SpecialFolder.MyDocuments"/></param>
     /// <param name="multiSelect">Whether multiple selections are allowed</param>
     /// <returns>Array of folder paths as strings</returns>
-    public async Task<List<string>> ShowOpenFolderDialogAsync(string title = "Choose file", string? defaultPath = null,
+    public async Task<List<string>?> ShowOpenFolderDialogAsync(string title = "Choose file", string? defaultPath = null,
         bool multiSelect = false)
     {
         return await _instance!.ShowOpenFolderAsync(title, defaultPath, multiSelect);
@@ -2671,10 +2672,10 @@ public class PhotinoWindow
     /// <param name="filterPatterns">Array for filtering.</param>
     /// <returns></returns>
     public async Task<string?> ShowSaveFileDialogAsync(string title = "Choose file", string? defaultPath = null,
-        Dictionary<string, string>? filterPatterns = null)
+        List<FileFilter>? filterPatterns = null)
     {
         defaultPath ??= Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        filterPatterns ??= new Dictionary<string, string>();
+        filterPatterns ??= new List<FileFilter>();
 
         var nativeFilters = GetNativeFilters(filterPatterns);
 
@@ -2719,9 +2720,9 @@ public class PhotinoWindow
     /// <param name="filters"></param>
     /// <param name="empty"></param>
     /// <returns>String array of filters</returns>
-    private static Dictionary<string, string> GetNativeFilters(Dictionary<string, string> filters, bool empty = false)
+    private static List<FileFilter>? GetNativeFilters(List<FileFilter>? filters, bool empty = false)
     {
-        var nativeFilters = new Dictionary<string, string>();
+        var nativeFilters = new List<FileFilter>();
         if (!empty && filters.Any())
         {
             // nativeFilters = IsMacOsPlatform

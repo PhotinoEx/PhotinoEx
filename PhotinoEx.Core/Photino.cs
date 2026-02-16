@@ -1,6 +1,7 @@
 using System.Drawing;
 using System.Runtime.Versioning;
 using PhotinoEx.Core.Enums;
+using PhotinoEx.Core.Models;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
 
@@ -167,11 +168,11 @@ public abstract class Photino
 
     public abstract void SetMinimizedCallback(Action callback);
 
-    public abstract Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, Dictionary<string, string>? filterPatterns);
+    public abstract Task<List<string>?> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<FileFilter>? filterPatterns);
 
-    public abstract Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect);
+    public abstract Task<List<string>?> ShowOpenFolderAsync(string title, string? path, bool multiSelect);
 
-    public abstract Task<string> ShowSaveFileAsync(string title, string? path, Dictionary<string, string>? filterPatterns);
+    public abstract Task<string?> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns);
 
     public abstract Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon);
 

@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Web.WebView2.Core;
 using PhotinoEx.Core.Enums;
+using PhotinoEx.Core.Models;
 using PhotinoEx.Core.TempModels;
 using PhotinoEx.Core.Utils;
 using Monitor = PhotinoEx.Core.Models.Monitor;
@@ -1367,77 +1368,112 @@ public class WindowsPhotino : Photino
         return "";
     }
 
-    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect,
-        Dictionary<string, string>? filterPatterns)
+    public override async Task<List<string>?> ShowOpenFileAsync(string title, string? path, bool multiSelect,
+        List<FileFilter>? filterPatterns)
     {
-        var sb = new StringBuilder();
-        foreach (var filterPattern in filterPatterns ?? new Dictionary<string, string>()
-                 {
-                     { "All Files", "*.*" }
-                 })
+        IFileOpenDialog? dialog = null;
+        try
         {
-            sb.Append(filterPattern.Key);
-            sb.Append("\0");
-            sb.Append(filterPattern.Value);
-            sb.Append("\0");
+            dialog = new FileOpenDialog() as IFileOpenDialog;
+
+            // Set options
+            uint options = Constants.FOS_FORCEFILESYSTEM | Constants.FOS_PATHMUSTEXIST | Constants.FOS_FILEMUSTEXIST;
+            if (multiSelect)
+            {
+                options |= Constants.FOS_ALLOWMULTISELECT;
+            }
+
+            dialog?.SetOptions(options);
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                dialog?.SetTitle(title);
+            }
+
+            // Set filters
+            if (filterPatterns != null && filterPatterns.Count > 0)
+            {
+                var filterSpecs = new COMDLG_FILTERSPEC[filterPatterns.Count];
+                for (int i = 0; i < filterPatterns.Count; i++)
+                {
+                    filterSpecs[i].pszName = filterPatterns[i].Name;
+                    filterSpecs[i].pszSpec = filterPatterns[i].Spec;
+                }
+
+                IntPtr filterPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(COMDLG_FILTERSPEC)) * filterSpecs.Length);
+                try
+                {
+                    IntPtr current = filterPtr;
+                    for (int i = 0; i < filterSpecs.Length; i++)
+                    {
+                        Marshal.StructureToPtr(filterSpecs[i], current, false);
+                        current = IntPtr.Add(current, Marshal.SizeOf(typeof(COMDLG_FILTERSPEC)));
+                    }
+
+                    dialog!.SetFileTypes((uint)filterSpecs.Length, filterPtr);
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(filterPtr);
+                }
+            }
+
+            // Show dialog
+            int hr = dialog!.Show(_hInstance);
+
+            if (hr == Constants.ERROR_CANCELLED)
+            {
+                return null;
+            }
+
+            if (hr != Constants.S_OK)
+            {
+                return null;
+            }
+
+            var results = new List<string>();
+
+            // Get results
+            if (multiSelect)
+            {
+                dialog.GetResults(out IShellItemArray items);
+                items.GetCount(out uint count);
+
+
+                for (uint i = 0; i < count; i++)
+                {
+                    items.GetItemAt(i, out IShellItem item);
+                    item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string filePath);
+                    results.Add(filePath);
+                    Marshal.ReleaseComObject(item);
+                }
+
+                Marshal.ReleaseComObject(items);
+            }
+            else
+            {
+                dialog.GetResult(out IShellItem item);
+                item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string filePath);
+                Marshal.ReleaseComObject(item);
+                results.Add(filePath);
+            }
+
+            return results;
         }
-
-
-        var ofn = new OPENFILENAME();
-        ofn.lStructSize = Marshal.SizeOf(ofn);
-        ofn.hwndOwner = _hwnd;
-        ofn.lpstrFilter = sb.ToString();
-        ofn.nFilterIndex = 1;
-        ofn.lpstrFile = new string('\0', 65536);
-        ofn.nMaxFile = ofn.lpstrFile.Length;
-        ofn.lpstrFileTitle = new string('\0', 512);
-        ofn.nMaxFileTitle = ofn.lpstrFileTitle.Length;
-        ofn.lpstrTitle = title;
-        ofn.Flags = Constants.OFN_EXPLORER | Constants.OFN_FILEMUSTEXIST | Constants.OFN_PATHMUSTEXIST;
-
-        if (multiSelect)
+        catch
         {
-            ofn.Flags |= Constants.OFN_ALLOWMULTISELECT;
+            return null;
         }
-
-        if (DLLImports.GetOpenFileName(ref ofn))
+        finally
         {
-            var filename = ofn.lpstrFile;
+            if (dialog != null)
+            {
+                Marshal.ReleaseComObject(dialog);
+            }
         }
-
-        return null;
-
-        // HRESULT hr;
-        // title = _window->ToUTF16String(title);
-        // defaultPath = _window->ToUTF16String(defaultPath);
-        //
-        // auto* pfd = Create<IFileOpenDialog>(&hr, title, defaultPath);
-        //
-        // if (SUCCEEDED(hr)) {
-        //     AddFilters(pfd, filters, filterCount, _window);
-        //
-        //     DWORD dwOptions;
-        //     pfd->GetOptions(&dwOptions);
-        //     dwOptions |= FOS_FILEMUSTEXIST | FOS_NOCHANGEDIR;
-        //     if (multiSelect) {
-        //         dwOptions |= FOS_ALLOWMULTISELECT;
-        //     }
-        //     else {
-        //         dwOptions &= ~FOS_ALLOWMULTISELECT;
-        //     }
-        //     pfd->SetOptions(dwOptions);
-        //
-        //     hr = pfd->Show(_window->getHwnd());
-        //     if (SUCCEEDED(hr)) {
-        //         return GetResults(pfd, &hr, resultCount);
-        //     }
-        //     pfd->Release();
-        // }
-        // return nullptr;
-        return new List<string>();
     }
 
-    public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
+    public override async Task<List<string>?> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
     {
         // HRESULT hr;
         // title = _window->ToUTF16String(title);
@@ -1467,7 +1503,7 @@ public class WindowsPhotino : Photino
         return new List<string>();
     }
 
-    public override async Task<string> ShowSaveFileAsync(string title, string? path, Dictionary<string, string>? filterPatterns)
+    public override async Task<string?> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns)
     {
         // HRESULT hr;
         // title = _window->ToUTF16String(title);

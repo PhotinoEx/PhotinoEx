@@ -7,6 +7,7 @@
 
     private async Task OpenFile()
     {
-        var result = await Program.App?.MainWindow.ShowMessageDialogAsync("Error with choice", "There has been an error, please retry your option, if this does not work, please report to github", DialogButtons.OkCancel, DialogIcon.Info);
+        var result = await Program.App.MainWindow.ShowOpenFileDialogAsync(multiSelect: true);
+        // var result = await Program.App?.MainWindow.ShowMessageDialogAsync("Error with choice", "There has been an error, please retry your option, if this does not work, please report to github", DialogButtons.OkCancel, DialogIcon.Info);
     }
 }

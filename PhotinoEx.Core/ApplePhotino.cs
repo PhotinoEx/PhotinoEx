@@ -2,6 +2,7 @@ using System.Drawing;
 using PhotinoEx.Core.Enums;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
+using PhotinoExFileFilter = PhotinoEx.Core.Models.FileFilter;
 
 namespace PhotinoEx.Core;
 
@@ -307,17 +308,17 @@ public class ApplePhotino : Photino
         throw new NotImplementedException();
     }
 
-    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, Dictionary<string, string>? filterPatterns)
+    public override async Task<List<string>?> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<PhotinoExFileFilter>? filterPatterns)
     {
         throw new NotImplementedException();
     }
 
-    public override Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
+    public override Task<List<string>?> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
     {
         throw new NotImplementedException();
     }
 
-    public override Task<string> ShowSaveFileAsync(string title, string? path, Dictionary<string, string>? filterPatterns)
+    public override Task<string?> ShowSaveFileAsync(string title, string? path, List<PhotinoExFileFilter>? filterPatterns)
     {
         throw new NotImplementedException();
     }

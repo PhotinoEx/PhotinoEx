@@ -21,7 +21,7 @@ class Program
         App = appBuilder.Build();
 
         App.MainWindow.SetDevToolsEnabled(true);
-        App.MainWindow.SetIconFile("C:\\Users\\craig\\Desktop\\Repos\\PhotinoEx\\PhotinoEx.Test\\wwwroot\\Icon_PhotinoEx.ico");
+        // App.MainWindow.SetIconFile("C:\\Users\\craig\\Desktop\\Repos\\PhotinoEx\\PhotinoEx.Test\\wwwroot\\Icon_PhotinoEx.ico");
         App.MainWindow.SetHeight(300);
         App.MainWindow.SetWidth(300);
         App.MainWindow.SetMinWidth(200);
