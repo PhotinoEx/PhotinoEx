@@ -180,20 +180,35 @@ public class LinuxPhotino : Photino
             }
         }
 
-        // TODO: fix this
-        // Window.FocusInEvent += OnFocusInEvent;
-        // Window.FocusOutEvent += OnFocusOutEvent;
+        if (_parent is null)
+        {
+            if (OnWindowDestroyEvent is not null)
+            {
+                _window.OnDestroy += OnWindowDestroyEvent;
+            }
+        }
 
-        // These must be called after the webview control is initialized.
-        // g_signal_connect(G_OBJECT(_webview), "context-menu",
-        //     G_CALLBACK(on_webview_context_menu),
-        //     this);
-        //
-        // g_signal_connect(G_OBJECT(_webview), "permission-request",
-        //     G_CALLBACK(on_permission_request),
-        //     this);
+        if (OnWindowStateFlagChanged is not null)
+        {
+            _window.OnStateFlagsChanged += OnWindowStateFlagChanged;
+        }
 
-        SetTitle("test");
+        if (OnWindowFocusChanged is not null)
+        {
+            _window.OnMoveFocus += OnWindowFocusChanged;
+        }
+
+        if (OnWebviewContextMenu is not null)
+        {
+            _webView.OnContextMenu += OnWebviewContextMenu;
+        }
+
+        if (OnWebviewPermissionRequest is not null)
+        {
+            _webView.OnPermissionRequest += OnWebviewPermissionRequest;
+        }
+
+        SetTitle(_params.Title);
 
         if (_params.Chromeless)
         {
@@ -236,7 +251,14 @@ public class LinuxPhotino : Photino
         }
 
         _window.Present();
+
     }
+
+    public SignalHandler<Widget>? OnWindowDestroyEvent { get; set; }
+    public SignalHandler<Widget,Widget.StateFlagsChangedSignalArgs>? OnWindowStateFlagChanged { get; set; }
+    public SignalHandler<Widget, Widget.MoveFocusSignalArgs>? OnWindowFocusChanged { get; set; }
+    public ReturningSignalHandler<WebView, WebView.ContextMenuSignalArgs, bool>? OnWebviewContextMenu { get; set; }
+    public ReturningSignalHandler<WebView, WebView.PermissionRequestSignalArgs, bool>? OnWebviewPermissionRequest { get; set; }
 
     private Application _application { get; set; }
     private Window? _window { get; set; }
