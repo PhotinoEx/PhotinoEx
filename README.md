@@ -12,14 +12,14 @@ Currently do not use this in production. Once feature parity is done, i'll start
     - [x] Update to Webkit6
     - [x] Folder/File/Message opening
     - [x] Toast for system
-    - [ ] Application Icons
+    - [x] Application Icons
 - [ ] Windows support.
     - [ ] Dark Mode
     - [ ] Folder/File/Message opening
     - [ ] Toast for system
     - [ ] Application Icons
 - [ ] Mac support. (currently dont have an environment to test)
-
+- [ ] Setup Nugets
 
 ## Requirements
 
