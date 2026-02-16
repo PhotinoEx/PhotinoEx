@@ -372,8 +372,6 @@ public class WindowsPhotino : Photino
                         };
                     }
 
-<<<<<<< HEAD
-=======
                     if (photino.MaxWidth < int.MaxValue)
                     {
                         minMaxInfo.ptMaxTrackSize = new POINT()
@@ -411,7 +409,6 @@ public class WindowsPhotino : Photino
                     //     };
                     // }
 
->>>>>>> 155db2367dec4b6baabe6290da61506de40af2e8
                     Marshal.StructureToPtr(minMaxInfo, lParam, false);
 
                     return 0;
