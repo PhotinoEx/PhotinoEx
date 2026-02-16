@@ -37,8 +37,8 @@ public class PhotinoWindow
         Title = "PhotinoEx",
         UseOsDefaultSize = true,
         Zoom = 100,
-        MaxHeight = 10000,
-        MaxWidth = 10000
+        MaxHeight = int.MaxValue,
+        MaxWidth = int.MaxValue
     };
 
     private Photino? _instance;
