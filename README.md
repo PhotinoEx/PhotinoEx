@@ -17,7 +17,7 @@ Currently do not use this in production. Once feature parity is done, i'll start
     - [ ] Dark Mode
     - [ ] Folder/File/Message opening
     - [ ] Toast for system
-    - [ ] Application Icons
+    - [x] Application Icons
 - [ ] Mac support. (currently dont have an environment to test)
 - [ ] Update to Dotnet 10
 - [ ] Setup Nugets
