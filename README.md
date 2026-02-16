@@ -19,7 +19,14 @@ Currently do not use this in production. Once feature parity is done, i'll start
     - [ ] Toast for system
     - [ ] Application Icons
 - [ ] Mac support. (currently dont have an environment to test)
+- [ ] Update to Dotnet 10
 - [ ] Setup Nugets
+- [ ] A tag navigation - allowing it to open on browser eternally
+- [ ] implement AreBrowserAcceleratorKeysEnabled across platforms
+- [ ] Use Ilogger for logging - instead of just Console.WriteLine
+- [ ] Decide if I want to support chrome/no titlebar dragging, Custom Titlebar
+- [ ] SingleInstanceMode whilst being configurable
+- [ ] Android/Ios Support?
 
 ## Requirements
 
