@@ -2694,12 +2694,10 @@ public class PhotinoWindow
     /// <param name="buttons">Available interaction buttons <see cref="DialogButtons"/></param>
     /// <param name="icon">Icon of the dialog <see cref="DialogButtons"/></param>
     /// <returns><see cref="DialogResult" /></returns>
-    public DialogResult ShowMessageDialog(string title, string text, DialogButtons buttons = DialogButtons.Ok,
+    public async Task<DialogResult> ShowMessageDialogAsync(string title, string text, DialogButtons buttons = DialogButtons.Ok,
         DialogIcon icon = DialogIcon.Info)
     {
-        var result = DialogResult.Cancel;
-        Invoke(() => result = _instance.ShowMessage(title, text, buttons, icon));
-        return result;
+        return await _instance.ShowMessageAsync(title, text, buttons, icon);
     }
 
     /// <summary>

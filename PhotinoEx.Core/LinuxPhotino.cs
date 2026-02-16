@@ -891,13 +891,13 @@ public class LinuxPhotino : Photino
         return file.GetPath();
     }
 
-    public override DialogResult ShowMessage(string title, string text, DialogButtons buttons, DialogIcon icon)
+    public override async Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon)
     {
         var dialog = new MessageDialog();
         dialog.SetTitle(title);
-        dialog.SecondaryText = text;
+        dialog.Text = text;
         dialog.SetModal(true);
-        dialog.SetParent(_window);
+        dialog.SetTransientFor(_window);
 
         switch (buttons)
         {
@@ -943,27 +943,46 @@ public class LinuxPhotino : Photino
                 break;
         }
 
-        // switch (result)
-        // {
-        //     case ResponseType.Close:
-        //         return DialogResult.Cancel;
-        //     case (int) DialogResult.Ok:
-        //         return DialogResult.Ok;
-        //     case (int) DialogResult.Yes:
-        //         return DialogResult.Yes;
-        //     case (int) DialogResult.No:
-        //         return DialogResult.No;
-        //     case (int) DialogResult.Cancel:
-        //         return DialogResult.Cancel;
-        //     case (int) DialogResult.Abort:
-        //         return DialogResult.Abort;
-        //     case (int) DialogResult.Retry:
-        //         return DialogResult.Retry;
-        //     case (int) DialogResult.Ignore:
-        //         return DialogResult.Ignore;
-        //     default:
-        //         return DialogResult.Cancel;
-        // }
-        return DialogResult.Abort;
+        var tcs = new TaskCompletionSource<DialogResult>();
+
+        dialog.OnResponse += (sender, args) =>
+        {
+            switch (args.ResponseId)
+            {
+                case (int) ResponseType.Close:
+                    tcs.SetResult(DialogResult.Cancel);
+                    break;
+                case (int) DialogResult.Ok:
+                    tcs.SetResult(DialogResult.Ok);
+                    break;
+                case (int) DialogResult.Yes:
+                    tcs.SetResult(DialogResult.Yes);
+                    break;
+                case (int) DialogResult.No:
+                    tcs.SetResult(DialogResult.No);
+                    break;
+                case (int) DialogResult.Cancel:
+                    tcs.SetResult(DialogResult.Cancel);
+                    break;
+                case (int) DialogResult.Abort:
+                    tcs.SetResult(DialogResult.Abort);
+                    break;
+                case (int) DialogResult.Retry:
+                    tcs.SetResult(DialogResult.Retry);
+                    break;
+                case (int) DialogResult.Ignore:
+                    tcs.SetResult(DialogResult.Ignore);
+                    break;
+                default:
+                    tcs.SetResult(DialogResult.Cancel);
+                    break;
+            }
+
+            dialog.Destroy();
+        };
+
+        dialog.Present();
+
+        return await tcs.Task;
     }
 }

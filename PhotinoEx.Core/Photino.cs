@@ -163,7 +163,7 @@ public abstract class Photino
 
     public abstract Task<string> ShowSaveFileAsync(string title, string? path, List<string>? filterPatterns);
 
-    public abstract DialogResult ShowMessage(string title, string text, DialogButtons buttons, DialogIcon icon);
+    public abstract Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon);
 
     public abstract void Invoke(Action callback);
 

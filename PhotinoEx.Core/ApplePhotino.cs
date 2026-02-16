@@ -321,7 +321,7 @@ public class ApplePhotino : Photino
         throw new NotImplementedException();
     }
 
-    public override DialogResult ShowMessage(string title, string text, DialogButtons buttons, DialogIcon icon)
+    public override async Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon)
     {
         throw new NotImplementedException();
     }

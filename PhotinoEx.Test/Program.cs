@@ -21,9 +21,9 @@ class Program
 
         App.MainWindow.SetDevToolsEnabled(true);
 
-        AppDomain.CurrentDomain.UnhandledException += (_, error) =>
+        AppDomain.CurrentDomain.UnhandledException += async (_, error) =>
         {
-            App.MainWindow.ShowMessageDialog("Fatal exception", error.ExceptionObject.ToString() ?? "");
+            await App.MainWindow.ShowMessageDialogAsync("Fatal exception", error.ExceptionObject.ToString() ?? "");
         };
 
         App.MainWindow.WebMessageReceived += (sender, s) =>

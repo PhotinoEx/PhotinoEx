@@ -1,4 +1,5 @@
 @page "/"
+@using PhotinoEx.Core.Enums
 <h3>Home</h3>
 <button @onclick="OpenFile">ClickMe</button>
 
@@ -6,6 +7,6 @@
 
     private async Task OpenFile()
     {
-        Program.App?.MainWindow.ShowMessageDialog("", "");
+        var result = await Program.App?.MainWindow.ShowMessageDialogAsync("Error with choice", "There has been an error, please retry your option, if this does not work, please report to github", DialogButtons.OkCancel, DialogIcon.Info);
     }
 }

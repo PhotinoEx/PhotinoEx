@@ -1437,7 +1437,7 @@ public class WindowsPhotino : Photino
         return "";
     }
 
-    public override DialogResult ShowMessage(string title, string text, DialogButtons buttons, DialogIcon icon)
+    public override async Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon)
     {
         // title = _window->ToUTF16String(title);
         // text = _window->ToUTF16String(text);
