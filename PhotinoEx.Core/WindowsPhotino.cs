@@ -221,22 +221,24 @@ public class WindowsPhotino : Photino
     {
         _hInstance = DLLImports.GetModuleHandle(null);
 
-        var window = new WNDCLASSEX();
-        window.cbSize = (uint) Marshal.SizeOf(typeof(WNDCLASSEX));
-        window.style = Constants.CS_HREDRAW | Constants.CS_VREDRAW;
-        window.lpfnWndProc = Marshal.GetFunctionPointerForDelegate(new DLLImports.WndProcDelegate(WindowProc));
-        window.cbClsExtra = 0;
-        window.cbWndExtra = 0;
-        window.hInstance = _hInstance;
-        window.hbrBackground = IsDarkModeEnabled() ? darkBrush : lightBrush;
-        window.lpszMenuName = IntPtr.Zero;
-        window.lpszClassName = "Photino";
+        var window = new WNDCLASSEX
+        {
+            cbSize = (uint) Marshal.SizeOf(typeof(WNDCLASSEX)),
+            style = Constants.CS_HREDRAW | Constants.CS_VREDRAW,
+            lpfnWndProc = Marshal.GetFunctionPointerForDelegate(new DLLImports.WndProcDelegate(WindowProc)),
+            cbClsExtra = 0,
+            cbWndExtra = 0,
+            hInstance = _hInstance,
+            hbrBackground = IsDarkModeEnabled() ? darkBrush : lightBrush,
+            lpszMenuName = IntPtr.Zero,
+            lpszClassName = "Photino"
+        };
 
         var classAtom = DLLImports.RegisterClassEx(ref window);
 
         if (classAtom == 0)
         {
-            uint errorCode = DLLImports.GetLastError();
+            var errorCode = DLLImports.GetLastError();
             Console.WriteLine($"Error creating window. Error Code: {errorCode}");
             return;
         }
@@ -689,7 +691,7 @@ public class WindowsPhotino : Photino
         settings.IsWebMessageEnabled = true;
 
         await WebViewWindow.AddScriptToExecuteOnDocumentCreatedAsync(
-            "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { console.log(e.data); callback(e.data); }); } };");
+            "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { callback(e.data); }); } };");
         WebViewWindow.WebMessageReceived += (_, args) =>
         {
             Console.WriteLine(args.TryGetWebMessageAsString());
@@ -1060,16 +1062,12 @@ public class WindowsPhotino : Photino
 
     public override void SetIconFile(string filename)
     {
-        // HICON iconSmall = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 16, 16, LR_LOADFROMFILE | LR_LOADTRANSPARENT | LR_SHARED);
-        // HICON iconBig = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 32, 32, LR_LOADFROMFILE | LR_LOADTRANSPARENT | LR_SHARED);
-        //
-        // if (iconSmall && iconBig)
-        // {
-        //     SendMessage(_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)iconSmall);
-        //     SendMessage(_hWnd, WM_SETICON, ICON_BIG, (LPARAM)iconBig);
-        // }
-        //
-        // this->_iconFileName = filename;
+        var icon = DLLImports.LoadImage(_hInstance, filename, Constants.IMAGE_ICON, 0, 0, Constants.LR_LOADFROMFILE | Constants.LR_DEFAULTSIZE |  Constants.LR_SHARED);
+
+        DLLImports.SendMessage(_hwnd, Constants.WM_SETICON, Constants.ICON_BIG, icon);
+        DLLImports.SendMessage(_hwnd, Constants.WM_SETICON, Constants.ICON_SMALL, icon);
+
+        _iconFileName = filename;
     }
 
     public override void SetFullScreen(bool fullScreen)

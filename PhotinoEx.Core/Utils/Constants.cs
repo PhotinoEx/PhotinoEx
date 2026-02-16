@@ -28,6 +28,7 @@ public class Constants
     public const uint WM_CLOSE = 0x0010;
     public const uint WM_SETTINGCHANGE = 0x001A;
     public const uint WM_GETMINMAXINFO = 0x0024;
+    public const uint WM_SETICON = 0x0080;
     public const uint WM_THEMECHANGED = 0x031A;
     public const uint WM_MOVING = 0x0216;
     public const uint WM_USER = 0x0400;
@@ -70,6 +71,14 @@ public class Constants
     public const int HWND_BOTTOM = 1;
 
     public const uint PM_REMOVE = 0x0001;
+
+    public const int ICON_SMALL = 0;
+    public const int ICON_BIG = 1;
+    public const int IMAGE_ICON = 1;
+
+    public const int LR_LOADFROMFILE = 0x00000010;
+    public const int LR_DEFAULTSIZE = 0x00000040;
+    public const int LR_SHARED = 0x000008000;
 }
 
 [StructLayout(LayoutKind.Sequential)]
