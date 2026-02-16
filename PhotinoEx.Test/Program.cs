@@ -21,6 +21,13 @@ class Program
         App = appBuilder.Build();
 
         App.MainWindow.SetDevToolsEnabled(true);
+        App.MainWindow.SetHeight(300);
+        App.MainWindow.SetWidth(300);
+        App.MainWindow.SetMinWidth(200);
+        App.MainWindow.SetMinHeight(200);
+        App.MainWindow.SetMaxHeight(400);
+        App.MainWindow.SetMaxWidth(400);
+        App.MainWindow.SetUseOsDefaultSize(false);
 
         AppDomain.CurrentDomain.UnhandledException += async (_, error) =>
         {
