@@ -48,7 +48,7 @@ public class WindowsPhotino : Photino
 
         _zoom = _params.Zoom;
         MinWidth = _params.MinWidth;
-        MinWidth = _params.MinHeight;
+        MinHeight = _params.MinHeight;
         MaxWidth = _params.MaxWidth;
         MaxHeight = _params.MaxHeight;
 
@@ -101,69 +101,69 @@ public class WindowsPhotino : Photino
 
         if (_params.FullScreen)
         {
-            initParams.Left = 0;
-            initParams.Top = 0;
-            initParams.Width = DLLImports.GetSystemMetrics(Constants.SM_CXSCREEN);
-            initParams.Height = DLLImports.GetSystemMetrics(Constants.SM_CYSCREEN);
+            _params.Left = 0;
+            _params.Top = 0;
+            _params.Width = DLLImports.GetSystemMetrics(Constants.SM_CXSCREEN);
+            _params.Height = DLLImports.GetSystemMetrics(Constants.SM_CYSCREEN);
         }
 
-        if (initParams.Chromeless)
+        if (_params.Chromeless)
         {
             //CW_USEDEFAULT CAN NOT BE USED ON POPUP WINDOWS
-            if (initParams.Left == Constants.CW_USEDEFAULT && initParams.Top == Constants.CW_USEDEFAULT)
+            if (_params.Left == Constants.CW_USEDEFAULT && _params.Top == Constants.CW_USEDEFAULT)
             {
-                initParams.CenterOnInitialize = true;
+                _params.CenterOnInitialize = true;
             }
 
-            if (initParams.Left == Constants.CW_USEDEFAULT)
+            if (_params.Left == Constants.CW_USEDEFAULT)
             {
-                initParams.Left = 0;
+                _params.Left = 0;
             }
 
-            if (initParams.Top == Constants.CW_USEDEFAULT)
+            if (_params.Top == Constants.CW_USEDEFAULT)
             {
-                initParams.Top = 0;
+                _params.Top = 0;
             }
 
-            if (initParams.Height == Constants.CW_USEDEFAULT)
+            if (_params.Height == Constants.CW_USEDEFAULT)
             {
-                initParams.Height = 600;
+                _params.Height = 600;
             }
 
-            if (initParams.Width == Constants.CW_USEDEFAULT)
+            if (_params.Width == Constants.CW_USEDEFAULT)
             {
-                initParams.Width = 800;
+                _params.Width = 800;
             }
         }
 
-        if (initParams.Height > initParams.MaxHeight)
+        if (_params.Height > _params.MaxHeight)
         {
-            initParams.Height = initParams.MaxHeight;
+            _params.Height = _params.MaxHeight;
         }
 
-        if (initParams.Height < initParams.MinHeight && initParams.MinHeight > 0)
+        if (_params.Height < _params.MinHeight && _params.MinHeight > 0)
         {
-            initParams.Height = initParams.MinHeight;
+            _params.Height = _params.MinHeight;
         }
 
-        if (initParams.Width > initParams.MaxWidth)
+        if (_params.Width > _params.MaxWidth)
         {
-            initParams.Width = initParams.MaxWidth;
+            _params.Width = _params.MaxWidth;
         }
 
-        if (initParams.Width < initParams.MinWidth && initParams.MinWidth > 0)
+        if (_params.Width < _params.MinWidth && _params.MinWidth > 0)
         {
-            initParams.Width = initParams.MinWidth;
+            _params.Width = _params.MinWidth;
         }
 
         Register();
 
         _hwnd = DLLImports.CreateWindowEx(
-            initParams.Transparent ? Constants.WS_EX_LAYERED : 0,
+            _params.Transparent ? Constants.WS_EX_LAYERED : 0,
             "Photino",
             _windowTitle,
-            initParams.Chromeless || initParams.FullScreen ? Constants.WS_POPUP : Constants.WS_OVERLAPPEDWINDOW,
-            initParams.Left, initParams.Top, initParams.Width, initParams.Height,
+            _params.Chromeless || _params.FullScreen ? Constants.WS_POPUP : Constants.WS_OVERLAPPEDWINDOW,
+            _params.Left, _params.Top, _params.Width, _params.Height,
             IntPtr.Zero,
             IntPtr.Zero,
             _hInstance,
@@ -179,20 +179,20 @@ public class WindowsPhotino : Photino
 
         HWNDToPhotino.Add(_hwnd, this);
 
-        if (string.IsNullOrEmpty(initParams.WindowIconFile))
+        if (!string.IsNullOrEmpty(_params.WindowIconFile))
         {
-            SetIconFile(initParams.WindowIconFile);
+            SetIconFile(_params.WindowIconFile);
         }
 
-        if (initParams.CenterOnInitialize)
+        if (_params.CenterOnInitialize)
         {
             Center();
         }
 
-        SetMinimized(initParams.Minimized);
-        SetMaximized(initParams.Maximized);
-        SetResizable(initParams.Resizable);
-        SetTopmost(initParams.Topmost);
+        SetMinimized(_params.Minimized);
+        SetMaximized(_params.Maximized);
+        SetResizable(_params.Resizable);
+        SetTopmost(_params.Topmost);
 
         // if (initParams->NotificationsEnabled)
         // {
@@ -203,7 +203,7 @@ public class WindowsPhotino : Photino
         //     WinToast::instance()->initialize();
         // }
 
-        Show(initParams.Minimized || initParams.Maximized);
+        Show(_params.Minimized || _params.Maximized);
     }
 
     private IntPtr _hInstance { get; set; }
@@ -221,22 +221,24 @@ public class WindowsPhotino : Photino
     {
         _hInstance = DLLImports.GetModuleHandle(null);
 
-        var window = new WNDCLASSEX();
-        window.cbSize = (uint) Marshal.SizeOf(typeof(WNDCLASSEX));
-        window.style = Constants.CS_HREDRAW | Constants.CS_VREDRAW;
-        window.lpfnWndProc = Marshal.GetFunctionPointerForDelegate(new DLLImports.WndProcDelegate(WindowProc));
-        window.cbClsExtra = 0;
-        window.cbWndExtra = 0;
-        window.hInstance = _hInstance;
-        window.hbrBackground = IsDarkModeEnabled() ? darkBrush : lightBrush;
-        window.lpszMenuName = IntPtr.Zero;
-        window.lpszClassName = "Photino";
+        var window = new WNDCLASSEX
+        {
+            cbSize = (uint) Marshal.SizeOf(typeof(WNDCLASSEX)),
+            style = Constants.CS_HREDRAW | Constants.CS_VREDRAW,
+            lpfnWndProc = Marshal.GetFunctionPointerForDelegate(new DLLImports.WndProcDelegate(WindowProc)),
+            cbClsExtra = 0,
+            cbWndExtra = 0,
+            hInstance = _hInstance,
+            hbrBackground = IsDarkModeEnabled() ? darkBrush : lightBrush,
+            lpszMenuName = IntPtr.Zero,
+            lpszClassName = "Photino"
+        };
 
         var classAtom = DLLImports.RegisterClassEx(ref window);
 
         if (classAtom == 0)
         {
-            uint errorCode = DLLImports.GetLastError();
+            var errorCode = DLLImports.GetLastError();
             Console.WriteLine($"Error creating window. Error Code: {errorCode}");
             return;
         }
@@ -352,24 +354,64 @@ public class WindowsPhotino : Photino
 
                     var minMaxInfo = Marshal.PtrToStructure<MINMAXINFO>(lParam);
 
-                    if (photino.MinWidth > 0 || photino.MinHeight > 0)
+                    if (photino.MinWidth > 0)
                     {
-                        minMaxInfo.ptMinTrackSize = new POINT
+                        minMaxInfo.ptMinTrackSize = new POINT()
                         {
-                            X = photino.MinWidth > 0 ? photino.MinWidth : minMaxInfo.ptMinTrackSize.X,
-                            Y = photino.MinHeight > 0 ? photino.MinHeight : minMaxInfo.ptMinTrackSize.Y
+                            X = photino.MinWidth,
+                            Y = minMaxInfo.ptMinTrackSize.Y
                         };
                     }
 
-                    if (photino.MaxWidth < int.MaxValue || photino.MaxHeight < int.MaxValue)
+                    if (photino.MinHeight > 0)
                     {
-                        minMaxInfo.ptMaxTrackSize = new POINT
+                        minMaxInfo.ptMinTrackSize = new POINT()
                         {
-                            X = photino.MaxWidth < int.MaxValue ? photino.MaxWidth : minMaxInfo.ptMaxTrackSize.X,
-                            Y = photino.MaxHeight < int.MaxValue ? photino.MaxHeight : minMaxInfo.ptMaxTrackSize.Y
+                            X = minMaxInfo.ptMinTrackSize.X,
+                            Y = photino.MinHeight
                         };
                     }
 
+<<<<<<< HEAD
+=======
+                    if (photino.MaxWidth < int.MaxValue)
+                    {
+                        minMaxInfo.ptMaxTrackSize = new POINT()
+                        {
+                            X = photino.MaxWidth,
+                            Y = minMaxInfo.ptMaxTrackSize.Y
+                        };
+                    }
+
+                    if (photino.MaxHeight < int.MaxValue)
+                    {
+                        minMaxInfo.ptMaxTrackSize = new POINT()
+                        {
+                            X = minMaxInfo.ptMaxTrackSize.X,
+                            Y = photino.MaxHeight
+                        };
+                    }
+
+
+                    // if (photino.MinWidth > 0 || photino.MinHeight > 0)
+                    // {
+                    //     minMaxInfo.ptMinTrackSize = new POINT
+                    //     {
+                    //         X = photino.MinWidth > 0 ? photino.MinWidth : minMaxInfo.ptMinTrackSize.X,
+                    //         Y = photino.MinHeight > 0 ? photino.MinHeight : minMaxInfo.ptMinTrackSize.Y
+                    //     };
+                    // }
+                    //
+                    // if (photino.MaxWidth < int.MaxValue || photino.MaxHeight < int.MaxValue)
+                    // {
+                    //     minMaxInfo.ptMaxTrackSize = new POINT
+                    //     {
+                    //         X = photino.MaxWidth < int.MaxValue ? photino.MaxWidth : minMaxInfo.ptMaxTrackSize.X,
+                    //         Y = photino.MaxHeight < int.MaxValue ? photino.MaxHeight : minMaxInfo.ptMaxTrackSize.Y
+                    //     };
+                    // }
+
+>>>>>>> 155db2367dec4b6baabe6290da61506de40af2e8
                     Marshal.StructureToPtr(minMaxInfo, lParam, false);
 
                     return 0;
@@ -652,7 +694,7 @@ public class WindowsPhotino : Photino
         settings.IsWebMessageEnabled = true;
 
         await WebViewWindow.AddScriptToExecuteOnDocumentCreatedAsync(
-            "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { console.log(e.data); callback(e.data); }); } };");
+            "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { callback(e.data); }); } };");
         WebViewWindow.WebMessageReceived += (_, args) =>
         {
             Console.WriteLine(args.TryGetWebMessageAsString());
@@ -1023,16 +1065,13 @@ public class WindowsPhotino : Photino
 
     public override void SetIconFile(string filename)
     {
-        // HICON iconSmall = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 16, 16, LR_LOADFROMFILE | LR_LOADTRANSPARENT | LR_SHARED);
-        // HICON iconBig = (HICON)LoadImage(NULL, filename, IMAGE_ICON, 32, 32, LR_LOADFROMFILE | LR_LOADTRANSPARENT | LR_SHARED);
-        //
-        // if (iconSmall && iconBig)
-        // {
-        //     SendMessage(_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)iconSmall);
-        //     SendMessage(_hWnd, WM_SETICON, ICON_BIG, (LPARAM)iconBig);
-        // }
-        //
-        // this->_iconFileName = filename;
+        var iconSmall = DLLImports.LoadImage(_hInstance, filename, Constants.IMAGE_ICON, 16, 16, Constants.LR_LOADFROMFILE | Constants.LR_DEFAULTSIZE |  Constants.LR_SHARED);
+        var iconBig = DLLImports.LoadImage(_hInstance, filename, Constants.IMAGE_ICON, 32, 32, Constants.LR_LOADFROMFILE | Constants.LR_DEFAULTSIZE |  Constants.LR_SHARED);
+
+        DLLImports.SendMessage(_hwnd, Constants.WM_SETICON, Constants.ICON_BIG, iconBig);
+        DLLImports.SendMessage(_hwnd, Constants.WM_SETICON, Constants.ICON_SMALL, iconSmall);
+
+        _iconFileName = filename;
     }
 
     public override void SetFullScreen(bool fullScreen)
