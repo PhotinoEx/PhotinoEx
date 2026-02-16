@@ -5,20 +5,26 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
-    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!--    <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>-->
+    <!--    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>-->
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\PhotinoEx.Blazor\PhotinoEx.Blazor.csproj"/>
   </ItemGroup>
 
+  <!--  <ItemGroup>-->
+  <!--    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="9.0.12" />-->
+  <!--  </ItemGroup>-->
+  <!--  <ItemGroup>-->
+  <!--    <EmbeddedResource Include="wwwroot\**"/>-->
+  <!--  </ItemGroup>-->
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="9.0.12" />
+    <Content Remove="wwwroot\**\*" />
+    <None Include="wwwroot\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="wwwroot\**"/>
-  </ItemGroup>
 
 </Project>

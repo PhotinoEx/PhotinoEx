@@ -12,8 +12,9 @@ class Program
     [STAThread]
     private static void Main(string[] args)
     {
-        EmbedProvider = new ManifestEmbeddedFileProvider(typeof(Program).Assembly, "wwwroot");
-        var appBuilder = PhotinoBlazorAppBuilder.CreateDefault(EmbedProvider, args);
+        // EmbedProvider = new ManifestEmbeddedFileProvider(typeof(Program).Assembly, "wwwroot");
+        // var appBuilder = PhotinoBlazorAppBuilder.CreateDefault(EmbedProvider, args);
+        var appBuilder = PhotinoBlazorAppBuilder.CreateDefault(args);
 
         appBuilder.RootComponents.Add<App>("app");
 
