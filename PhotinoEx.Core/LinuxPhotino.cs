@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Text;
 using System.Text.Json;
 using Gdk.Internal;
@@ -6,16 +7,12 @@ using Gio;
 using GLib;
 using GObject;
 using Gtk;
-using Gtk.Internal;
 using PhotinoEx.Core.Enums;
 using PhotinoEx.Core.Models;
 using WebKit;
 using Action = System.Action;
-using AlertDialog = Gtk.AlertDialog;
 using Application = Gtk.Application;
 using ApplicationWindow = Gtk.ApplicationWindow;
-using AsyncResult = Gio.Internal.AsyncResult;
-using Dialog = Gtk.Dialog;
 using File = Gio.File;
 using FileDialog = Gtk.FileDialog;
 using FileFilter = Gtk.FileFilter;
@@ -443,6 +440,16 @@ public class LinuxPhotino : Photino
         return _webSecurityEnabled;
     }
 
+    public override Point GetPosition()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void SetPosition(Point newLocation)
+    {
+        throw new NotImplementedException();
+    }
+
     public override bool GetJavascriptClipboardAccessEnabled()
     {
         return _javascriptClipboardAccessEnabled;
@@ -657,10 +664,10 @@ public class LinuxPhotino : Photino
     public override void ShowNotification(string title, string message)
     {
         // TODO: expand this to include icons/type of notification - e.g. error
-        var test = new Notification();
-        test.SetBody(message);
-        test.SetTitle(title);
-        _application.SendNotification(null, test);
+        var notification = new Notification();
+        notification.SetBody(message);
+        notification.SetTitle(title);
+        _application.SendNotification(null, notification);
     }
 
     public override void WaitForExit()
@@ -789,7 +796,7 @@ public class LinuxPhotino : Photino
                         return results;
                     }
 
-                    results.Add(item.GetPath());
+                    results.Add(item.GetPath()!);
                 }
             }
             else
@@ -799,7 +806,7 @@ public class LinuxPhotino : Photino
                 if (file is not null)
                 {
                     var pathToUse = file.GetPath();
-                    results.Add(pathToUse);
+                    results.Add(pathToUse!);
                 }
             }
         }
@@ -839,7 +846,7 @@ public class LinuxPhotino : Photino
                         return results;
                     }
 
-                    results.Add(item.GetPath());
+                    results.Add(item.GetPath()!);
                 }
             }
             else
@@ -849,7 +856,7 @@ public class LinuxPhotino : Photino
                 if (file is not null)
                 {
                     var pathToUse = file.GetPath();
-                    results.Add(pathToUse);
+                    results.Add(pathToUse!);
                 }
             }
         }
@@ -888,7 +895,7 @@ public class LinuxPhotino : Photino
             return "";
         }
 
-        return file.GetPath();
+        return file.GetPath()!;
     }
 
     public override async Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon)
@@ -945,7 +952,7 @@ public class LinuxPhotino : Photino
 
         var tcs = new TaskCompletionSource<DialogResult>();
 
-        dialog.OnResponse += (sender, args) =>
+        dialog.OnResponse += (_, args) =>
         {
             switch (args.ResponseId)
             {

@@ -41,7 +41,7 @@ public class PhotinoWindow
         MaxWidth = 10000
     };
 
-    private Photino _instance;
+    private Photino? _instance;
     private readonly int _managedThreadId;
 
     //There can only be 1 message loop for all windows.
@@ -117,7 +117,7 @@ public class PhotinoWindow
                 }
 
                 var handle = IntPtr.Zero;
-                // Invoke(() => handle = ((WPhotino)_instance).GetHwnd()); TODO: fix types
+                Invoke(() => handle = ((WindowsPhotino)_instance).GetHwnd());
                 return handle;
             }
             else
@@ -728,7 +728,7 @@ public class PhotinoWindow
         }
     }
 
-    private string _iconFile;
+    private string? _iconFile;
 
     /// <summary>
     /// Gets or sets the icon file for the native window title bar.
@@ -741,7 +741,7 @@ public class PhotinoWindow
     /// The file path to the icon.
     /// </value>
     /// <exception cref="System.ArgumentException">Icon file: {value} does not exist.</exception>
-    public string IconFile
+    public string? IconFile
     {
         get { return _iconFile; }
         set
@@ -761,11 +761,11 @@ public class PhotinoWindow
 
                 if (_instance is null)
                 {
-                    _startupParameters.WindowIconFile = _iconFile;
+                    _startupParameters.WindowIconFile = _iconFile!;
                 }
                 else
                 {
-                    Invoke(() => _instance.SetIconFile(_iconFile));
+                    Invoke(() => _instance.SetIconFile(_iconFile!));
                 }
             }
         }
@@ -786,7 +786,7 @@ public class PhotinoWindow
             }
 
             Point position = default;
-            // Invoke(() => position = _instance.GetPosition());
+            Invoke(() => position = _instance.GetPosition());
             return position;
         }
         set
@@ -800,7 +800,7 @@ public class PhotinoWindow
                 }
                 else
                 {
-                    // Invoke(() => _instance.SetPosition(Location));
+                    Invoke(() => _instance.SetPosition(Location));
                 }
             }
         }
@@ -1181,7 +1181,7 @@ public class PhotinoWindow
     /// <exception cref="ApplicationException">
     /// Thrown if platform is not Windows.
     /// </exception>
-    public string TemporaryFilesPath
+    public string? TemporaryFilesPath
     {
         get { return _startupParameters.TemporaryFilesPath; }
         set
@@ -1326,7 +1326,6 @@ public class PhotinoWindow
     /// <exception cref="ApplicationException">
     /// Thrown if trying to set value after native window is initalized.
     /// </exception>
-    [SupportedOSPlatform("windows")]
     public bool UseOsDefaultLocation
     {
         get { return _startupParameters.UseOsDefaultLocation; }
@@ -1398,7 +1397,7 @@ public class PhotinoWindow
     /// Set assigns a new handler to the event.
     /// </summary>
     /// <seealso cref="WebMessageReceived"/>
-    public EventHandler<string> WebMessageReceivedHandler
+    public EventHandler<string>? WebMessageReceivedHandler
     {
         get { return WebMessageReceived; }
         set { WebMessageReceived += value; }
@@ -1409,7 +1408,7 @@ public class PhotinoWindow
     /// Set assigns a new handler to the event.
     /// </summary>
     /// <seealso cref="WindowClosing" />
-    public NetClosingDelegate WindowClosingHandler
+    public NetClosingDelegate? WindowClosingHandler
     {
         get { return WindowClosing; }
         set { WindowClosing += value; }
@@ -1420,7 +1419,7 @@ public class PhotinoWindow
     /// Set assigns a new handler to the event.
     /// </summary>
     /// <seealso cref="WindowCreating"/>
-    public EventHandler WindowCreatingHandler
+    public EventHandler? WindowCreatingHandler
     {
         get { return WindowCreating; }
         set { WindowCreating += value; }
@@ -1431,7 +1430,7 @@ public class PhotinoWindow
     /// Set assigns a new handler to the event.
     /// </summary>
     /// <seealso cref="WindowCreated"/>
-    public EventHandler WindowCreatedHandler
+    public EventHandler? WindowCreatedHandler
     {
         get { return WindowCreated; }
         set { WindowCreated += value; }
@@ -1442,7 +1441,7 @@ public class PhotinoWindow
     /// Set assigns a new handler to the event.
     /// </summary>
     /// <seealso cref="WindowLocationChanged"/>
-    public EventHandler<Point> WindowLocationChangedHandler
+    public EventHandler<Point>? WindowLocationChangedHandler
     {
         get { return WindowLocationChanged; }
         set { WindowLocationChanged += value; }
@@ -1453,7 +1452,7 @@ public class PhotinoWindow
     /// Set assigns a new handler to the event.
     /// </summary>
     /// <seealso cref="WindowSizeChanged"/>
-    public EventHandler<Size> WindowSizeChangedHandler
+    public EventHandler<Size>? WindowSizeChangedHandler
     {
         get { return WindowSizeChanged; }
         set { WindowSizeChanged += value; }
@@ -1464,7 +1463,7 @@ public class PhotinoWindow
     /// Set assigns a new handler to the event.
     /// </summary>
     /// <seealso cref="WindowFocusIn"/>
-    public EventHandler WindowFocusInHandler
+    public EventHandler? WindowFocusInHandler
     {
         get { return WindowFocusIn; }
         set { WindowFocusIn += value; }
@@ -1475,7 +1474,7 @@ public class PhotinoWindow
     /// Set assigns a new handler to the event.
     /// </summary>
     /// <seealso cref="WindowFocusOut"/>
-    public EventHandler WindowFocusOutHandler
+    public EventHandler? WindowFocusOutHandler
     {
         get { return WindowFocusOut; }
         set { WindowFocusOut += value; }
@@ -1486,7 +1485,7 @@ public class PhotinoWindow
     /// Set assigns a new handler to the event.
     /// </summary>
     /// <seealso cref="WindowMaximized"/>
-    public EventHandler WindowMaximizedHandler
+    public EventHandler? WindowMaximizedHandler
     {
         get { return WindowMaximized; }
         set { WindowMaximized += value; }
@@ -1497,7 +1496,7 @@ public class PhotinoWindow
     /// Set assigns a new handler to the event.
     /// </summary>
     /// <seealso cref="WindowRestored"/>
-    public EventHandler WindowRestoredHandler
+    public EventHandler? WindowRestoredHandler
     {
         get { return WindowRestored; }
         set { WindowRestored += value; }
@@ -1508,7 +1507,7 @@ public class PhotinoWindow
     /// Set assigns a new handler to the event.
     /// </summary>
     /// <seealso cref="WindowMinimized"/>
-    public EventHandler WindowMinimizedHandler
+    public EventHandler? WindowMinimizedHandler
     {
         get { return WindowMinimized; }
         set { WindowMinimized += value; }
@@ -1569,7 +1568,7 @@ public class PhotinoWindow
     /// If a parent window is specified, this window will be created as a child of the specified parent window.
     /// </remarks>
     /// <param name="parent">The parent PhotinoWindow. This is optional and defaults to null.</param>
-    public PhotinoWindow(PhotinoWindow parent = null)
+    public PhotinoWindow(PhotinoWindow? parent = null)
     {
         _dotNetParent = parent;
         _managedThreadId = Environment.CurrentManagedThreadId;
@@ -1608,7 +1607,7 @@ public class PhotinoWindow
         }
         else
         {
-            _instance.Invoke(workItem);
+            _instance!.Invoke(workItem);
         }
 
         return this;
@@ -1781,7 +1780,7 @@ public class PhotinoWindow
         // This behavior seems to have changed with macOS Sonoma.
         // Therefore we determine the version of macOS and only apply the
         // workaround for older versions.
-        if (IsMacOsPlatform && MacOsVersion.Major < 23)
+        if (IsMacOsPlatform && MacOsVersion?.Major < 23)
         {
             var workArea = MainMonitor.WorkArea;
             location.Y = location.Y >= 0
@@ -2463,7 +2462,7 @@ public class PhotinoWindow
     {
         if (IsWindowsPlatform)
         {
-            Invoke(() => ((WindowsPhotino) _instance).SetWebView2RuntimePath(data));
+            Invoke(() => ((WindowsPhotino) _instance!).SetWebView2RuntimePath(data));
         }
         else
         {
@@ -2486,7 +2485,7 @@ public class PhotinoWindow
     {
         if (IsWindowsPlatform)
         {
-            Invoke(() => _instance.ClearBrowserAutoFill());
+            Invoke(() => _instance!.ClearBrowserAutoFill());
         }
         else
         {
@@ -2537,7 +2536,7 @@ public class PhotinoWindow
                 _messageLoopIsStarted = true;
                 try
                 {
-                    Invoke(() => _instance.WaitForExit()); // start the message loop. there can only be 1 message loop for all windows.
+                    Invoke(() => _instance!.WaitForExit()); // start the message loop. there can only be 1 message loop for all windows.
                 }
                 catch (Exception ex)
                 {
@@ -2639,7 +2638,7 @@ public class PhotinoWindow
     public async Task<List<string>> ShowOpenFileDialogAsync(string title = "Choose file", string? defaultPath = null, bool multiSelect = false,
         List<string>? filterPatterns = null)
     {
-        return await _instance.ShowOpenFileAsync(title, defaultPath, multiSelect, filterPatterns);
+        return await _instance!.ShowOpenFileAsync(title, defaultPath, multiSelect, filterPatterns);
     }
 
     /// <summary>
@@ -2655,7 +2654,7 @@ public class PhotinoWindow
     public async Task<List<string>> ShowOpenFolderDialogAsync(string title = "Choose file", string? defaultPath = null,
         bool multiSelect = false)
     {
-        return await _instance.ShowOpenFolderAsync(title, defaultPath, multiSelect);
+        return await _instance!.ShowOpenFolderAsync(title, defaultPath, multiSelect);
     }
 
     /// <summary>
@@ -2669,7 +2668,7 @@ public class PhotinoWindow
     /// </exception>
     /// <param name="title">Title of the dialog</param>
     /// <param name="defaultPath">Default path. Defaults to <see cref="Environment.SpecialFolder.MyDocuments"/></param>
-    /// <param name="filterPatterns">Array of <see cref="Extensions"/> for filtering.</param>
+    /// <param name="filterPatterns">Array for filtering.</param>
     /// <returns></returns>
     public async Task<string?> ShowSaveFileDialogAsync(string title = "Choose file", string? defaultPath = null,
         List<string>? filterPatterns = null)
@@ -2677,10 +2676,9 @@ public class PhotinoWindow
         defaultPath ??= Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         filterPatterns ??= new List<string>();
 
-        string result = "";
         var nativeFilters = GetNativeFilters(filterPatterns);
 
-        return await _instance.ShowSaveFileAsync(title, defaultPath, nativeFilters);
+        return await _instance!.ShowSaveFileAsync(title, defaultPath, nativeFilters);
     }
 
     /// <summary>
@@ -2697,7 +2695,7 @@ public class PhotinoWindow
     public async Task<DialogResult> ShowMessageDialogAsync(string title, string text, DialogButtons buttons = DialogButtons.Ok,
         DialogIcon icon = DialogIcon.Info)
     {
-        return await _instance.ShowMessageAsync(title, text, buttons, icon);
+        return await _instance!.ShowMessageAsync(title, text, buttons, icon);
     }
 
     /// <summary>
@@ -2712,7 +2710,7 @@ public class PhotinoWindow
             return;
         }
 
-        Console.WriteLine($"Photino.NET: \"{Title ?? "PhotinoWindow"}\"{message}");
+        Console.WriteLine($"Photino.NET: \"{Title}\"{message}");
     }
 
     /// <summary>
@@ -2741,7 +2739,7 @@ public class PhotinoWindow
     #region Events
 
     //FLUENT EVENT HANDLER REGISTRATION
-    public event EventHandler<Point> WindowLocationChanged;
+    public event EventHandler<Point>? WindowLocationChanged;
 
     /// <summary>
     /// Registers user-defined handler methods to receive callbacks from the native window when its location changes.
@@ -2767,7 +2765,7 @@ public class PhotinoWindow
         WindowLocationChanged?.Invoke(this, location);
     }
 
-    public event EventHandler<Size> WindowSizeChanged;
+    public event EventHandler<Size>? WindowSizeChanged;
 
     /// <summary>
     /// Registers user-defined handler methods to receive callbacks from the native window when its size changes.
@@ -2791,7 +2789,7 @@ public class PhotinoWindow
         WindowSizeChanged?.Invoke(this, size);
     }
 
-    public event EventHandler WindowFocusIn;
+    public event EventHandler? WindowFocusIn;
 
     /// <summary>
     /// Registers registered user-defined handler methods to receive callbacks from the native window when it is focused in.
@@ -2814,7 +2812,7 @@ public class PhotinoWindow
         WindowFocusIn?.Invoke(this, EventArgs.Empty);
     }
 
-    public event EventHandler WindowMaximized;
+    public event EventHandler? WindowMaximized;
 
     /// <summary>
     /// Registers user-defined handler methods to receive callbacks from the native window when it is maximized.
@@ -2837,7 +2835,7 @@ public class PhotinoWindow
         WindowMaximized?.Invoke(this, EventArgs.Empty);
     }
 
-    public event EventHandler WindowRestored;
+    public event EventHandler? WindowRestored;
 
     /// <summary>
     /// Registers user-defined handler methods to receive callbacks from the native window when it is restored.
@@ -2860,7 +2858,7 @@ public class PhotinoWindow
         WindowRestored?.Invoke(this, EventArgs.Empty);
     }
 
-    public event EventHandler WindowFocusOut;
+    public event EventHandler? WindowFocusOut;
 
     /// <summary>
     /// Registers registered user-defined handler methods to receive callbacks from the native window when it is focused out.
@@ -2883,7 +2881,7 @@ public class PhotinoWindow
         WindowFocusOut?.Invoke(this, EventArgs.Empty);
     }
 
-    public event EventHandler WindowMinimized;
+    public event EventHandler? WindowMinimized;
 
     /// <summary>
     /// Registers user-defined handler methods to receive callbacks from the native window when it is minimized.
@@ -2906,7 +2904,7 @@ public class PhotinoWindow
         WindowMinimized?.Invoke(this, EventArgs.Empty);
     }
 
-    public event EventHandler<string> WebMessageReceived;
+    public event EventHandler<string>? WebMessageReceived;
 
     /// <summary>
     /// Registers user-defined handler methods to receive callbacks from the native window when it sends a message.
@@ -2932,9 +2930,9 @@ public class PhotinoWindow
         WebMessageReceived?.Invoke(this, message);
     }
 
-    public delegate bool NetClosingDelegate(object sender, EventArgs e);
+    public delegate bool NetClosingDelegate(object sender, EventArgs? e);
 
-    public event NetClosingDelegate WindowClosing;
+    public event NetClosingDelegate? WindowClosing;
 
     /// <summary>
     /// Registers user-defined handler methods to receive callbacks from the native window when the window is about to close.
@@ -2958,7 +2956,7 @@ public class PhotinoWindow
         return WindowClosing?.Invoke(this, null) ?? false;
     }
 
-    public event EventHandler WindowCreating;
+    public event EventHandler? WindowCreating;
 
     /// <summary>
     /// Registers user-defined handler methods to receive callbacks before the native window is created.
@@ -2978,10 +2976,10 @@ public class PhotinoWindow
     /// </summary>
     internal void OnWindowCreating()
     {
-        WindowCreating?.Invoke(this, null);
+        WindowCreating?.Invoke(this, null!);
     }
 
-    public event EventHandler WindowCreated;
+    public event EventHandler? WindowCreated;
 
     /// <summary>
     /// Registers user-defined handler methods to receive callbacks after the native window is created.
@@ -3001,7 +2999,7 @@ public class PhotinoWindow
     /// </summary>
     internal void OnWindowCreated()
     {
-        WindowCreated?.Invoke(this, null);
+        WindowCreated?.Invoke(this, null!);
     }
 
 
@@ -3050,7 +3048,7 @@ public class PhotinoWindow
             {
                 if (!CustomSchemes.ContainsKey(scheme))
                 {
-                    CustomSchemes.Add(scheme, null);
+                    CustomSchemes.Add(scheme, null!);
                 }
             }
         }
@@ -3069,7 +3067,6 @@ public class PhotinoWindow
     /// when the native browser control encounters them.
     /// </summary>
     /// <param name="url">URL of the Scheme</param>
-    /// <param name="numBytes">Number of bytes of the response</param>
     /// <param name="contentType">Content type of the response</param>
     /// <returns><see cref="IntPtr"/></returns>
     /// <exception cref="ApplicationException">

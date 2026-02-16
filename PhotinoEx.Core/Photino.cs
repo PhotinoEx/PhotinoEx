@@ -1,3 +1,4 @@
+using System.Drawing;
 using PhotinoEx.Core.Enums;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
@@ -21,7 +22,7 @@ public abstract class Photino
     protected Func<Monitor, int>? _getAllMonitors { get; set; }
     protected string _startUrl { get; set; } = "";
     protected string _startString { get; set; } = "";
-    protected string _temporaryFilesPath { get; set; } = "";
+    protected string? _temporaryFilesPath { get; set; } = "";
     protected string _windowTitle { get; set; } = "";
     protected string _iconFileName { get; set; } = "";
     protected string _userAgent { get; set; } = "";
@@ -100,6 +101,8 @@ public abstract class Photino
 
     public abstract bool GetIgnoreCertificateErrorsEnabled();
 
+    public abstract Point GetPosition();
+
     public abstract void NavigateToString(string content);
 
     public abstract void NavigateToUrl(string url);
@@ -114,6 +117,8 @@ public abstract class Photino
     public abstract void SetContextMenuEnabled(bool enabled);
 
     public abstract void SetDevToolsEnabled(bool enabled);
+
+    public abstract void SetPosition(Point newLocation);
 
     public abstract void SetIconFile(string filename);
 

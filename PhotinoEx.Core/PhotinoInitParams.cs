@@ -32,9 +32,7 @@ public class PhotinoInitParams
 
     public Func<Monitor, int>? GetAllMonitors { get; set; }
 
-    [SupportedOSPlatform("windows")]
     public int Left;
-    [SupportedOSPlatform("windows")]
     public int Top;
 
     public int Width;
@@ -45,9 +43,7 @@ public class PhotinoInitParams
     public int MaxWidth;
     public int MaxHeight;
 
-    [SupportedOSPlatform("windows")]
     public bool CenterOnInitialize;
-    [SupportedOSPlatform("windows")]
     public bool UseOsDefaultLocation;
 
     public bool Chromeless;

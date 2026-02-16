@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.Core.Raw;
 using PhotinoEx.Core.Enums;
 using PhotinoEx.Core.TempModels;
 using PhotinoEx.Core.Utils;
@@ -338,7 +337,7 @@ public class WindowsPhotino : Photino
             case WM_USER_INVOKE:
                 {
                     var callbackHandle = GCHandle.FromIntPtr(wParam);
-                    var callback = (Action)callbackHandle.Target;
+                    var callback = (Action)callbackHandle.Target!;
 
                     callback?.Invoke();
 
@@ -414,8 +413,8 @@ public class WindowsPhotino : Photino
                 {
                     if (HWNDToPhotino.TryGetValue(hwnd, out var photino))
                     {
-                        NotifyWebView2WindowMove();
-                        RefitContent();
+                        photino.NotifyWebView2WindowMove();
+                        photino.RefitContent();
                     }
 
                     break;
@@ -511,9 +510,9 @@ public class WindowsPhotino : Photino
         // AllowDarkModeForWindow(hwnd, enable ? TRUE : FALSE);
     }
 
-    private string _webview2RuntimePath;
+    private string? _webview2RuntimePath;
 
-    public void SetWebView2RuntimePath(string runtimePath)
+    public void SetWebView2RuntimePath(string? runtimePath)
     {
         if (runtimePath is not null)
         {
@@ -658,7 +657,7 @@ public class WindowsPhotino : Photino
         {
             Console.WriteLine(args.TryGetWebMessageAsString());
             var message = args.TryGetWebMessageAsString();
-            _WebMessageReceivedCallback(message);
+            _WebMessageReceivedCallback?.Invoke(message);
         };
 
         _webViewWindow.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
@@ -688,7 +687,7 @@ public class WindowsPhotino : Photino
             }
         };
 
-        _webViewWindow?.PermissionRequested += (sender, args) =>
+        _webViewWindow?.PermissionRequested += (_, args) =>
         {
             if (_grantBrowserPermissions)
             {
@@ -927,10 +926,9 @@ public class WindowsPhotino : Photino
         return false;
     }
 
-    public Point GetPosition()
+    public override Point GetPosition()
     {
-        var rect = new RECT();
-        DLLImports.GetWindowRect(_hwnd, out rect);
+        DLLImports.GetWindowRect(_hwnd, out var rect);
         return new Point(rect.Left, rect.Top);
     }
 
@@ -952,8 +950,7 @@ public class WindowsPhotino : Photino
 
     public override Size GetSize()
     {
-        var rect = new RECT();
-        DLLImports.GetWindowRect(_hwnd, out rect);
+        DLLImports.GetWindowRect(_hwnd, out var rect);
         return new Size(rect.Width, rect.Height);
     }
 
@@ -1118,7 +1115,7 @@ public class WindowsPhotino : Photino
         }
     }
 
-    public void SetPosition(Point position)
+    public override void SetPosition(Point position)
     {
         DLLImports.SetWindowPos(
             _hwnd,
@@ -1196,7 +1193,7 @@ public class WindowsPhotino : Photino
 
     public override void SetZoom(int zoom)
     {
-        _webViewController.ZoomFactor = zoom / 100.0;
+        _webViewController!.ZoomFactor = zoom / 100.0;
     }
 
     public override void ShowNotification(string title, string message)
@@ -1218,9 +1215,7 @@ public class WindowsPhotino : Photino
     {
         messageLoopRootWindowHandle = _hwnd;
 
-        var msg = new MSG();
-
-        while (DLLImports.GetMessage(out msg, IntPtr.Zero, 0, 0))
+        while (DLLImports.GetMessage(out var msg, IntPtr.Zero, 0, 0))
         {
             DLLImports.TranslateMessage(ref msg);
             DLLImports.DispatchMessage(ref msg);

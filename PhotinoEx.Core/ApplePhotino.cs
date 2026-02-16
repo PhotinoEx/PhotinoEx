@@ -1,3 +1,4 @@
+using System.Drawing;
 using PhotinoEx.Core.Enums;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
@@ -327,6 +328,16 @@ public class ApplePhotino : Photino
     }
 
     public override void Invoke(Action callback)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override Point GetPosition()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void SetPosition(Point newLocation)
     {
         throw new NotImplementedException();
     }
