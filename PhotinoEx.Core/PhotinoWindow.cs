@@ -2636,7 +2636,7 @@ public class PhotinoWindow
     /// <param name="filterPatterns">List of filtering.</param>
     /// <returns>Array of file paths as strings</returns>
     public async Task<List<string>> ShowOpenFileDialogAsync(string title = "Choose file", string? defaultPath = null, bool multiSelect = false,
-        List<string>? filterPatterns = null)
+        Dictionary<string, string>? filterPatterns = null)
     {
         return await _instance!.ShowOpenFileAsync(title, defaultPath, multiSelect, filterPatterns);
     }
@@ -2671,10 +2671,10 @@ public class PhotinoWindow
     /// <param name="filterPatterns">Array for filtering.</param>
     /// <returns></returns>
     public async Task<string?> ShowSaveFileDialogAsync(string title = "Choose file", string? defaultPath = null,
-        List<string>? filterPatterns = null)
+        Dictionary<string, string>? filterPatterns = null)
     {
         defaultPath ??= Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        filterPatterns ??= new List<string>();
+        filterPatterns ??= new Dictionary<string, string>();
 
         var nativeFilters = GetNativeFilters(filterPatterns);
 
@@ -2719,9 +2719,9 @@ public class PhotinoWindow
     /// <param name="filters"></param>
     /// <param name="empty"></param>
     /// <returns>String array of filters</returns>
-    private static List<string> GetNativeFilters(List<string> filters, bool empty = false)
+    private static Dictionary<string, string> GetNativeFilters(Dictionary<string, string> filters, bool empty = false)
     {
-        var nativeFilters = new List<string>();
+        var nativeFilters = new Dictionary<string, string>();
         if (!empty && filters.Any())
         {
             // nativeFilters = IsMacOsPlatform

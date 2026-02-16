@@ -167,11 +167,11 @@ public abstract class Photino
 
     public abstract void SetMinimizedCallback(Action callback);
 
-    public abstract Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<string>? filterPatterns);
+    public abstract Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, Dictionary<string, string>? filterPatterns);
 
     public abstract Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect);
 
-    public abstract Task<string> ShowSaveFileAsync(string title, string? path, List<string>? filterPatterns);
+    public abstract Task<string> ShowSaveFileAsync(string title, string? path, Dictionary<string, string>? filterPatterns);
 
     public abstract Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon);
 

@@ -337,7 +337,7 @@ public class WindowsPhotino : Photino
             case WM_USER_INVOKE:
                 {
                     var callbackHandle = GCHandle.FromIntPtr(wParam);
-                    var callback = (Action)callbackHandle.Target!;
+                    var callback = (Action) callbackHandle.Target!;
 
                     callback?.Invoke();
 
@@ -370,7 +370,7 @@ public class WindowsPhotino : Photino
                         };
                     }
 
-                    Marshal.StructureToPtr(minMaxInfo, lParam, true);
+                    Marshal.StructureToPtr(minMaxInfo, lParam, false);
 
                     return 0;
                 }
@@ -1331,8 +1331,46 @@ public class WindowsPhotino : Photino
         return "";
     }
 
-    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<string>? filterPatterns)
+    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect,
+        Dictionary<string, string>? filterPatterns)
     {
+        var sb = new StringBuilder();
+        foreach (var filterPattern in filterPatterns ?? new Dictionary<string, string>()
+                 {
+                     { "All Files", "*.*" }
+                 })
+        {
+            sb.Append(filterPattern.Key);
+            sb.Append("\0");
+            sb.Append(filterPattern.Value);
+            sb.Append("\0");
+        }
+
+
+        var ofn = new OPENFILENAME();
+        ofn.lStructSize = Marshal.SizeOf(ofn);
+        ofn.hwndOwner = _hwnd;
+        ofn.lpstrFilter = sb.ToString();
+        ofn.nFilterIndex = 1;
+        ofn.lpstrFile = new string('\0', 65536);
+        ofn.nMaxFile = ofn.lpstrFile.Length;
+        ofn.lpstrFileTitle = new string('\0', 512);
+        ofn.nMaxFileTitle = ofn.lpstrFileTitle.Length;
+        ofn.lpstrTitle = title;
+        ofn.Flags = Constants.OFN_EXPLORER | Constants.OFN_FILEMUSTEXIST | Constants.OFN_PATHMUSTEXIST;
+
+        if (multiSelect)
+        {
+            ofn.Flags |= Constants.OFN_ALLOWMULTISELECT;
+        }
+
+        if (DLLImports.GetOpenFileName(ref ofn))
+        {
+            var filename = ofn.lpstrFile;
+        }
+
+        return null;
+
         // HRESULT hr;
         // title = _window->ToUTF16String(title);
         // defaultPath = _window->ToUTF16String(defaultPath);
@@ -1393,7 +1431,7 @@ public class WindowsPhotino : Photino
         return new List<string>();
     }
 
-    public override async Task<string> ShowSaveFileAsync(string title, string? path, List<string>? filterPatterns)
+    public override async Task<string> ShowSaveFileAsync(string title, string? path, Dictionary<string, string>? filterPatterns)
     {
         // HRESULT hr;
         // title = _window->ToUTF16String(title);

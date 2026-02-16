@@ -7,7 +7,7 @@ I'm hoping this will make it easier to debug and develop on.
 Currently do not use this in production. Once feature parity is done, i'll start working on some fixes/features from the old repo.
 
 ## RoadMap
-- [ ] Linux support.
+- [x] Linux support.
     - [x] Update to GTK4.
     - [x] Update to Webkit6
     - [x] Folder/File/Message opening

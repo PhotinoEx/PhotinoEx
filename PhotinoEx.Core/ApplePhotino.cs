@@ -307,7 +307,7 @@ public class ApplePhotino : Photino
         throw new NotImplementedException();
     }
 
-    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<string>? filterPatterns)
+    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, Dictionary<string, string>? filterPatterns)
     {
         throw new NotImplementedException();
     }
@@ -317,7 +317,7 @@ public class ApplePhotino : Photino
         throw new NotImplementedException();
     }
 
-    public override Task<string> ShowSaveFileAsync(string title, string? path, List<string>? filterPatterns)
+    public override Task<string> ShowSaveFileAsync(string title, string? path, Dictionary<string, string>? filterPatterns)
     {
         throw new NotImplementedException();
     }

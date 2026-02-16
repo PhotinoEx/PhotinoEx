@@ -799,14 +799,14 @@ public class LinuxPhotino : Photino
         _syncContext.Send(_ => callback(), null);
     }
 
-    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<string>? filterPatterns)
+    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, Dictionary<string, string>? filterPatterns)
     {
         var dialog = FileDialog.New();
         dialog.SetTitle(title);
 
         var filter = FileFilter.New();
         filter.Name = "FilterPatterns";
-        foreach (var s in filterPatterns ?? new List<string>())
+        foreach (var s in filterPatterns?.Values.ToList() ?? new List<string>())
         {
             filter.AddPattern(s); // *.txt
         }
@@ -899,14 +899,14 @@ public class LinuxPhotino : Photino
         return results;
     }
 
-    public override async Task<string> ShowSaveFileAsync(string title, string? path, List<string>? filterPatterns)
+    public override async Task<string> ShowSaveFileAsync(string title, string? path, Dictionary<string, string>? filterPatterns)
     {
         var dialog = FileDialog.New();
         dialog.SetTitle(title);
 
         var filter = FileFilter.New();
         filter.Name = "FilterPatterns";
-        foreach (var s in filterPatterns ?? new List<string>())
+        foreach (var s in filterPatterns?.Values.ToList() ?? new List<string>())
         {
             filter.AddPattern(s); // *.txt
         }
