@@ -76,16 +76,24 @@ public class PhotinoInitParams
         var windowIconFile = WindowIconFile;
 
         if (string.IsNullOrWhiteSpace(startUrl) && string.IsNullOrWhiteSpace(startString))
+        {
             response.Add("An initial URL or HTML string must be supplied in StartUrl or StartString for the browser control to naviage to.");
+        }
 
         if (Maximized && Minimized)
+        {
             response.Add("Window cannot be both maximized and minimized on startup.");
+        }
 
         if (FullScreen && (Maximized || Minimized))
+        {
             response.Add("FullScreen cannot be combined with Maximized or Minimized");
+        }
 
         if (!string.IsNullOrWhiteSpace(windowIconFile) && !File.Exists(windowIconFile))
+        {
             response.Add($"WindowIconFile: {windowIconFile} cannot be found");
+        }
 
         Size = 0;
 
