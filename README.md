@@ -10,16 +10,20 @@ Currently do not use this in production. Once feature parity is done, i'll start
 - [ ] Linux support.
     - [x] Update to GTK4.
     - [x] Update to Webkit6
-    - [x] Folder/File opening
+    - [x] Folder/File/Message opening
+    - [x] Toast for system
+    - [ ] Application Icons
 - [ ] Windows support.
     - [ ] Dark Mode
-    - [ ] Folder/File opening
+    - [ ] Folder/File/Message opening
+    - [ ] Toast for system
+    - [ ] Application Icons
 - [ ] Mac support. (currently dont have an environment to test)
 
 
 ## Requirements
 
-- Dotnet 10.
+- Dotnet 10. (dotnet 9 till feature parity is complete)
 - An IDE supporting C# and Dotnet.
     - I will recommend [Rider](https://www.jetbrains.com/rider/) but VisualStudio should also work fine.
 
