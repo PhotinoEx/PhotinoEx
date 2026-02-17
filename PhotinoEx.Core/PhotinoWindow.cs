@@ -2723,9 +2723,11 @@ public class PhotinoWindow
     private static List<FileFilter> GetNativeFilters(List<FileFilter>? filters, bool empty = false)
     {
         var nativeFilters = new List<FileFilter>();
-        
+
         if (empty || filters == null || !filters.Any())
+        {
             return nativeFilters;
+        }
 
         if (IsMacOsPlatform)
         {
@@ -2733,7 +2735,7 @@ public class PhotinoWindow
             foreach (var filter in filters)
             {
                 var specs = filter.Spec.Split(';');
-                var macSpecs = specs.Select(s => 
+                var macSpecs = specs.Select(s =>
                     s == "*.*" || s == "*" ? "*" : s.TrimStart('*', '.'));
                 nativeFilters.Add(new FileFilter(filter.Name, string.Join(";", macSpecs)));
             }
