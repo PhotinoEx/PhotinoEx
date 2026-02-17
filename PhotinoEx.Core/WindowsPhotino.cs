@@ -1590,10 +1590,15 @@ public class WindowsPhotino : Photino
                 {
                     filterSpecs[i].pszName = filterPatterns[i].Name;
                     filterSpecs[i].pszSpec = filterPatterns[i].Spec;
+                    Console.WriteLine($"Filter {i}: Name='{filterPatterns[i].Name}', Spec='{filterPatterns[i].Spec}'");
                 }
 
-                dialog.SetFileTypes((uint) filterSpecs.Length, filterSpecs);
-                dialog.SetFileTypeIndex(1);
+                var setFileTypesHr = dialog.SetFileTypes((uint) filterSpecs.Length, filterSpecs);
+                Console.WriteLine($"SetFileTypes HRESULT: 0x{setFileTypesHr:X8}");
+                if (setFileTypesHr == Constants.S_OK)
+                {
+                    dialog.SetFileTypeIndex(1);
+                }
             }
 
             var dialogResult = dialog.Show(_hwnd);
