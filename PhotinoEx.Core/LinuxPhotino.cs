@@ -800,7 +800,7 @@ public class LinuxPhotino : Photino
         _syncContext.Send(_ => callback(), null);
     }
 
-    public override async Task<List<string>?> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<PhotinoExFileFilter>? filterPatterns)
+    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<PhotinoExFileFilter>? filterPatterns)
     {
         var dialog = FileDialog.New();
         dialog.SetTitle(title);
@@ -857,7 +857,7 @@ public class LinuxPhotino : Photino
     /// <param name="path"></param>
     /// <param name="multiSelect"></param>
     /// <returns></returns>
-    public override async Task<List<string>?> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
+    public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
     {
         var dialog = FileDialog.New();
         dialog.SetTitle(title);
@@ -900,7 +900,7 @@ public class LinuxPhotino : Photino
         return results;
     }
 
-    public override async Task<string?> ShowSaveFileAsync(string title, string? path, List<PhotinoExFileFilter>? filterPatterns)
+    public override async Task<string> ShowSaveFileAsync(string title, string? path, List<PhotinoExFileFilter>? filterPatterns, string defaultExtension = ".txt", string defaultFileName = "PhotinoExFile")
     {
         var dialog = FileDialog.New();
         dialog.SetTitle(title);

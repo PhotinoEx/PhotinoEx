@@ -1063,8 +1063,10 @@ public class WindowsPhotino : Photino
 
     public override void SetIconFile(string filename)
     {
-        var iconSmall = DLLImports.LoadImage(_hInstance, filename, Constants.IMAGE_ICON, 16, 16, Constants.LR_LOADFROMFILE | Constants.LR_DEFAULTSIZE |  Constants.LR_SHARED);
-        var iconBig = DLLImports.LoadImage(_hInstance, filename, Constants.IMAGE_ICON, 32, 32, Constants.LR_LOADFROMFILE | Constants.LR_DEFAULTSIZE |  Constants.LR_SHARED);
+        var iconSmall = DLLImports.LoadImage(_hInstance, filename, Constants.IMAGE_ICON, 16, 16,
+            Constants.LR_LOADFROMFILE | Constants.LR_DEFAULTSIZE | Constants.LR_SHARED);
+        var iconBig = DLLImports.LoadImage(_hInstance, filename, Constants.IMAGE_ICON, 32, 32,
+            Constants.LR_LOADFROMFILE | Constants.LR_DEFAULTSIZE | Constants.LR_SHARED);
 
         DLLImports.SendMessage(_hwnd, Constants.WM_SETICON, Constants.ICON_BIG, iconBig);
         DLLImports.SendMessage(_hwnd, Constants.WM_SETICON, Constants.ICON_SMALL, iconSmall);
@@ -1368,15 +1370,15 @@ public class WindowsPhotino : Photino
         return "";
     }
 
-    public override async Task<List<string>?> ShowOpenFileAsync(string title, string? path, bool multiSelect,
+    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect,
         List<FileFilter>? filterPatterns)
     {
         IFileOpenDialog? dialog = null;
+        var results = new List<string>();
         try
         {
             dialog = new FileOpenDialog() as IFileOpenDialog;
 
-            // Set options
             uint options = Constants.FOS_FORCEFILESYSTEM | Constants.FOS_PATHMUSTEXIST | Constants.FOS_FILEMUSTEXIST;
             if (multiSelect)
             {
@@ -1410,7 +1412,7 @@ public class WindowsPhotino : Photino
                         current = IntPtr.Add(current, Marshal.SizeOf(typeof(COMDLG_FILTERSPEC)));
                     }
 
-                    dialog!.SetFileTypes((uint)filterSpecs.Length, filterPtr);
+                    dialog!.SetFileTypes((uint) filterSpecs.Length, filterPtr);
                 }
                 finally
                 {
@@ -1431,9 +1433,6 @@ public class WindowsPhotino : Photino
                 return null;
             }
 
-            var results = new List<string>();
-
-            // Get results
             if (multiSelect)
             {
                 dialog.GetResults(out IShellItemArray items);
@@ -1462,7 +1461,8 @@ public class WindowsPhotino : Photino
         }
         catch
         {
-            return null;
+            Console.WriteLine("ShowOpenFileAsync Failed");
+            return results;
         }
         finally
         {
@@ -1473,73 +1473,152 @@ public class WindowsPhotino : Photino
         }
     }
 
-    public override async Task<List<string>?> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
+    public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
     {
-        // HRESULT hr;
-        // title = _window->ToUTF16String(title);
-        // defaultPath = _window->ToUTF16String(defaultPath);
-        //
-        // auto* pfd = Create<IFileOpenDialog>(&hr, title, defaultPath);
-        //
-        // if (SUCCEEDED(hr)) {
-        //     DWORD dwOptions;
-        //     pfd->GetOptions(&dwOptions);
-        //     dwOptions |= FOS_PICKFOLDERS | FOS_NOCHANGEDIR;
-        //     if (multiSelect) {
-        //         dwOptions |= FOS_ALLOWMULTISELECT;
-        //     }
-        //     else {
-        //         dwOptions &= ~FOS_ALLOWMULTISELECT;
-        //     }
-        //     pfd->SetOptions(dwOptions);
-        //
-        //     hr = pfd->Show(_window->getHwnd());
-        //     if (SUCCEEDED(hr)) {
-        //         return GetResults(pfd, &hr, resultCount);
-        //     }
-        //     pfd->Release();
-        // }
-        // return nullptr;
-        return new List<string>();
+        IFileOpenDialog? dialog = null;
+        var results = new List<string>();
+        try
+        {
+            dialog = new FileOpenDialog() as IFileOpenDialog;
+
+            uint options = Constants.FOS_FORCEFILESYSTEM | Constants.FOS_PATHMUSTEXIST | Constants.FOS_PICKFOLDERS;
+            if (multiSelect)
+            {
+                options |= Constants.FOS_ALLOWMULTISELECT;
+            }
+
+            dialog!.SetOptions(options);
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                dialog.SetTitle(title);
+            }
+
+            int hr = dialog.Show(_hwnd);
+
+            if (hr == Constants.ERROR_CANCELLED || hr != Constants.S_OK)
+            {
+                return results;
+            }
+
+            if (multiSelect)
+            {
+                dialog.GetResults(out IShellItemArray items);
+                items.GetCount(out uint count);
+
+                for (uint i = 0; i < count; i++)
+                {
+                    items.GetItemAt(i, out IShellItem item);
+                    item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string filePath);
+                    results.Add(filePath);
+                    Marshal.ReleaseComObject(item);
+                }
+
+                Marshal.ReleaseComObject(items);
+            }
+            else
+            {
+                dialog.GetResult(out IShellItem item);
+                item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string pathToUse);
+                Marshal.ReleaseComObject(item);
+                results.Add(pathToUse);
+            }
+
+            return results;
+        }
+        catch
+        {
+            Console.WriteLine("ShowOpenFolderAsync Failed");
+            return results;
+        }
+        finally
+        {
+            if (dialog != null)
+            {
+                Marshal.ReleaseComObject(dialog);
+            }
+        }
     }
 
-    public override async Task<string?> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns)
+    public override async Task<string> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns,
+        string defaultExtension = ".txt", string defaultFileName = "PhotinoExFile")
     {
-        // HRESULT hr;
-        // title = _window->ToUTF16String(title);
-        // defaultPath = _window->ToUTF16String(defaultPath);
-        // auto* pfd = Create<IFileSaveDialog>(&hr, title, defaultPath);
-        // if (SUCCEEDED(hr)) {
-        //     AddFilters(pfd, filters, filterCount, _window);
-        //
-        //     DWORD dwOptions;
-        //     pfd->GetOptions(&dwOptions);
-        //     dwOptions |= FOS_NOCHANGEDIR;
-        //     pfd->SetOptions(dwOptions);
-        //
-        //     hr = pfd->Show(_window->getHwnd());
-        //     if (SUCCEEDED(hr)) {
-        //         IShellItem* psiResult = nullptr;
-        //         hr = pfd->GetResult(&psiResult);
-        //         if (SUCCEEDED(hr)) {
-        //             wchar_t* result = nullptr;
-        //             PWSTR pszName = nullptr;
-        //             hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &pszName);
-        //             if (SUCCEEDED(hr)) {
-        //                 const auto len = wcslen(pszName);
-        //                 result = new wchar_t[len + 1];
-        //                 wcscpy_s(result, len + 1, pszName);
-        //                 CoTaskMemFree(pszName);
-        //             }
-        //             psiResult->Release();
-        //             pfd->Release();
-        //             return result;
-        //         }
-        //     }
-        //     pfd->Release();
-        // }
-        // return nullptr;
-        return "";
+        IFileSaveDialog? dialog = null;
+        var result = "";
+        try
+        {
+            dialog = new FileSaveDialog() as IFileSaveDialog;
+
+            uint options = Constants.FOS_FORCEFILESYSTEM | Constants.FOS_PATHMUSTEXIST | Constants.FOS_OVERWRITEPROMPT;
+            dialog!.SetOptions(options);
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                dialog.SetTitle(title);
+            }
+
+            if (!string.IsNullOrEmpty(defaultFileName))
+            {
+                dialog.SetFileName(defaultFileName);
+            }
+
+            if (!string.IsNullOrEmpty(defaultExtension))
+            {
+                dialog.SetDefaultExtension(defaultExtension);
+            }
+
+            // Set filters
+            if (filterPatterns != null && filterPatterns.Count > 0)
+            {
+                var filterSpecs = new COMDLG_FILTERSPEC[filterPatterns.Count];
+                for (int i = 0; i < filterPatterns.Count; i++)
+                {
+                    filterSpecs[i].pszName = filterPatterns[i].Name;
+                    filterSpecs[i].pszSpec = filterPatterns[i].Spec;
+                }
+
+                IntPtr filterPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(COMDLG_FILTERSPEC)) * filterSpecs.Length);
+                try
+                {
+                    IntPtr current = filterPtr;
+                    for (int i = 0; i < filterSpecs.Length; i++)
+                    {
+                        Marshal.StructureToPtr(filterSpecs[i], current, false);
+                        current = IntPtr.Add(current, Marshal.SizeOf(typeof(COMDLG_FILTERSPEC)));
+                    }
+
+                    dialog.SetFileTypes((uint) filterSpecs.Length, filterPtr);
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(filterPtr);
+                }
+            }
+
+            int hr = dialog.Show(_hwnd);
+
+            if (hr == Constants.ERROR_CANCELLED || hr != Constants.S_OK)
+            {
+                return result;
+            }
+
+            dialog.GetResult(out IShellItem item);
+            item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out result);
+            Marshal.ReleaseComObject(item);
+            return result;
+        }
+        catch
+        {
+            Console.WriteLine("ShowSaveFileAsync Failed");
+            return result;
+        }
+        finally
+        {
+            if (dialog != null)
+            {
+                Marshal.ReleaseComObject(dialog);
+            }
+        }
     }
 
     public override async Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon)
