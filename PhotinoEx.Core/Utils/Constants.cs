@@ -106,6 +106,27 @@ public class Constants
 
     public const int S_OK = 0;
     public const int ERROR_CANCELLED = unchecked((int)0x800704C7);
+
+
+    public const uint MB_OK               = 0x00000000;
+    public const uint MB_OKCANCEL         = 0x00000001;
+    public const uint MB_ABORTRETRYIGNORE = 0x00000002;
+    public const uint MB_YESNOCANCEL      = 0x00000003;
+    public const uint MB_YESNO            = 0x00000004;
+    public const uint MB_RETRYCANCEL      = 0x00000005;
+
+    public const uint MB_ICONERROR        = 0x00000010;
+    public const uint MB_ICONQUESTION     = 0x00000020;
+    public const uint MB_ICONWARNING      = 0x00000030;
+    public const uint MB_ICONINFORMATION  = 0x00000040;
+
+    public const int IDOK     = 1;
+    public const int IDCANCEL = 2;
+    public const int IDABORT  = 3;
+    public const int IDRETRY  = 4;
+    public const int IDIGNORE = 5;
+    public const int IDYES    = 6;
+    public const int IDNO     = 7;
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -202,34 +223,32 @@ public struct MINMAXINFO
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 public interface IFileOpenDialog
 {
-    [PreserveSig]
-    int Show(IntPtr parent);
-
-    void SetFileTypes(uint cFileTypes, IntPtr rgFilterSpec);
-    void SetFileTypeIndex(uint iFileType);
-    void GetFileTypeIndex(out uint piFileType);
-    void Advise(IntPtr pfde, out uint pdwCookie);
-    void Unadvise(uint dwCookie);
-    void SetOptions(uint fos);
-    void GetOptions(out uint pfos);
-    void SetDefaultFolder(IShellItem psi);
-    void SetFolder(IShellItem psi);
-    void GetFolder(out IShellItem ppsi);
-    void GetCurrentSelection(out IShellItem ppsi);
-    void SetFileName([MarshalAs(UnmanagedType.LPWStr)] string pszName);
-    void GetFileName([MarshalAs(UnmanagedType.LPWStr)] out string pszName);
-    void SetTitle([MarshalAs(UnmanagedType.LPWStr)] string pszTitle);
-    void SetOkButtonLabel([MarshalAs(UnmanagedType.LPWStr)] string pszText);
-    void SetFileNameLabel([MarshalAs(UnmanagedType.LPWStr)] string pszLabel);
-    void GetResult(out IShellItem ppsi);
-    void AddPlace(IShellItem psi, int alignment);
-    void SetDefaultExtension([MarshalAs(UnmanagedType.LPWStr)] string pszDefaultExtension);
-    void Close(int hr);
-    void SetClientGuid([In] ref Guid guid);
-    void ClearClientData();
-    void SetFilter(IntPtr pFilter);
-    void GetResults(out IShellItemArray ppenum);
-    void GetSelectedItems(out IShellItemArray ppsai);
+    [PreserveSig] int Show(IntPtr parent);
+    [PreserveSig] int SetFileTypes(uint cFileTypes, [MarshalAs(UnmanagedType.LPArray)] COMDLG_FILTERSPEC[] rgFilterSpec);
+    [PreserveSig] int SetFileTypeIndex(uint iFileType);
+    [PreserveSig] int GetFileTypeIndex(out uint piFileType);
+    [PreserveSig] int Advise(IntPtr pfde, out uint pdwCookie);
+    [PreserveSig] int Unadvise(uint dwCookie);
+    [PreserveSig] int SetOptions(uint fos);
+    [PreserveSig] int GetOptions(out uint pfos);
+    [PreserveSig] int SetDefaultFolder(IShellItem psi);
+    [PreserveSig] int SetFolder(IShellItem psi);
+    [PreserveSig] int GetFolder(out IShellItem ppsi);
+    [PreserveSig] int GetCurrentSelection(out IShellItem ppsi);
+    [PreserveSig] int SetFileName([MarshalAs(UnmanagedType.LPWStr)] string pszName);
+    [PreserveSig] int GetFileName([MarshalAs(UnmanagedType.LPWStr)] out string pszName);
+    [PreserveSig] int SetTitle([MarshalAs(UnmanagedType.LPWStr)] string pszTitle);
+    [PreserveSig] int SetOkButtonLabel([MarshalAs(UnmanagedType.LPWStr)] string pszText);
+    [PreserveSig] int SetFileNameLabel([MarshalAs(UnmanagedType.LPWStr)] string pszLabel);
+    [PreserveSig] int GetResult(out IShellItem ppsi);
+    [PreserveSig] int AddPlace(IShellItem psi, int alignment);
+    [PreserveSig] int SetDefaultExtension([MarshalAs(UnmanagedType.LPWStr)] string pszDefaultExtension);
+    [PreserveSig] int Close(int hr);
+    [PreserveSig] int SetClientGuid([In] ref Guid guid);
+    [PreserveSig] int ClearClientData();
+    [PreserveSig] int SetFilter(IntPtr pFilter);
+    [PreserveSig] int GetResults(out IShellItemArray ppenum);
+    [PreserveSig] int GetSelectedItems(out IShellItemArray ppsai);
 }
 
 [ComImport]
@@ -237,37 +256,35 @@ public interface IFileOpenDialog
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 public interface IFileSaveDialog
 {
-    [PreserveSig]
-    int Show(IntPtr parent);
-
-    void SetFileTypes(uint cFileTypes, IntPtr rgFilterSpec);
-    void SetFileTypeIndex(uint iFileType);
-    void GetFileTypeIndex(out uint piFileType);
-    void Advise(IntPtr pfde, out uint pdwCookie);
-    void Unadvise(uint dwCookie);
-    void SetOptions(uint fos);
-    void GetOptions(out uint pfos);
-    void SetDefaultFolder(IShellItem psi);
-    void SetFolder(IShellItem psi);
-    void GetFolder(out IShellItem ppsi);
-    void GetCurrentSelection(out IShellItem ppsi);
-    void SetFileName([MarshalAs(UnmanagedType.LPWStr)] string pszName);
-    void GetFileName([MarshalAs(UnmanagedType.LPWStr)] out string pszName);
-    void SetTitle([MarshalAs(UnmanagedType.LPWStr)] string pszTitle);
-    void SetOkButtonLabel([MarshalAs(UnmanagedType.LPWStr)] string pszText);
-    void SetFileNameLabel([MarshalAs(UnmanagedType.LPWStr)] string pszLabel);
-    void GetResult(out IShellItem ppsi);
-    void AddPlace(IShellItem psi, int alignment);
-    void SetDefaultExtension([MarshalAs(UnmanagedType.LPWStr)] string pszDefaultExtension);
-    void Close(int hr);
-    void SetClientGuid([In] ref Guid guid);
-    void ClearClientData();
-    void SetFilter(IntPtr pFilter);
-    void SetSaveAsItem(IShellItem psi);
-    void SetProperties(IntPtr pStore);
-    void SetCollectedProperties(IntPtr pList, int fAppendDefault);
-    void GetProperties(out IntPtr ppStore);
-    void ApplyProperties(IShellItem psi, IntPtr pStore, IntPtr hwnd, IntPtr pSink);
+    [PreserveSig] int Show(IntPtr parent);
+    [PreserveSig] int SetFileTypes(uint cFileTypes, [MarshalAs(UnmanagedType.LPArray)] COMDLG_FILTERSPEC[] rgFilterSpec);
+    [PreserveSig] int SetFileTypeIndex(uint iFileType);
+    [PreserveSig] int GetFileTypeIndex(out uint piFileType);
+    [PreserveSig] int Advise(IntPtr pfde, out uint pdwCookie);
+    [PreserveSig] int Unadvise(uint dwCookie);
+    [PreserveSig] int SetOptions(uint fos);
+    [PreserveSig] int GetOptions(out uint pfos);
+    [PreserveSig] int SetDefaultFolder(IShellItem psi);
+    [PreserveSig] int SetFolder(IShellItem psi);
+    [PreserveSig] int GetFolder(out IShellItem ppsi);
+    [PreserveSig] int GetCurrentSelection(out IShellItem ppsi);
+    [PreserveSig] int SetFileName([MarshalAs(UnmanagedType.LPWStr)] string pszName);
+    [PreserveSig] int GetFileName([MarshalAs(UnmanagedType.LPWStr)] out string pszName);
+    [PreserveSig] int SetTitle([MarshalAs(UnmanagedType.LPWStr)] string pszTitle);
+    [PreserveSig] int SetOkButtonLabel([MarshalAs(UnmanagedType.LPWStr)] string pszText);
+    [PreserveSig] int SetFileNameLabel([MarshalAs(UnmanagedType.LPWStr)] string pszLabel);
+    [PreserveSig] int GetResult(out IShellItem ppsi);
+    [PreserveSig] int AddPlace(IShellItem psi, int alignment);
+    [PreserveSig] int SetDefaultExtension([MarshalAs(UnmanagedType.LPWStr)] string pszDefaultExtension);
+    [PreserveSig] int Close(int hr);
+    [PreserveSig] int SetClientGuid([In] ref Guid guid);
+    [PreserveSig] int ClearClientData();
+    [PreserveSig] int SetFilter(IntPtr pFilter);
+    [PreserveSig] int SetSaveAsItem(IShellItem psi);
+    [PreserveSig] int SetProperties(IntPtr pStore);
+    [PreserveSig] int SetCollectedProperties(IntPtr pList, int fAppendDefault);
+    [PreserveSig] int GetProperties(out IntPtr ppStore);
+    [PreserveSig] int ApplyProperties(IShellItem psi, IntPtr pStore, IntPtr hwnd, IntPtr pSink);
 }
 
 [ComImport]

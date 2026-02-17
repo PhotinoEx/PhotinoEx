@@ -1392,7 +1392,6 @@ public class WindowsPhotino : Photino
                 dialog?.SetTitle(title);
             }
 
-            // Set filters
             if (filterPatterns != null && filterPatterns.Count > 0)
             {
                 var filterSpecs = new COMDLG_FILTERSPEC[filterPatterns.Count];
@@ -1402,22 +1401,7 @@ public class WindowsPhotino : Photino
                     filterSpecs[i].pszSpec = filterPatterns[i].Spec;
                 }
 
-                IntPtr filterPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(COMDLG_FILTERSPEC)) * filterSpecs.Length);
-                try
-                {
-                    IntPtr current = filterPtr;
-                    for (int i = 0; i < filterSpecs.Length; i++)
-                    {
-                        Marshal.StructureToPtr(filterSpecs[i], current, false);
-                        current = IntPtr.Add(current, Marshal.SizeOf(typeof(COMDLG_FILTERSPEC)));
-                    }
-
-                    dialog!.SetFileTypes((uint) filterSpecs.Length, filterPtr);
-                }
-                finally
-                {
-                    Marshal.FreeHGlobal(filterPtr);
-                }
+                dialog!.SetFileTypes((uint) filterSpecs.Length, filterSpecs);
             }
 
             int dialogResult = dialog!.Show(_hwnd);
@@ -1427,33 +1411,30 @@ public class WindowsPhotino : Photino
                 return results;
             }
 
-            var failedMulti = false;
-
             if (multiSelect)
             {
-                if (!TryGetMultiFiles(dialog, out results))
-                {
-                    failedMulti = true;
-                }
-                else
+                if (TryGetMultiFiles(dialog, out results))
                 {
                     return results!;
                 }
             }
 
-            if (!multiSelect || failedMulti)
+            int hr = dialog.GetResult(out IShellItem item);
+            if (hr != Constants.S_OK)
             {
-                dialog.GetResult(out IShellItem item);
-                item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string filePath);
-                Marshal.ReleaseComObject(item);
-                results!.Add(filePath);
+                return results!;
             }
+
+            item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string filePath);
+            Marshal.ReleaseComObject(item);
+            results!.Add(filePath);
 
             return results!;
         }
-        catch
+        catch (Exception e)
         {
-            Console.WriteLine("ShowOpenFileAsync Failed");
+            Console.WriteLine($"ShowOpenFileAsync Failed: {e.GetType().Name}: {e.Message}");
+            Console.WriteLine(e.StackTrace);
             return results!;
         }
         finally
@@ -1468,16 +1449,14 @@ public class WindowsPhotino : Photino
     private bool TryGetMultiFiles(IFileOpenDialog dialog, out List<string>? list)
     {
         list = new List<string>();
-        dialog.GetResults(out IShellItemArray items);
 
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        if (items is null)
+        int hr = dialog.GetResults(out IShellItemArray items);
+        if (hr != Constants.S_OK || items == null)
         {
-            // This happens in a multiselect when a user chooses one file. why microsoft
             return false;
         }
-        items.GetCount(out uint count);
 
+        items.GetCount(out uint count);
         for (uint i = 0; i < count; i++)
         {
             items.GetItemAt(i, out IShellItem item);
@@ -1487,7 +1466,7 @@ public class WindowsPhotino : Photino
         }
 
         Marshal.ReleaseComObject(items);
-        return true;
+        return list.Count > 0;
     }
 
     public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
@@ -1518,33 +1497,30 @@ public class WindowsPhotino : Photino
                 return results;
             }
 
-            var failedMulti = false;
-
             if (multiSelect)
             {
-                if (!TryGetMultiFolders(dialog, out results))
-                {
-                    failedMulti = true;
-                }
-                else
+                if (TryGetMultiFolders(dialog, out results))
                 {
                     return results!;
                 }
             }
 
-            if (!multiSelect || failedMulti)
+            int hr = dialog.GetResult(out IShellItem item);
+            if (hr != Constants.S_OK)
             {
-                dialog.GetResult(out IShellItem item);
-                item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string pathToUse);
-                Marshal.ReleaseComObject(item);
-                results!.Add(pathToUse);
+                return results!;
             }
+
+            item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string pathToUse);
+            Marshal.ReleaseComObject(item);
+            results!.Add(pathToUse);
 
             return results!;
         }
-        catch
+        catch (Exception e)
         {
-            Console.WriteLine("ShowOpenFolderAsync Failed");
+            Console.WriteLine($"ShowOpenFolderAsync Failed: {e.GetType().Name}: {e.Message}");
+            Console.WriteLine(e.StackTrace);
             return results!;
         }
         finally
@@ -1559,27 +1535,24 @@ public class WindowsPhotino : Photino
     private bool TryGetMultiFolders(IFileOpenDialog dialog, out List<string>? list)
     {
         list = new List<string>();
-        dialog.GetResults(out IShellItemArray? items);
 
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        if (items is null)
+        var hr = dialog.GetResults(out IShellItemArray items);
+        if (hr != Constants.S_OK || items == null)
         {
-            // This happens in a multiselect when a user chooses one file. why microsoft
             return false;
         }
 
         items.GetCount(out uint count);
-
         for (uint i = 0; i < count; i++)
         {
             items.GetItemAt(i, out IShellItem item);
-            item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string filePath);
-            list.Add(filePath);
+            item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string folderPath);
+            list.Add(folderPath);
             Marshal.ReleaseComObject(item);
         }
 
         Marshal.ReleaseComObject(items);
-        return true;
+        return list.Count > 0;
     }
 
     public override async Task<string> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns,
@@ -1609,7 +1582,6 @@ public class WindowsPhotino : Photino
                 dialog.SetDefaultExtension(defaultExtension);
             }
 
-            // Set filters
             if (filterPatterns != null && filterPatterns.Count > 0)
             {
                 var filterSpecs = new COMDLG_FILTERSPEC[filterPatterns.Count];
@@ -1619,39 +1591,30 @@ public class WindowsPhotino : Photino
                     filterSpecs[i].pszSpec = filterPatterns[i].Spec;
                 }
 
-                IntPtr filterPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(COMDLG_FILTERSPEC)) * filterSpecs.Length);
-                try
-                {
-                    IntPtr current = filterPtr;
-                    for (int i = 0; i < filterSpecs.Length; i++)
-                    {
-                        Marshal.StructureToPtr(filterSpecs[i], current, false);
-                        current = IntPtr.Add(current, Marshal.SizeOf(typeof(COMDLG_FILTERSPEC)));
-                    }
-
-                    dialog.SetFileTypes((uint) filterSpecs.Length, filterPtr);
-                }
-                finally
-                {
-                    Marshal.FreeHGlobal(filterPtr);
-                }
+                dialog.SetFileTypes((uint) filterSpecs.Length, filterSpecs);
             }
 
-            int hr = dialog.Show(_hwnd);
+            var dialogResult = dialog.Show(_hwnd);
 
-            if (hr == Constants.ERROR_CANCELLED || hr != Constants.S_OK)
+            if (dialogResult == Constants.ERROR_CANCELLED || dialogResult != Constants.S_OK)
             {
                 return result;
             }
 
-            dialog.GetResult(out IShellItem item);
+            var hr = dialog.GetResult(out IShellItem item);
+            if (hr != Constants.S_OK)
+            {
+                return result;
+            }
+
             item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out result);
             Marshal.ReleaseComObject(item);
             return result;
         }
-        catch
+        catch (Exception e)
         {
-            Console.WriteLine("ShowSaveFileAsync Failed");
+            Console.WriteLine($"ShowSaveFileAsync Failed: {e.GetType().Name}: {e.Message}");
+            Console.WriteLine(e.StackTrace);
             return result;
         }
         finally
@@ -1665,41 +1628,67 @@ public class WindowsPhotino : Photino
 
     public override async Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon)
     {
-        // title = _window->ToUTF16String(title);
-        // text = _window->ToUTF16String(text);
-        // NewStyleContext ctx;
-        //
-        // UINT flags = {};
-        //
-        // switch (icon) {
-        //     case DialogIcon::Info:	   flags |= MB_ICONINFORMATION;	break;
-        //     case DialogIcon::Warning:  flags |= MB_ICONWARNING;	    break;
-        //     case DialogIcon::Error:	   flags |= MB_ICONERROR;	    break;
-        //     case DialogIcon::Question: flags |= MB_ICONQUESTION;    break;
-        // }
-        //
-        // switch (buttons) {
-        //     case DialogButtons::Ok:               flags |= MB_OK;               break;
-        //     case DialogButtons::OkCancel:         flags |= MB_OKCANCEL;         break;
-        //     case DialogButtons::YesNo:			  flags |= MB_YESNO;			break;
-        //     case DialogButtons::YesNoCancel:      flags |= MB_YESNOCANCEL;	    break;
-        //     case DialogButtons::RetryCancel:	  flags |= MB_RETRYCANCEL;	    break;
-        //     case DialogButtons::AbortRetryIgnore: flags |= MB_ABORTRETRYIGNORE; break;
-        // }
-        //
-        // const auto result = MessageBoxW(_window->getHwnd(), text, title, flags);
-        //
-        // switch (result) {
-        //     case IDCANCEL: return DialogResult::Cancel;
-        //     case IDOK:     return DialogResult::Ok;
-        //     case IDYES:    return DialogResult::Yes;
-        //     case IDNO:     return DialogResult::No;
-        //     case IDABORT:  return DialogResult::Abort;
-        //     case IDRETRY:  return DialogResult::Retry;
-        //     case IDIGNORE: return DialogResult::Ignore;
-        //     default:	   return DialogResult::Cancel;
-        // }
-        return DialogResult.Ignore;
+        uint flags = 0;
+
+        switch (icon)
+        {
+            case DialogIcon.Info:
+                flags |= Constants.MB_ICONINFORMATION;
+                break;
+            case DialogIcon.Warning:
+                flags |= Constants.MB_ICONWARNING;
+                break;
+            case DialogIcon.Error:
+                flags |= Constants.MB_ICONERROR;
+                break;
+            case DialogIcon.Question:
+                flags |= Constants.MB_ICONQUESTION;
+                break;
+        }
+
+        switch (buttons)
+        {
+            case DialogButtons.Ok:
+                flags |= Constants.MB_OK;
+                break;
+            case DialogButtons.OkCancel:
+                flags |= Constants.MB_OKCANCEL;
+                break;
+            case DialogButtons.YesNo:
+                flags |= Constants.MB_YESNO;
+                break;
+            case DialogButtons.YesNoCancel:
+                flags |= Constants.MB_YESNOCANCEL;
+                break;
+            case DialogButtons.RetryCancel:
+                flags |= Constants.MB_RETRYCANCEL;
+                break;
+            case DialogButtons.AbortRetryIgnore:
+                flags |= Constants.MB_ABORTRETRYIGNORE;
+                break;
+        }
+
+        int result = DLLImports.MessageBoxW(_hwnd, text, title, flags);
+
+        switch (result)
+        {
+            case Constants.IDOK:
+                return DialogResult.Ok;
+            case Constants.IDCANCEL:
+                return DialogResult.Cancel;
+            case Constants.IDYES:
+                return DialogResult.Yes;
+            case Constants.IDNO:
+                return DialogResult.No;
+            case Constants.IDABORT:
+                return DialogResult.Abort;
+            case Constants.IDRETRY:
+                return DialogResult.Retry;
+            case Constants.IDIGNORE:
+                return DialogResult.Ignore;
+            default:
+                return DialogResult.Cancel;
+        }
     }
 
     public override void Invoke(Action callback)
