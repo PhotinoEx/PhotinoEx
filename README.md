@@ -19,6 +19,7 @@ Currently do not use this in production. Once feature parity is done, i'll start
     - [x] Window controls
     - [ ] Webview controls
     - [ ] Dark Mode
+    - [ ] OS automatic Dark Mode theming
     - [ ] Folder/File/Message opening
     - [ ] Toast for system
     - [x] Application Icons
