@@ -218,6 +218,7 @@ public class WindowsPhotino : Photino
     private PhotinoInitParams _params { get; set; }
     private SynchronizationContext _syncContext;
 
+
     public void Register()
     {
         _hInstance = DLLImports.GetModuleHandle(null);
@@ -230,7 +231,7 @@ public class WindowsPhotino : Photino
             cbClsExtra = 0,
             cbWndExtra = 0,
             hInstance = _hInstance,
-            hbrBackground = IsDarkModeEnabled() ? darkBrush : lightBrush,
+            hbrBackground = GetDarkmodeEnabled() ? darkBrush : lightBrush,
             lpszMenuName = IntPtr.Zero,
             lpszClassName = "Photino"
         };
@@ -251,38 +252,12 @@ public class WindowsPhotino : Photino
     {
         switch (msg)
         {
-            case Constants.WM_CREATE:
-                {
-                    EnableDarkMode(hwnd, true);
-                    if (IsDarkModeEnabled())
-                    {
-                        RefreshNonClientArea(hwnd);
-                    }
-
-                    break;
-                }
-            case Constants.WM_SETTINGCHANGE:
-                {
-                    if (IsColorSchemeChange(lParam))
-                    {
-                        DLLImports.SendMessage(hwnd, Constants.WM_THEMECHANGED, IntPtr.Zero, IntPtr.Zero);
-                    }
-
-                    break;
-                }
-            case Constants.WM_THEMECHANGED:
-                {
-                    EnableDarkMode(hwnd, IsDarkModeEnabled());
-                    RefreshNonClientArea(hwnd);
-                    DLLImports.InvalidateRect(hwnd, IntPtr.Zero, true);
-                    break;
-                }
             case Constants.WM_PAINT:
                 {
                     PAINT ps;
                     IntPtr hdc = DLLImports.BeginPaint(hwnd, out ps);
 
-                    if (IsDarkModeEnabled())
+                    if (GetDarkmodeEnabled())
                     {
                         DLLImports.FillRect(hdc, ref ps.rcPaint, darkBrush);
                     }
@@ -391,25 +366,6 @@ public class WindowsPhotino : Photino
                         };
                     }
 
-
-                    // if (photino.MinWidth > 0 || photino.MinHeight > 0)
-                    // {
-                    //     minMaxInfo.ptMinTrackSize = new POINT
-                    //     {
-                    //         X = photino.MinWidth > 0 ? photino.MinWidth : minMaxInfo.ptMinTrackSize.X,
-                    //         Y = photino.MinHeight > 0 ? photino.MinHeight : minMaxInfo.ptMinTrackSize.Y
-                    //     };
-                    // }
-                    //
-                    // if (photino.MaxWidth < int.MaxValue || photino.MaxHeight < int.MaxValue)
-                    // {
-                    //     minMaxInfo.ptMaxTrackSize = new POINT
-                    //     {
-                    //         X = photino.MaxWidth < int.MaxValue ? photino.MaxWidth : minMaxInfo.ptMaxTrackSize.X,
-                    //         Y = photino.MaxHeight < int.MaxValue ? photino.MaxHeight : minMaxInfo.ptMaxTrackSize.Y
-                    //     };
-                    // }
-
                     Marshal.StructureToPtr(minMaxInfo, lParam, false);
 
                     return 0;
@@ -467,90 +423,12 @@ public class WindowsPhotino : Photino
     private const uint WM_USER_INVOKE = (Constants.WM_USER + 0x0002);
     private IntPtr messageLoopRootWindowHandle;
     private Dictionary<IntPtr, WindowsPhotino> HWNDToPhotino = [];
-
-    private bool IsColorSchemeChange(IntPtr lParam)
-    {
-        var result = false;
-        if (lParam > 0)
-        {
-            var lparam = Marshal.PtrToStructure<string>(lParam);
-            if (string.Equals(lparam, "ImmersiveColorSet", StringComparison.OrdinalIgnoreCase))
-            {
-                // RefreshImmersiveColorPolicyState();
-                result = true;
-            }
-        }
-
-        // GetIsImmersiveColorUsingHighContrast(IHCM_REFRESH);
-        return result;
-    }
-
-    private void RefreshNonClientArea(IntPtr hwnd)
-    {
-        // if (IsDarkModeAllowedForWindow == IntPtr.Zero || ShouldAppsUseDarkMode == IntPtr.Zero)
-        // {
-        //     return;
-        // }
-        //
-        // var dark = false;
-        // if (IsDarkModeAllowedForWindow(hwnd) && ShouldAppsUseDarkMode() && !IsHighContrast())
-        // {
-        //     dark = true;
-        // }
-        //
-        // if (SetWindowCompositionAttribute != IntPtr.Zero)
-        // {
-        //     var data
-        // }
-
-        // if (IsDarkModeAllowedForWindow == nullptr ||
-        //     ShouldAppsUseDarkMode == nullptr) {
-        //     return;
-        // }
-        //
-        // BOOL dark = FALSE;
-        // if (IsDarkModeAllowedForWindow(hwnd) == TRUE &&
-        //     ShouldAppsUseDarkMode() == TRUE && !IsHighContrast()) {
-        //     dark = TRUE;
-        // }
-        //
-        // if (SetWindowCompositionAttribute != nullptr) {
-        //     WINDOWCOMPOSITIONATTRIBDATA data = {
-        //         WCA_USEDARKMODECOLORS, &dark, sizeof(dark)};
-        //     SetWindowCompositionAttribute(hwnd, &data);
-        // }
-    }
+    private string? _webview2RuntimePath;
 
     private uint RGB(byte r, byte g, byte b)
     {
         return (uint) (r | (g << 8) | (b << 16));
     }
-
-    private bool IsDarkModeEnabled()
-    {
-        // if (ShouldAppsUserDarkMode == IntPtr.Zero)
-        // {
-        //     return false;
-        // }
-        //
-        // return ShouldAppsUserDarkMode && !IsHighContrast();
-
-        // if (ShouldAppsUseDarkMode == nullptr) {
-        //     return false;
-        // }
-        // return (ShouldAppsUseDarkMode() == TRUE) && !IsHighContrast();
-        return true;
-    }
-
-    private void EnableDarkMode(IntPtr hwnd, bool option)
-    {
-        // if (AllowDarkModeForWindow == nullptr) {
-        //     return;
-        // }
-        // AllowDarkModeForWindow(hwnd, enable ? TRUE : FALSE);
-    }
-
-    private string? _webview2RuntimePath;
 
     public void SetWebView2RuntimePath(string? runtimePath)
     {
@@ -865,6 +743,23 @@ public class WindowsPhotino : Photino
     public override void Close()
     {
         DLLImports.SendMessage(_hwnd, Constants.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+    }
+
+    public override bool GetDarkmodeEnabled()
+    {
+        return _darkmodeEnabled;
+    }
+
+    public override void SetDarkmodeEnabled(bool darkmode)
+    {
+        _darkmodeEnabled = darkmode;
+        var simple = darkmode ? 1 : 0;
+        var result = DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE, ref simple, sizeof(int));
+
+        if (result != Constants.S_OK)
+        {
+            DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref simple, sizeof(int));
+        }
     }
 
     public override bool GetTransparentEnabled()

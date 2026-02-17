@@ -118,7 +118,7 @@ public class PhotinoWindow
                 }
 
                 var handle = IntPtr.Zero;
-                Invoke(() => handle = ((WindowsPhotino)_instance).GetHwnd());
+                Invoke(() => handle = ((WindowsPhotino) _instance).GetHwnd());
                 return handle;
             }
             else
@@ -1284,6 +1284,35 @@ public class PhotinoWindow
         }
     }
 
+    public bool Darkmode
+    {
+        get
+        {
+            if (_instance is null)
+            {
+                return _startupParameters.Darkmode;
+            }
+
+            var darkmode = false;
+            Invoke(() => darkmode = _instance.GetDarkmodeEnabled());
+            return darkmode;
+        }
+        set
+        {
+            if (Darkmode != value)
+            {
+                if (_instance is null)
+                {
+                    _startupParameters.Darkmode = value;
+                }
+                else
+                {
+                    Invoke(() => _instance.SetDarkmodeEnabled(value));
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// Gets or sets whether the native window is always at the top of the z-order.
     /// Default is false.
@@ -1825,6 +1854,13 @@ public class PhotinoWindow
         var left = location.X + offset.X;
         var top = location.Y + offset.Y;
         return MoveTo(left, top);
+    }
+
+    public PhotinoWindow SetDarkmode(bool darkmode)
+    {
+        Log($".Darkmode({darkmode}");
+        _startupParameters.Darkmode = darkmode;
+        return this;
     }
 
     /// <summary>
@@ -2636,7 +2672,8 @@ public class PhotinoWindow
     /// <param name="multiSelect">Whether multiple selections are allowed</param>
     /// <param name="filterPatterns">List of filtering.</param>
     /// <returns>Array of file paths as strings</returns>
-    public async Task<List<string>?> ShowOpenFileDialogAsync(string title = "Choose file", string? defaultPath = null, bool multiSelect = false,
+    public async Task<List<string>?> ShowOpenFileDialogAsync(string title = "Choose file", string? defaultPath = null,
+        bool multiSelect = false,
         List<FileFilter>? filterPatterns = null)
     {
         return await _instance!.ShowOpenFileAsync(title, defaultPath, multiSelect, filterPatterns);

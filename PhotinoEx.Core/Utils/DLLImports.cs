@@ -132,4 +132,11 @@ internal static class DLLImports
 
     #endregion
 
+    #region DwmApi
+
+    [DllImport("dwmapi.dll", SetLastError = true)]
+    public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+    #endregion
+
 }
