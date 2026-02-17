@@ -1420,49 +1420,41 @@ public class WindowsPhotino : Photino
                 }
             }
 
-            // Show dialog
-            int hr = dialog!.Show(_hwnd);
+            int dialogResult = dialog!.Show(_hwnd);
 
-            if (hr == Constants.ERROR_CANCELLED)
+            if (dialogResult == Constants.ERROR_CANCELLED || dialogResult != Constants.S_OK)
             {
-                return null;
+                return results;
             }
 
-            if (hr != Constants.S_OK)
-            {
-                return null;
-            }
+            var failedMulti = false;
 
             if (multiSelect)
             {
-                dialog.GetResults(out IShellItemArray items);
-                items.GetCount(out uint count);
-
-
-                for (uint i = 0; i < count; i++)
+                if (!TryGetMultiFiles(dialog, out results))
                 {
-                    items.GetItemAt(i, out IShellItem item);
-                    item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string filePath);
-                    results.Add(filePath);
-                    Marshal.ReleaseComObject(item);
+                    failedMulti = true;
                 }
-
-                Marshal.ReleaseComObject(items);
+                else
+                {
+                    return results!;
+                }
             }
-            else
+
+            if (!multiSelect || failedMulti)
             {
                 dialog.GetResult(out IShellItem item);
                 item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string filePath);
                 Marshal.ReleaseComObject(item);
-                results.Add(filePath);
+                results!.Add(filePath);
             }
 
-            return results;
+            return results!;
         }
         catch
         {
             Console.WriteLine("ShowOpenFileAsync Failed");
-            return results;
+            return results!;
         }
         finally
         {
@@ -1471,6 +1463,31 @@ public class WindowsPhotino : Photino
                 Marshal.ReleaseComObject(dialog);
             }
         }
+    }
+
+    private bool TryGetMultiFiles(IFileOpenDialog dialog, out List<string>? list)
+    {
+        list = new List<string>();
+        dialog.GetResults(out IShellItemArray items);
+
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (items is null)
+        {
+            // This happens in a multiselect when a user chooses one file. why microsoft
+            return false;
+        }
+        items.GetCount(out uint count);
+
+        for (uint i = 0; i < count; i++)
+        {
+            items.GetItemAt(i, out IShellItem item);
+            item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string filePath);
+            list.Add(filePath);
+            Marshal.ReleaseComObject(item);
+        }
+
+        Marshal.ReleaseComObject(items);
+        return true;
     }
 
     public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
@@ -1494,42 +1511,41 @@ public class WindowsPhotino : Photino
                 dialog.SetTitle(title);
             }
 
-            int hr = dialog.Show(_hwnd);
+            int dialogResult = dialog.Show(_hwnd);
 
-            if (hr == Constants.ERROR_CANCELLED || hr != Constants.S_OK)
+            if (dialogResult == Constants.ERROR_CANCELLED || dialogResult != Constants.S_OK)
             {
                 return results;
             }
 
+            var failedMulti = false;
+
             if (multiSelect)
             {
-                dialog.GetResults(out IShellItemArray items);
-                items.GetCount(out uint count);
-
-                for (uint i = 0; i < count; i++)
+                if (!TryGetMultiFolders(dialog, out results))
                 {
-                    items.GetItemAt(i, out IShellItem item);
-                    item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string filePath);
-                    results.Add(filePath);
-                    Marshal.ReleaseComObject(item);
+                    failedMulti = true;
                 }
-
-                Marshal.ReleaseComObject(items);
+                else
+                {
+                    return results!;
+                }
             }
-            else
+
+            if (!multiSelect || failedMulti)
             {
                 dialog.GetResult(out IShellItem item);
                 item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string pathToUse);
                 Marshal.ReleaseComObject(item);
-                results.Add(pathToUse);
+                results!.Add(pathToUse);
             }
 
-            return results;
+            return results!;
         }
         catch
         {
             Console.WriteLine("ShowOpenFolderAsync Failed");
-            return results;
+            return results!;
         }
         finally
         {
@@ -1538,6 +1554,32 @@ public class WindowsPhotino : Photino
                 Marshal.ReleaseComObject(dialog);
             }
         }
+    }
+
+    private bool TryGetMultiFolders(IFileOpenDialog dialog, out List<string>? list)
+    {
+        list = new List<string>();
+        dialog.GetResults(out IShellItemArray? items);
+
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (items is null)
+        {
+            // This happens in a multiselect when a user chooses one file. why microsoft
+            return false;
+        }
+
+        items.GetCount(out uint count);
+
+        for (uint i = 0; i < count; i++)
+        {
+            items.GetItemAt(i, out IShellItem item);
+            item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string filePath);
+            list.Add(filePath);
+            Marshal.ReleaseComObject(item);
+        }
+
+        Marshal.ReleaseComObject(items);
+        return true;
     }
 
     public override async Task<string> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns,
