@@ -257,7 +257,7 @@ public interface IFileOpenDialog
 public interface IFileSaveDialog
 {
     [PreserveSig] int Show(IntPtr parent);
-    [PreserveSig] int SetFileTypes(uint cFileTypes, [MarshalAs(UnmanagedType.LPArray)] COMDLG_FILTERSPEC[] rgFilterSpec);
+    [PreserveSig] int SetFileTypes(uint cFileTypes, [In, MarshalAs(UnmanagedType.LPArray)] COMDLG_FILTERSPEC[] rgFilterSpec);
     [PreserveSig] int SetFileTypeIndex(uint iFileType);
     [PreserveSig] int GetFileTypeIndex(out uint piFileType);
     [PreserveSig] int Advise(IntPtr pfde, out uint pdwCookie);

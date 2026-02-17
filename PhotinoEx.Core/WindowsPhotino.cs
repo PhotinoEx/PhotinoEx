@@ -1579,7 +1579,8 @@ public class WindowsPhotino : Photino
 
             if (!string.IsNullOrEmpty(defaultExtension))
             {
-                dialog.SetDefaultExtension(defaultExtension);
+                var ext = defaultExtension.StartsWith(".") ? defaultExtension.Substring(1) : defaultExtension;
+                dialog.SetDefaultExtension(ext);
             }
 
             if (filterPatterns != null && filterPatterns.Count > 0)
@@ -1592,6 +1593,7 @@ public class WindowsPhotino : Photino
                 }
 
                 dialog.SetFileTypes((uint) filterSpecs.Length, filterSpecs);
+                dialog.SetFileTypeIndex(1);
             }
 
             var dialogResult = dialog.Show(_hwnd);
