@@ -2720,16 +2720,39 @@ public class PhotinoWindow
     /// <param name="filters"></param>
     /// <param name="empty"></param>
     /// <returns>String array of filters</returns>
-    private static List<FileFilter>? GetNativeFilters(List<FileFilter>? filters, bool empty = false)
+    private static List<FileFilter> GetNativeFilters(List<FileFilter>? filters, bool empty = false)
     {
         var nativeFilters = new List<FileFilter>();
-        if (!empty && filters.Any())
+        
+        if (empty || filters == null || !filters.Any())
+            return nativeFilters;
+
+        if (IsMacOsPlatform)
         {
-            // nativeFilters = IsMacOsPlatform
-            //     ? filters.Select(t => t.Select(s => s == "*" ? s : s.TrimStart('*', '.'))).ToList()
-            //     : filters.Select(t =>
-            //             $"{t.Name}|{t.Extensions.Select(s => s.StartsWith('.') ? $"*{s}" : !s.StartsWith("*.") ? $"*.{s}" : s).Aggregate((e1, e2) => $"{e1};{e2}")}")
-            //         .ToList();
+            // macOS: Remove wildcards from spec (e.g., "*.txt" -> "txt", "*.*" -> "*")
+            foreach (var filter in filters)
+            {
+                var specs = filter.Spec.Split(';');
+                var macSpecs = specs.Select(s => 
+                    s == "*.*" || s == "*" ? "*" : s.TrimStart('*', '.'));
+                nativeFilters.Add(new FileFilter(filter.Name, string.Join(";", macSpecs)));
+            }
+        }
+        else
+        {
+            // Windows/Linux: Ensure wildcards are present (e.g., "txt" -> "*.txt")
+            foreach (var filter in filters)
+            {
+                var specs = filter.Spec.Split(';');
+                var winSpecs = specs.Select(s =>
+                {
+                    if (s == "*" || s == "*.*") return "*.*";
+                    if (s.StartsWith("*.")) return s;
+                    if (s.StartsWith(".")) return $"*{s}";
+                    return $"*.{s}";
+                });
+                nativeFilters.Add(new FileFilter(filter.Name, string.Join(";", winSpecs)));
+            }
         }
 
         return nativeFilters;
