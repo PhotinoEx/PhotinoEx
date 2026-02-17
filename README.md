@@ -10,10 +10,14 @@ Currently do not use this in production. Once feature parity is done, i'll start
 - [x] Linux support.
     - [x] Update to GTK4.
     - [x] Update to Webkit6
+    - [x] Window controls
+    - [x] Webview controls
     - [x] Folder/File/Message opening
     - [x] Toast for system
-    - [x] Application Icons
+    - [x] Application Icons (use .dekstop files)
 - [ ] Windows support.
+    - [x] Window controls
+    - [ ] Webview controls
     - [ ] Dark Mode
     - [ ] Folder/File/Message opening
     - [ ] Toast for system

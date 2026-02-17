@@ -29,6 +29,7 @@ class Program
         App.MainWindow.SetMaxHeight(400);
         App.MainWindow.SetMaxWidth(400);
         App.MainWindow.SetUseOsDefaultSize(false);
+        App.MainWindow.SetDarkmode(true);
 
         AppDomain.CurrentDomain.UnhandledException += async (_, error) =>
         {
