@@ -1024,4 +1024,14 @@ public class LinuxPhotino : Photino
 
         return await tcs.Task;
     }
+
+    public override void SetDarkmodeEnabled(bool darkmode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override bool GetDarkmodeEnabled()
+    {
+        throw new NotImplementedException();
+    }
 }
