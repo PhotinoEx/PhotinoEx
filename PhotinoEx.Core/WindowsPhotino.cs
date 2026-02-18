@@ -1268,134 +1268,35 @@ public class WindowsPhotino : Photino
     public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect,
         List<FileFilter>? filterPatterns)
     {
-        var results = new List<string>();
-        IFileOpenDialog? dialog = null;
-        IShellItem? folderItem = null;
-        IShellItemArray? itemArray = null;
-        IShellItem? singleItem = null;
-
-        try
-        {
-            // Create the FileOpenDialog instance
-            Guid clsidFileOpenDialog = new Guid("DC1C5A9C-E88A-4dde-A5A1-60F82A20AEF7");
-            Guid iidIFileOpenDialog = new Guid("d57c7288-d4ad-4768-be02-9d9695322fa0");
-            Guid iidIShellItem = new Guid("43826D1E-E718-42EE-BC55-A1E261C37BFE");
-
-            int hr = DLLImports.CoCreateInstance(
-                ref clsidFileOpenDialog,
-                IntPtr.Zero,
-                Constants.CLSCTX_INPROC_SERVER,
-                ref iidIFileOpenDialog,
-                out IntPtr dialogPtr);
-
-            if (hr < 0)
-                return results;
-
-            dialog = (IFileOpenDialog)Marshal.GetObjectForIUnknown(dialogPtr);
-
-            // Set the title
-            if (!string.IsNullOrEmpty(title))
-            {
-                dialog.SetTitle(title);
-            }
-
-            // Set the default folder if provided
-            if (!string.IsNullOrEmpty(path))
-            {
-                hr = SHCreateItemFromParsingName(path, IntPtr.Zero, iidIShellItem, out IntPtr folderPtr);
-                if (hr >= 0)
-                {
-                    folderItem = (IShellItem)Marshal.GetObjectForIUnknown(folderPtr);
-                    dialog.SetFolder(folderItem);
-                }
-            }
-
-            // Add file filters if provided
-            if (filterPatterns != null && filterPatterns.Count > 0)
-            {
-                var specs = new COMDLG_FILTERSPEC[filterPatterns.Count];
-                for (int i = 0; i < filterPatterns.Count; i++)
-                {
-                    specs[i] = new COMDLG_FILTERSPEC
-                    {
-                        pszName = filterPatterns[i].Name,
-                        pszSpec = filterPatterns[i].Spec
-                    };
-                }
-                dialog.SetFileTypes((uint)specs.Length, specs);
-            }
-
-            // Set options
-            uint options;
-            dialog.GetOptions(out options);
-            options |= Constants.FOS_FILEMUSTEXIST | Constants.FOS_NOCHANGEDIR;
-            if (multiSelect)
-            {
-                options |= Constants.FOS_ALLOWMULTISELECT;
-            }
-            else
-            {
-                options &= ~Constants.FOS_ALLOWMULTISELECT;
-            }
-            dialog.SetOptions(options);
-
-            // Show the dialog
-            hr = dialog.Show(_hwnd);
-            if (hr < 0) // User cancelled or error
-                return results;
-
-            // Get results
-            if (multiSelect)
-            {
-                dialog.GetResults(out itemArray);
-                if (itemArray != null)
-                {
-                    itemArray.GetCount(out uint count);
-                    for (uint i = 0; i < count; i++)
-                    {
-                        itemArray.GetItemAt(i, out IShellItem? item);
-                        if (item != null)
-                        {
-                            item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string filePath);
-                            if (!string.IsNullOrEmpty(filePath))
-                            {
-                                results.Add(filePath);
-                            }
-                            Marshal.ReleaseComObject(item);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                dialog.GetResult(out singleItem);
-                if (singleItem != null)
-                {
-                    singleItem.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string filePath);
-                    if (!string.IsNullOrEmpty(filePath))
-                    {
-                        results.Add(filePath);
-                    }
-                }
-            }
-        }
-        catch
-        {
-            // Ignore exceptions and return empty list
-        }
-        finally
-        {
-            if (singleItem != null) Marshal.ReleaseComObject(singleItem);
-            if (itemArray != null) Marshal.ReleaseComObject(itemArray);
-            if (folderItem != null) Marshal.ReleaseComObject(folderItem);
-            if (dialog != null) Marshal.ReleaseComObject(dialog);
-        }
-
-        return results;
+        // HRESULT hr;
+        // title = _window->ToUTF16String(title);
+        // defaultPath = _window->ToUTF16String(defaultPath);
+	       //
+        // auto* pfd = Create<IFileOpenDialog>(&hr, title, defaultPath);
+        //
+        // if (SUCCEEDED(hr)) {
+        //     AddFilters(pfd, filters, filterCount, _window);
+        //
+        //     DWORD dwOptions;
+        //     pfd->GetOptions(&dwOptions);
+        //     dwOptions |= FOS_FILEMUSTEXIST | FOS_NOCHANGEDIR;
+        //     if (multiSelect) {
+        //         dwOptions |= FOS_ALLOWMULTISELECT;
+        //     }
+        //     else {
+        //         dwOptions &= ~FOS_ALLOWMULTISELECT;
+        //     }
+        //     pfd->SetOptions(dwOptions);
+        //
+        //     hr = pfd->Show(_window->getHwnd());
+        //     if (SUCCEEDED(hr)) {
+        //         return GetResults(pfd, &hr, resultCount);
+        //     }
+        //     pfd->Release();
+        // }
+        // return nullptr;
+        throw new NotImplementedException();
     }
-
-    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-    private static extern int SHCreateItemFromParsingName([MarshalAs(UnmanagedType.LPWStr)] string pszPath, IntPtr pbc, [MarshalAs(UnmanagedType.LPStruct)] Guid riid, out IntPtr ppv);
 
     public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
     {
