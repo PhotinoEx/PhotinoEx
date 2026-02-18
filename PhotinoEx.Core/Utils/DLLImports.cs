@@ -139,4 +139,13 @@ internal static class DLLImports
 
     #endregion
 
+    #region ole32
+
+    [DllImport("ole32.dll")]
+    public static extern int CoCreateInstance(ref Guid rclsid, IntPtr pUnkOuter, uint dwClsContext, ref Guid riid, out IntPtr ppv);
+
+    [DllImport("ole32.dll")]
+    public static extern void CoTaskMemFree(IntPtr pv);
+
+    #endregion
 }

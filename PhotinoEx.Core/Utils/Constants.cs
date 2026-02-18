@@ -130,6 +130,8 @@ public class Constants
 
     public const int DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
     public const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
+    public const int CLSCTX_INPROC_SERVER = 1;
 }
 
 [StructLayout(LayoutKind.Sequential)]
