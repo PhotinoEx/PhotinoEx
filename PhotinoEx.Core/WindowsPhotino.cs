@@ -1268,36 +1268,49 @@ public class WindowsPhotino : Photino
     public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect,
         List<FileFilter>? filterPatterns)
     {
-        var ofn = new OPENFILENAME
-        {
-            lStructSize = Marshal.SizeOf<OPENFILENAME>(),
-            hwndOwner = _hwnd,
-            lpstrFilter = "All Files\0*.*\0\0",
-            lpstrFile = new string('\0', 8192),
-            nMaxFile = 8192,
-            lpstrTitle = title,
-            Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_ALLOWMULTISELECT
-        };
-
+        int bufferSize = 8192;
+        IntPtr buffer = Marshal.AllocHGlobal(bufferSize * 2); // *2 for Unicode chars
         var result = new List<string>();
-
-        if (GetOpenFileName(ref ofn))
+        try
         {
-            if (multiSelect)
-            {
-                var files = ParseMultiSelect(ofn.lpstrFile);
-                foreach (var file in files)
-                {
-                    result.Add(file);
-                }
-            }
-            else
-            {
-                result.Add(ofn.lpstrFile);
-            }
-        }
+            // Zero out the buffer
+            Marshal.Copy(new byte[bufferSize * 2], 0, buffer, bufferSize * 2);
 
-        return result;
+            var ofn = new OPENFILENAME
+            {
+                lStructSize = Marshal.SizeOf<OPENFILENAME>(),
+                hwndOwner   = _hwnd,
+                lpstrFilter = "All Files\0*.*\0\0",
+                lpstrFile   = buffer,
+                nMaxFile    = bufferSize,
+                lpstrTitle  = title,
+                Flags       = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_ALLOWMULTISELECT
+            };
+
+            if (!GetOpenFileName(ref ofn))
+                return result;
+
+            // Read null-separated strings from buffer until double-null
+            int offset = 0;
+            while (true)
+            {
+                string s = Marshal.PtrToStringAuto(buffer + offset);
+                if (string.IsNullOrEmpty(s)) break;
+                result.Add(s);
+                offset += (s.Length + 1) * 2; // +1 for null, *2 for Unicode
+            }
+
+            if (result.Count == 1)
+                return result.ToList(); // single file, full path
+
+            // result[0] = directory, rest = filenames
+            string dir = result[0];
+            return result.Skip(1).Select(f => Path.Combine(dir, f)).ToList();
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(buffer);
+        }
         // HRESULT hr;
         // title = _window->ToUTF16String(title);
         // defaultPath = _window->ToUTF16String(defaultPath);
@@ -1493,22 +1506,22 @@ public class WindowsPhotino : Photino
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     struct OPENFILENAME
     {
-        public int lStructSize;
+        public int    lStructSize;
         public IntPtr hwndOwner;
         public IntPtr hInstance;
         public string lpstrFilter;
         public string lpstrCustomFilter;
-        public int nMaxCustFilter;
-        public int nFilterIndex;
-        public string lpstrFile;
-        public int nMaxFile;
+        public int    nMaxCustFilter;
+        public int    nFilterIndex;
+        public IntPtr lpstrFile;
+        public int    nMaxFile;
         public string lpstrFileTitle;
-        public int nMaxFileTitle;
+        public int    nMaxFileTitle;
         public string lpstrInitialDir;
         public string lpstrTitle;
-        public int Flags;
-        public short nFileOffset;
-        public short nFileExtension;
+        public int    Flags;
+        public short  nFileOffset;
+        public short  nFileExtension;
         public string lpstrDefExt;
         public IntPtr lCustData;
         public IntPtr lpfnHook;
