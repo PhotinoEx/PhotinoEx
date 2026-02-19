@@ -1327,7 +1327,7 @@ public class WindowsPhotino : Photino
         try
         {
             dialog.GetOptions(out uint options);
-            options |= Constants.FOS_PICKFOLDERS | Constants.FOS_FORCEFILESYSTEM | Constants.FOS_PATHMUSTEXIST;
+            options |= Constants.FOS_FILEMUSTEXIST | Constants.FOS_FORCEFILESYSTEM | Constants.FOS_PATHMUSTEXIST;
             if (multiSelect)
             {
                 options |= Constants.FOS_ALLOWMULTISELECT;
