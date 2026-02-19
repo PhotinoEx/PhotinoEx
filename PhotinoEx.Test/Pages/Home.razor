@@ -1,12 +1,38 @@
 @page "/"
+@using PhotinoEx.Core.Enums
 
 <h3>Home</h3>
-<button @onclick="OpenFile">ClickMe</button>
+<button @onclick="OpenFile">OpenFile</button>
+<button @onclick="OpenFiles">OpenFiles</button>
+<button @onclick="OpenFolders">OpenFolders</button>
+<button @onclick="OpenFolder">OpenFolder</button>
+<button @onclick="SaveFile">SaveFile</button>
+<button @onclick="SendMessage">SendMessage</button>
 
 @code {
 
     private async Task OpenFile()
     {
+        var result = await Program.App.MainWindow.ShowOpenFileDialogAsync(multiSelect: false);
+    }
+    private async Task OpenFiles()
+    {
         var result = await Program.App.MainWindow.ShowOpenFileDialogAsync(multiSelect: true);
+    }
+    private async Task OpenFolders()
+    {
+        var result = await Program.App.MainWindow.ShowOpenFolderDialogAsync(multiSelect: true);
+    }
+    private async Task OpenFolder()
+    {
+        var result = await Program.App.MainWindow.ShowOpenFolderDialogAsync(multiSelect: false);
+    }
+    private async Task SaveFile()
+    {
+        var result = await Program.App.MainWindow.ShowSaveFileDialogAsync();
+    }
+    private async Task SendMessage()
+    {
+        var result = await Program.App.MainWindow.ShowMessageDialogAsync("testTitle", "testMessage", DialogButtons.AbortRetryIgnore, DialogIcon.Error);
     }
 }
