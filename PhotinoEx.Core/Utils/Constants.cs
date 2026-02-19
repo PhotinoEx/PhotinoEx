@@ -258,7 +258,7 @@ public interface IFileOpenDialog
 }
 
 [ComImport]
-[Guid("84BCCEA3-5FE1-45D5-8AD3-A759A9BB5B50")]
+[Guid("84BCCD23-5FDE-4CDB-AEA4-AF64B83D78AB")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 interface IFileSaveDialog
 {
@@ -288,7 +288,7 @@ interface IFileSaveDialog
     void SetFilter(IntPtr pFilter);
     void SetSaveAsItem(IShellItem psi);
     void SetProperties(IntPtr pStore);
-    void SetCollectedProperties(IntPtr pList, [MarshalAs(UnmanagedType.Bool)] bool fAppendDefault);
+    void SetCollectedProperties(IntPtr pList, int fAppendDefault);
     void GetProperties(out IntPtr ppStore);
     void ApplyProperties(IShellItem psi, IntPtr pStore, IntPtr hwnd, IntPtr pSink);
 }
