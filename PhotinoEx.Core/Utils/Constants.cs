@@ -224,7 +224,7 @@ public struct MINMAXINFO
 [ComImport]
 [Guid("D57C7288-D4AD-4768-BE02-9D969532D960")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-interface IFileOpenDialog
+public interface IFileOpenDialog
 {
     // IModalWindow
     [PreserveSig] int Show(IntPtr hwndOwner);
@@ -262,7 +262,7 @@ interface IFileOpenDialog
 [ComImport]
 [Guid("43826D1E-E718-42EE-BC55-A1E261C37BFE")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-interface IShellItem
+public interface IShellItem
 {
     void BindToHandler(IntPtr pbc, [In] ref Guid bhid, [In] ref Guid riid, out IntPtr ppv);
     void GetParent(out IShellItem ppsi);
@@ -274,7 +274,7 @@ interface IShellItem
 [ComImport]
 [Guid("B63EA76D-1F85-456F-A19C-48159EFA858B")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-interface IShellItemArray
+public interface IShellItemArray
 {
     void BindToHandler(IntPtr pbc, [In] ref Guid rbhid, [In] ref Guid riid, out IntPtr ppvOut);
     void GetPropertyStore(int flags, [In] ref Guid riid, out IntPtr ppv);
@@ -286,13 +286,13 @@ interface IShellItemArray
 }
 
 [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-struct COMDLG_FILTERSPEC
+public struct COMDLG_FILTERSPEC
 {
     [MarshalAs(UnmanagedType.LPWStr)] public string pszName;
     [MarshalAs(UnmanagedType.LPWStr)] public string pszSpec;
 }
 
-enum SIGDN : uint
+public enum SIGDN : uint
 {
     FILESYSPATH = 0x80058000
 }

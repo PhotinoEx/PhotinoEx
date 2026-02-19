@@ -1228,47 +1228,95 @@ public class WindowsPhotino : Photino
         // pfd->SetFileTypes(filterCount, specs.data());
     }
 
-    public string GetResults()
+    public List<string> GetResults(IFileOpenDialog dialog, bool multiSelect)
     {
-        throw new NotImplementedException();
-        // IShellItemArray* psiResults = nullptr;
-        // *hr = pfd->GetResults(&psiResults);
-        // if (SUCCEEDED(*hr)) {
-        //     DWORD count = 0;
-        //     psiResults->GetCount(&count);
-        //     if (count > 0) {
-        //         *resultCount = static_cast<int>(count);
-        //         auto** result = new wchar_t* [count];
-        //         for (DWORD i = 0; i < count; ++i) {
-        //             IShellItem* psiItem = nullptr;
-        //             *hr = psiResults->GetItemAt(i, &psiItem);
-        //             if (SUCCEEDED(*hr)) {
-        //                 PWSTR pszName = nullptr;
-        //                 *hr = psiItem->GetDisplayName(SIGDN_FILESYSPATH, &pszName);
-        //                 if (SUCCEEDED(*hr)) {
-        //                     const auto len = wcslen(pszName);
-        //                     result[i] = new wchar_t[len + 1];
-        //                     wcscpy_s(result[i], len + 1, pszName);
-        //                     CoTaskMemFree(pszName);
-        //                 }
-        //                 psiItem->Release();
-        //             }
-        //         }
-        //         psiResults->Release();
-        //         pfd->Release();
-        //         return result;
-        //     }
-        //     psiResults->Release();
-        // }
-        // pfd->Release();
-        //
-        // return nullptr;
+        var result = new List<string>();
+
+        if (multiSelect)
+        {
+            dialog.GetResults(out IShellItemArray results);
+            results.GetCount(out uint count);
+
+            for (uint i = 0; i < count; i++)
+            {
+                results.GetItemAt(i, out IShellItem item);
+                item.GetDisplayName(SIGDN.FILESYSPATH, out string pathToUse);
+                result.Add(pathToUse);
+            }
+
+            return result;
+        }
+        else
+        {
+            dialog.GetResult(out IShellItem item);
+            item.GetDisplayName(SIGDN.FILESYSPATH, out string pathToUse);
+            result.Add(pathToUse);
+            return result;
+        }
     }
 
     public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect,
         List<FileFilter>? filterPatterns)
     {
-        throw new NotImplementedException();
+        var dialog = (IFileOpenDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(CLSID_FileOpenDialog));
+        var result = new List<string>();
+
+        try
+        {
+            dialog.GetOptions(out uint options);
+            options |= Constants.FOS_PICKFOLDERS | Constants.FOS_FORCEFILESYSTEM | Constants.FOS_PATHMUSTEXIST;
+            if (multiSelect)
+            {
+                options |= Constants.FOS_ALLOWMULTISELECT;
+            }
+            dialog.SetOptions(options);
+            dialog.SetTitle(title);
+            dialog.SetOkButtonLabel("Select");
+
+            if (filterPatterns is not null && filterPatterns.Any())
+            {
+                var specs = filterPatterns.Select(f => new COMDLG_FILTERSPEC()
+                {
+                    pszName = f.Name,
+                    pszSpec = f.Spec
+                }).ToArray();
+
+                dialog.SetFileTypes((uint) specs.Length, specs);
+                dialog.SetFileTypeIndex(1);
+            }
+
+            if (!string.IsNullOrEmpty(path))
+            {
+                var iid = typeof(IShellItem).GUID;
+                if (DLLImports.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem folder) == Constants.S_OK)
+                {
+                    dialog.SetFolder(folder);
+                }
+            }
+
+            var hr = dialog.Show(_hwnd);
+
+            if (hr == Constants.ERROR_CANCELLED)
+            {
+                return result;
+            }
+
+            if (hr != Constants.S_OK)
+            {
+                Marshal.ThrowExceptionForHR(hr);
+            }
+
+            return GetResults(dialog, multiSelect);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        finally
+        {
+            Marshal.ReleaseComObject(dialog);
+        }
     }
 
     public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
@@ -1311,27 +1359,7 @@ public class WindowsPhotino : Photino
                 Marshal.ThrowExceptionForHR(hr);
             }
 
-            if (multiSelect)
-            {
-                dialog.GetResults(out IShellItemArray results);
-                results.GetCount(out uint count);
-
-                for (uint i = 0; i < count; i++)
-                {
-                    results.GetItemAt(i, out IShellItem item);
-                    item.GetDisplayName(SIGDN.FILESYSPATH, out string pathToUse);
-                    result.Add(pathToUse);
-                }
-
-                return result;
-            }
-            else
-            {
-                dialog.GetResult(out IShellItem item);
-                item.GetDisplayName(SIGDN.FILESYSPATH, out string pathToUse);
-                result.Add(pathToUse);
-                return result;
-            }
+            return GetResults(dialog, multiSelect);
         }
         catch (Exception e)
         {
