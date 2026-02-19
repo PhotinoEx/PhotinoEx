@@ -7,6 +7,6 @@
 
     private async Task OpenFile()
     {
-
+        var result = await Program.App.MainWindow.ShowOpenFileDialogAsync(multiSelect: true);
     }
 }
