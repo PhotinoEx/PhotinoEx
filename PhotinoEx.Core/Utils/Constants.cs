@@ -260,10 +260,10 @@ public interface IFileOpenDialog
 [ComImport]
 [Guid("84BCCEA3-5FE1-45D5-8AD3-A759A9BB5B50")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public interface IFileSaveDialog
+interface IFileSaveDialog
 {
     [PreserveSig] int Show(IntPtr hwndOwner);
-    void SetFileTypes(uint cFileTypes, [MarshalAs(UnmanagedType.LPArray)] COMDLG_FILTERSPEC[] rgFilterSpec);
+    void SetFileTypes(uint c, [MarshalAs(UnmanagedType.LPArray)] COMDLG_FILTERSPEC[] r);
     void SetFileTypeIndex(uint iFileType);
     void GetFileTypeIndex(out uint piFileType);
     void Advise(IntPtr pfde, out uint pdwCookie);
@@ -288,7 +288,7 @@ public interface IFileSaveDialog
     void SetFilter(IntPtr pFilter);
     void SetSaveAsItem(IShellItem psi);
     void SetProperties(IntPtr pStore);
-    void SetCollectedProperties(IntPtr pList, bool fAppendDefault);
+    void SetCollectedProperties(IntPtr pList, [MarshalAs(UnmanagedType.Bool)] bool fAppendDefault);
     void GetProperties(out IntPtr ppStore);
     void ApplyProperties(IShellItem psi, IntPtr pStore, IntPtr hwnd, IntPtr pSink);
 }
