@@ -1250,22 +1250,23 @@ public class WindowsPhotino : Photino
             {
                 options |= Constants.FOS_ALLOWMULTISELECT;
             }
-
             dialog.SetOptions(options);
             dialog.SetTitle(title);
             dialog.SetOkButtonLabel("Select");
 
-            if (filterPatterns is not null && filterPatterns.Any())
+            filterPatterns ??= new List<FileFilter>()
             {
-                var specs = filterPatterns.Select(f => new COMDLG_FILTERSPEC()
-                {
-                    pszName = f.Name,
-                    pszSpec = f.Spec
-                }).ToArray();
+                new FileFilter("All Files", "*.*")
+            };
 
-                dialog.SetFileTypes((uint) specs.Length, specs);
-                dialog.SetFileTypeIndex(1);
-            }
+            var specs = filterPatterns.Select(f => new COMDLG_FILTERSPEC()
+            {
+                pszName = f.Name,
+                pszSpec = f.Spec
+            }).ToArray();
+
+            dialog.SetFileTypes((uint) specs.Length, specs);
+            dialog.SetFileTypeIndex(1);
 
             if (!string.IsNullOrEmpty(path))
             {
@@ -1314,9 +1315,7 @@ public class WindowsPhotino : Photino
             {
                 options |= Constants.FOS_ALLOWMULTISELECT;
             }
-
             dialog.SetOptions(options);
-
             dialog.SetTitle(title);
             dialog.SetOkButtonLabel("Select");
 
@@ -1368,17 +1367,19 @@ public class WindowsPhotino : Photino
             dialog.SetTitle(title);
             dialog.SetOkButtonLabel("Save");
 
-            if (filterPatterns != null && filterPatterns.Count > 0)
+            filterPatterns ??= new List<FileFilter>()
             {
-                var specs = filterPatterns.Select(f => new COMDLG_FILTERSPEC
-                {
-                    pszName = f.Name,
-                    pszSpec = f.Spec
-                }).ToArray();
+                new FileFilter("All Files", "*.*")
+            };
 
-                dialog.SetFileTypes((uint) specs.Length, specs);
-                dialog.SetFileTypeIndex(1);
-            }
+            var specs = filterPatterns.Select(f => new COMDLG_FILTERSPEC
+            {
+                pszName = f.Name,
+                pszSpec = f.Spec
+            }).ToArray();
+
+            dialog.SetFileTypes((uint) specs.Length, specs);
+            dialog.SetFileTypeIndex(1);
 
             if (!string.IsNullOrEmpty(defaultFileName))
             {
@@ -1387,7 +1388,7 @@ public class WindowsPhotino : Photino
 
             if (!string.IsNullOrEmpty(defaultExtension))
             {
-                dialog.SetDefaultExtension(defaultExtension);
+                dialog.SetDefaultExtension(defaultExtension.TrimStart('.'));
             }
 
             if (!string.IsNullOrEmpty(path))

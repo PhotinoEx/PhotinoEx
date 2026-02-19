@@ -2673,8 +2673,7 @@ public class PhotinoWindow
     /// <param name="filterPatterns">List of filtering.</param>
     /// <returns>Array of file paths as strings</returns>
     public async Task<List<string>?> ShowOpenFileDialogAsync(string title = "Choose file", string? defaultPath = null,
-        bool multiSelect = false,
-        List<FileFilter>? filterPatterns = null)
+        bool multiSelect = false, List<FileFilter>? filterPatterns = null)
     {
         return await _instance!.ShowOpenFileAsync(title, defaultPath, multiSelect, filterPatterns);
     }
