@@ -1277,17 +1277,38 @@ public class WindowsPhotino : Photino
             Marshal.Copy(new byte[bufferSize * 2], 0, buffer, bufferSize * 2);
 
             int flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER;
-
             if (multiSelect)
             {
                 flags |= OFN_ALLOWMULTISELECT;
+            }
+
+            var sb = new StringBuilder();
+
+            if (filterPatterns?.Any() ?? false)
+            {
+                foreach (var pattern in filterPatterns)
+                {
+                    sb.Append($"{pattern.Name}\0{pattern.Spec}\0");
+                }
+            }
+            else
+            {
+                // Give filter all files if there are none given to us
+                sb.Append("All Files\0*.*\0\0");
+            }
+
+            // make sure it ends in \0\0
+            var filters = sb.ToString();
+            if (!filters.EndsWith("\0\0"))
+            {
+                filters = string.Concat(filters, "\0");
             }
 
             var ofn = new OPENFILENAME
             {
                 lStructSize = Marshal.SizeOf<OPENFILENAME>(),
                 hwndOwner   = _hwnd,
-                lpstrFilter = "All Files\0*.*\0\0",
+                lpstrFilter = filters,
                 lpstrFile   = buffer,
                 nMaxFile    = bufferSize,
                 lpstrTitle  = title,
