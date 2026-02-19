@@ -1268,10 +1268,29 @@ public class WindowsPhotino : Photino
     public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect,
         List<FileFilter>? filterPatterns)
     {
+        var ofn = new OPENFILENAME
+        {
+            lStructSize = Marshal.SizeOf<OPENFILENAME>(),
+            hwndOwner = _hwnd,
+            lpstrFilter = "Text Files\0*.txt\0All Files\0*.*\0\0",
+            lpstrFile = new string('\0', 260), // buffer for result
+            nMaxFile = 260,
+            lpstrTitle = title,
+            Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER
+        };
+
+        var result = new List<string>();
+
+        if (GetOpenFileName(ref ofn))
+        {
+            result.Add(ofn.lpstrFile);
+        }
+
+        return result;
         // HRESULT hr;
         // title = _window->ToUTF16String(title);
         // defaultPath = _window->ToUTF16String(defaultPath);
-	       //
+        //
         // auto* pfd = Create<IFileOpenDialog>(&hr, title, defaultPath);
         //
         // if (SUCCEEDED(hr)) {
@@ -1295,7 +1314,7 @@ public class WindowsPhotino : Photino
         //     pfd->Release();
         // }
         // return nullptr;
-        throw new NotImplementedException();
+        // throw new NotImplementedException();
     }
 
     public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
@@ -1446,4 +1465,36 @@ public class WindowsPhotino : Photino
             callbackHandle.Free();
         }
     }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    struct OPENFILENAME
+    {
+        public int lStructSize;
+        public IntPtr hwndOwner;
+        public IntPtr hInstance;
+        public string lpstrFilter;
+        public string lpstrCustomFilter;
+        public int nMaxCustFilter;
+        public int nFilterIndex;
+        public string lpstrFile;
+        public int nMaxFile;
+        public string lpstrFileTitle;
+        public int nMaxFileTitle;
+        public string lpstrInitialDir;
+        public string lpstrTitle;
+        public int Flags;
+        public short nFileOffset;
+        public short nFileExtension;
+        public string lpstrDefExt;
+        public IntPtr lCustData;
+        public IntPtr lpfnHook;
+        public string lpTemplateName;
+    }
+
+    [DllImport("comdlg32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    static extern bool GetOpenFileName(ref OPENFILENAME ofn);
+
+    const int OFN_FILEMUSTEXIST = 0x00001000;
+    const int OFN_PATHMUSTEXIST = 0x00000800;
+    const int OFN_EXPLORER = 0x00080000;
 }

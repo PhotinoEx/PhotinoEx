@@ -138,14 +138,4 @@ internal static class DLLImports
     public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
 
     #endregion
-
-    #region ole32
-
-    [DllImport("ole32.dll")]
-    public static extern int CoCreateInstance(ref Guid rclsid, IntPtr pUnkOuter, uint dwClsContext, ref Guid riid, out IntPtr ppv);
-
-    [DllImport("ole32.dll")]
-    public static extern void CoTaskMemFree(IntPtr pv);
-
-    #endregion
 }
