@@ -222,7 +222,7 @@ public struct MINMAXINFO
 }
 
 [ComImport]
-[Guid("DC1C5A9C-E88A-4DDE-A5A1-60F82A20AEF7")]
+[Guid("D57C7288-D4AD-4768-BE02-9D969532D960")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 interface IFileOpenDialog
 {
