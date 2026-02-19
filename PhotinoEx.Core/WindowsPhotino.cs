@@ -1367,10 +1367,11 @@ public class WindowsPhotino : Photino
             dialog.SetTitle(title);
             dialog.SetOkButtonLabel("Save");
 
-            filterPatterns ??= new List<FileFilter>()
+            filterPatterns ??= new List<FileFilter>();
+            if (!filterPatterns.Any())
             {
-                new FileFilter("All Files", "*.*")
-            };
+                filterPatterns.Add(new FileFilter("All Files", "*.*"));
+            }
 
             var specs = filterPatterns.Select(f => new COMDLG_FILTERSPEC
             {
