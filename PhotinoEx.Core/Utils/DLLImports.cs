@@ -138,4 +138,11 @@ internal static class DLLImports
     public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
 
     #endregion
+
+    #region Shell
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    public static extern int SHCreateItemFromParsingName(string pszPath, IntPtr pbc, [In] ref Guid riid, out IShellItem ppv);
+
+    #endregion
 }

@@ -1268,143 +1268,80 @@ public class WindowsPhotino : Photino
     public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect,
         List<FileFilter>? filterPatterns)
     {
-        int bufferSize = 8192;
-        IntPtr buffer = Marshal.AllocHGlobal(bufferSize * 2); // *2 for Unicode chars
-        var result = new List<string>();
-        try
-        {
-            // Zero out the buffer
-            Marshal.Copy(new byte[bufferSize * 2], 0, buffer, bufferSize * 2);
-
-            int flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER;
-            if (multiSelect)
-            {
-                flags |= OFN_ALLOWMULTISELECT;
-            }
-
-            var sb = new StringBuilder();
-
-            if (filterPatterns?.Any() ?? false)
-            {
-                foreach (var pattern in filterPatterns)
-                {
-                    sb.Append($"{pattern.Name}\0{pattern.Spec}\0");
-                }
-            }
-            else
-            {
-                // Give filter all files if there are none given to us
-                sb.Append("All Files\0*.*\0\0");
-            }
-
-            // make sure it ends in \0\0
-            var filters = sb.ToString();
-            if (!filters.EndsWith("\0\0"))
-            {
-                filters = string.Concat(filters, "\0");
-            }
-
-            var ofn = new OPENFILENAME
-            {
-                lStructSize = Marshal.SizeOf<OPENFILENAME>(),
-                hwndOwner   = _hwnd,
-                lpstrFilter = filters,
-                lpstrFile   = buffer,
-                nMaxFile    = bufferSize,
-                lpstrTitle  = title,
-                Flags       = flags
-            };
-
-            if (!GetOpenFileName(ref ofn))
-            {
-                return result;
-            }
-
-            // Read null-separated strings from buffer until double-null
-            var offset = 0;
-            while (true)
-            {
-                var s = Marshal.PtrToStringAuto(buffer + offset);
-                if (string.IsNullOrEmpty(s))
-                {
-                    break;
-                }
-
-                result.Add(s);
-                offset += (s.Length + 1) * 2; // +1 for null, *2 for Unicode
-            }
-
-            if (result.Count == 1)
-            {
-                return result.ToList(); // single file, full path
-            }
-
-            // result[0] = directory, rest = filenames
-            string dir = result[0];
-            return result.Skip(1).Select(f => Path.Combine(dir, f)).ToList();
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(buffer);
-        }
-        // HRESULT hr;
-        // title = _window->ToUTF16String(title);
-        // defaultPath = _window->ToUTF16String(defaultPath);
-        //
-        // auto* pfd = Create<IFileOpenDialog>(&hr, title, defaultPath);
-        //
-        // if (SUCCEEDED(hr)) {
-        //     AddFilters(pfd, filters, filterCount, _window);
-        //
-        //     DWORD dwOptions;
-        //     pfd->GetOptions(&dwOptions);
-        //     dwOptions |= FOS_FILEMUSTEXIST | FOS_NOCHANGEDIR;
-        //     if (multiSelect) {
-        //         dwOptions |= FOS_ALLOWMULTISELECT;
-        //     }
-        //     else {
-        //         dwOptions &= ~FOS_ALLOWMULTISELECT;
-        //     }
-        //     pfd->SetOptions(dwOptions);
-        //
-        //     hr = pfd->Show(_window->getHwnd());
-        //     if (SUCCEEDED(hr)) {
-        //         return GetResults(pfd, &hr, resultCount);
-        //     }
-        //     pfd->Release();
-        // }
-        // return nullptr;
-        // throw new NotImplementedException();
+        throw new NotImplementedException();
     }
 
     public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
     {
-        throw new NotImplementedException();
-        // HRESULT hr;
-        // title = _window->ToUTF16String(title);
-        // defaultPath = _window->ToUTF16String(defaultPath);
-        //
-        // auto* pfd = Create<IFileOpenDialog>(&hr, title, defaultPath);
-        //
-        // if (SUCCEEDED(hr)) {
-        //     DWORD dwOptions;
-        //     pfd->GetOptions(&dwOptions);
-        //     dwOptions |= FOS_PICKFOLDERS | FOS_NOCHANGEDIR;
-        //     if (multiSelect) {
-        //         dwOptions |= FOS_ALLOWMULTISELECT;
-        //     }
-        //     else {
-        //         dwOptions &= ~FOS_ALLOWMULTISELECT;
-        //     }
-        //     pfd->SetOptions(dwOptions);
-        //
-        //     hr = pfd->Show(_window->getHwnd());
-        //     if (SUCCEEDED(hr)) {
-        //         return GetResults(pfd, &hr, resultCount);
-        //     }
-        //     pfd->Release();
-        // }
-        // return nullptr;
+        var dialog = (IFileOpenDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(CLSID_FileOpenDialog));
+        var result = new List<string>();
+
+        try
+        {
+            dialog.GetOptions(out uint options);
+            options |= Constants.FOS_PICKFOLDERS | Constants.FOS_FORCEFILESYSTEM | Constants.FOS_PATHMUSTEXIST;
+            if (multiSelect)
+            {
+                options |= Constants.FOS_ALLOWMULTISELECT;
+            }
+
+            dialog.SetOptions(options);
+
+            dialog.SetTitle(title);
+            dialog.SetOkButtonLabel("Select");
+
+            if (!string.IsNullOrEmpty(path))
+            {
+                var iid = typeof(IShellItem).GUID;
+                if (DLLImports.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem folder) == Constants.S_OK)
+                {
+                    dialog.SetFolder(folder);
+                }
+            }
+
+            var hr = dialog.Show(_hwnd);
+
+            if (hr == Constants.ERROR_CANCELLED)
+            {
+                return result;
+            }
+
+            if (hr != Constants.S_OK)
+            {
+                Marshal.ThrowExceptionForHR(hr);
+            }
+
+            if (multiSelect)
+            {
+                dialog.GetResults(out IShellItemArray results);
+                results.GetCount(out uint count);
+
+                for (uint i = 0; i < count; i++)
+                {
+                    results.GetItemAt(i, out IShellItem item);
+                    item.GetDisplayName(SIGDN.FILESYSPATH, out string pathToUse);
+                    result.Add(pathToUse);
+                }
+
+                return result;
+            }
+            else
+            {
+                dialog.GetResult(out IShellItem item);
+                item.GetDisplayName(SIGDN.FILESYSPATH, out string pathToUse);
+                result.Add(pathToUse);
+                return result;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        finally
+        {
+            Marshal.ReleaseComObject(dialog);
+        }
     }
 
     public override async Task<string> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns,
@@ -1526,36 +1463,5 @@ public class WindowsPhotino : Photino
         }
     }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-    struct OPENFILENAME
-    {
-        public int    lStructSize;
-        public IntPtr hwndOwner;
-        public IntPtr hInstance;
-        public string lpstrFilter;
-        public string lpstrCustomFilter;
-        public int    nMaxCustFilter;
-        public int    nFilterIndex;
-        public IntPtr lpstrFile;
-        public int    nMaxFile;
-        public string lpstrFileTitle;
-        public int    nMaxFileTitle;
-        public string lpstrInitialDir;
-        public string lpstrTitle;
-        public int    Flags;
-        public short  nFileOffset;
-        public short  nFileExtension;
-        public string lpstrDefExt;
-        public IntPtr lCustData;
-        public IntPtr lpfnHook;
-        public string lpTemplateName;
-    }
-
-    [DllImport("comdlg32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    static extern bool GetOpenFileName(ref OPENFILENAME ofn);
-
-    const int OFN_FILEMUSTEXIST = 0x00001000;
-    const int OFN_PATHMUSTEXIST = 0x00000800;
-    const int OFN_EXPLORER = 0x00080000;
-    const int OFN_ALLOWMULTISELECT = 0x00000200;
+    private static readonly Guid CLSID_FileOpenDialog = new Guid("DC1C5A9C-E88A-4DDE-A5A1-60F82A20AEF7");
 }

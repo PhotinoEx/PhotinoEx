@@ -220,3 +220,79 @@ public struct MINMAXINFO
     public POINT ptMinTrackSize { get; set; }
     public POINT ptMaxTrackSize { get; set; }
 }
+
+[ComImport]
+[Guid("DC1C5A9C-E88A-4DDE-A5A1-60F82A20AEF7")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+interface IFileOpenDialog
+{
+    // IModalWindow
+    [PreserveSig] int Show(IntPtr hwndOwner);
+
+    // IFileDialog
+    void SetFileTypes(uint cFileTypes, [MarshalAs(UnmanagedType.LPArray)] COMDLG_FILTERSPEC[] rgFilterSpec);
+    void SetFileTypeIndex(uint iFileType);
+    void GetFileTypeIndex(out uint piFileType);
+    void Advise(IntPtr pfde, out uint pdwCookie);
+    void Unadvise(uint dwCookie);
+    void SetOptions(uint fos);
+    void GetOptions(out uint pfos);
+    void SetDefaultFolder(IShellItem psi);
+    void SetFolder(IShellItem psi);
+    void GetFolder(out IShellItem ppsi);
+    void GetCurrentSelection(out IShellItem ppsi);
+    void SetFileName([MarshalAs(UnmanagedType.LPWStr)] string pszName);
+    void GetFileName([MarshalAs(UnmanagedType.LPWStr)] out string pszName);
+    void SetTitle([MarshalAs(UnmanagedType.LPWStr)] string pszTitle);
+    void SetOkButtonLabel([MarshalAs(UnmanagedType.LPWStr)] string pszText);
+    void SetFileNameLabel([MarshalAs(UnmanagedType.LPWStr)] string pszLabel);
+    void GetResult(out IShellItem ppsi);
+    void AddPlace(IShellItem psi, int fdap);
+    void SetDefaultExtension([MarshalAs(UnmanagedType.LPWStr)] string pszDefaultExtension);
+    void Close(int hr);
+    void SetClientGuid([In] ref Guid guid);
+    void ClearClientData();
+    void SetFilter(IntPtr pFilter);
+
+    // IFileOpenDialog
+    void GetResults(out IShellItemArray ppenum);
+    void GetSelectedItems(out IShellItemArray ppsai);
+}
+
+[ComImport]
+[Guid("43826D1E-E718-42EE-BC55-A1E261C37BFE")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+interface IShellItem
+{
+    void BindToHandler(IntPtr pbc, [In] ref Guid bhid, [In] ref Guid riid, out IntPtr ppv);
+    void GetParent(out IShellItem ppsi);
+    void GetDisplayName(SIGDN sigdnName, [MarshalAs(UnmanagedType.LPWStr)] out string ppszName);
+    void GetAttributes(uint sfgaoMask, out uint psfgaoAttribs);
+    void Compare(IShellItem psi, uint hint, out int piOrder);
+}
+
+[ComImport]
+[Guid("B63EA76D-1F85-456F-A19C-48159EFA858B")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+interface IShellItemArray
+{
+    void BindToHandler(IntPtr pbc, [In] ref Guid rbhid, [In] ref Guid riid, out IntPtr ppvOut);
+    void GetPropertyStore(int flags, [In] ref Guid riid, out IntPtr ppv);
+    void GetPropertyDescriptionList(IntPtr keyType, [In] ref Guid riid, out IntPtr ppv);
+    void GetAttributes(int AttribFlags, uint sfgaoMask, out uint psfgaoAttribs);
+    void GetCount(out uint pdwNumItems);
+    void GetItemAt(uint dwIndex, out IShellItem ppsi);
+    void EnumItems(out IntPtr ppenumShellItems);
+}
+
+[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+struct COMDLG_FILTERSPEC
+{
+    [MarshalAs(UnmanagedType.LPWStr)] public string pszName;
+    [MarshalAs(UnmanagedType.LPWStr)] public string pszSpec;
+}
+
+enum SIGDN : uint
+{
+    FILESYSPATH = 0x80058000
+}
