@@ -229,10 +229,7 @@ public struct MINMAXINFO
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 public interface IFileOpenDialog
 {
-    // IModalWindow
     [PreserveSig] int Show(IntPtr hwndOwner);
-
-    // IFileDialog
     void SetFileTypes(uint cFileTypes, [MarshalAs(UnmanagedType.LPArray)] COMDLG_FILTERSPEC[] rgFilterSpec);
     void SetFileTypeIndex(uint iFileType);
     void GetFileTypeIndex(out uint piFileType);
@@ -256,8 +253,6 @@ public interface IFileOpenDialog
     void SetClientGuid([In] ref Guid guid);
     void ClearClientData();
     void SetFilter(IntPtr pFilter);
-
-    // IFileOpenDialog
     void GetResults(out IShellItemArray ppenum);
     void GetSelectedItems(out IShellItemArray ppsai);
 }
@@ -265,12 +260,9 @@ public interface IFileOpenDialog
 [ComImport]
 [Guid("84BCCEA3-5FE1-45D5-8AD3-A759A9BB5B50")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-interface IFileSaveDialog
+public interface IFileSaveDialog
 {
-    // -- IModalWindow --
     [PreserveSig] int Show(IntPtr hwndOwner);
-
-    // -- IFileDialog (same order as IFileOpenDialog) --
     void SetFileTypes(uint cFileTypes, [MarshalAs(UnmanagedType.LPArray)] COMDLG_FILTERSPEC[] rgFilterSpec);
     void SetFileTypeIndex(uint iFileType);
     void GetFileTypeIndex(out uint piFileType);
@@ -294,8 +286,6 @@ interface IFileSaveDialog
     void SetClientGuid([In] ref Guid guid);
     void ClearClientData();
     void SetFilter(IntPtr pFilter);
-
-    // -- IFileSaveDialog (replaces GetResults/GetSelectedItems) --
     void SetSaveAsItem(IShellItem psi);
     void SetProperties(IntPtr pStore);
     void SetCollectedProperties(IntPtr pList, bool fAppendDefault);
