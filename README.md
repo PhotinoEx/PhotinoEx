@@ -17,10 +17,10 @@ Currently do not use this in production. Once feature parity is done, i'll start
     - [x] Application Icons (use .dekstop files)
 - [ ] Windows support.
     - [x] Window controls
-    - [ ] Webview controls
-    - [ ] Dark Mode
+    - [x] Webview controls
+    - [x] Dark Mode
     - [ ] OS automatic Dark Mode theming
-    - [ ] Folder/File/Message opening
+    - [x] Folder/File/Message opening
     - [ ] Toast for system
     - [x] Application Icons
 - [ ] Mac support. (currently dont have an environment to test)
