@@ -1272,18 +1272,29 @@ public class WindowsPhotino : Photino
         {
             lStructSize = Marshal.SizeOf<OPENFILENAME>(),
             hwndOwner = _hwnd,
-            lpstrFilter = "Text Files\0*.txt\0All Files\0*.*\0\0",
-            lpstrFile = new string('\0', 260), // buffer for result
-            nMaxFile = 260,
+            lpstrFilter = "All Files\0*.*\0\0",
+            lpstrFile = new string('\0', 8192),
+            nMaxFile = 8192,
             lpstrTitle = title,
-            Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER
+            Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_ALLOWMULTISELECT
         };
 
         var result = new List<string>();
 
         if (GetOpenFileName(ref ofn))
         {
-            result.Add(ofn.lpstrFile);
+            if (multiSelect)
+            {
+                var files = ParseMultiSelect(ofn.lpstrFile);
+                foreach (var file in files)
+                {
+                    result.Add(file);
+                }
+            }
+            else
+            {
+                result.Add(ofn.lpstrFile);
+            }
         }
 
         return result;
@@ -1315,6 +1326,19 @@ public class WindowsPhotino : Photino
         // }
         // return nullptr;
         // throw new NotImplementedException();
+    }
+
+    string[] ParseMultiSelect(string lpstrFile)
+    {
+        // Split on null chars, drop empty entries
+        string[] parts = lpstrFile.Split('\0', StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length == 1)
+            return parts; // only one file selected — full path returned as-is
+
+        // parts[0] = directory, parts[1..] = filenames
+        string dir = parts[0];
+        return parts[1..].Select(f => Path.Combine(dir, f)).ToArray();
     }
 
     public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
@@ -1497,4 +1521,5 @@ public class WindowsPhotino : Photino
     const int OFN_FILEMUSTEXIST = 0x00001000;
     const int OFN_PATHMUSTEXIST = 0x00000800;
     const int OFN_EXPLORER = 0x00080000;
+    const int OFN_ALLOWMULTISELECT = 0x00000200;
 }
