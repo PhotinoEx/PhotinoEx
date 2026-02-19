@@ -1209,25 +1209,6 @@ public class WindowsPhotino : Photino
         _minimizedCallback = callback;
     }
 
-    public void AddFilters()
-    {
-        throw new NotImplementedException();
-        // std::vector<COMDLG_FILTERSPEC> specs;
-        // for (int i = 0; i < filterCount; i++) {
-        //     auto* filter = new wchar_t[MAX_PATH];
-        //     AutoString wFilter = wndInstance->ToUTF16String(filters[i]);
-        //     wcscpy_s(filter, MAX_PATH, wFilter);
-        //
-        //     const wchar_t* filterName = wcstok_s(filter, L"|", &filter);
-        //     const wchar_t* filterPattern = filter;
-        //     COMDLG_FILTERSPEC spec;
-        //     spec.pszName = filterName;
-        //     spec.pszSpec = filterPattern;
-        //     specs.push_back(spec);
-        // }
-        // pfd->SetFileTypes(filterCount, specs.data());
-    }
-
     public List<string> GetResults(IFileOpenDialog dialog, bool multiSelect)
     {
         var result = new List<string>();
@@ -1258,17 +1239,18 @@ public class WindowsPhotino : Photino
     public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect,
         List<FileFilter>? filterPatterns)
     {
-        var dialog = (IFileOpenDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(CLSID_FileOpenDialog));
+        var dialog = (IFileOpenDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(Constants.CLSID_FileOpenDialog));
         var result = new List<string>();
 
         try
         {
-            dialog.GetOptions(out uint options);
+            dialog!.GetOptions(out uint options);
             options |= Constants.FOS_FILEMUSTEXIST | Constants.FOS_FORCEFILESYSTEM | Constants.FOS_PATHMUSTEXIST;
             if (multiSelect)
             {
                 options |= Constants.FOS_ALLOWMULTISELECT;
             }
+
             dialog.SetOptions(options);
             dialog.SetTitle(title);
             dialog.SetOkButtonLabel("Select");
@@ -1321,12 +1303,12 @@ public class WindowsPhotino : Photino
 
     public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
     {
-        var dialog = (IFileOpenDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(CLSID_FileOpenDialog));
+        var dialog = (IFileOpenDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(Constants.CLSID_FileOpenDialog));
         var result = new List<string>();
 
         try
         {
-            dialog.GetOptions(out uint options);
+            dialog!.GetOptions(out uint options);
             options |= Constants.FOS_PICKFOLDERS | Constants.FOS_FORCEFILESYSTEM | Constants.FOS_PATHMUSTEXIST;
             if (multiSelect)
             {
@@ -1373,43 +1355,70 @@ public class WindowsPhotino : Photino
     }
 
     public override async Task<string> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns,
-        string defaultExtension = ".txt", string defaultFileName = "PhotinoExFile")
+        string defaultExtension = "txt", string defaultFileName = "PhotinoExFile")
     {
-        throw new NotImplementedException();
-        // HRESULT hr;
-        // title = _window->ToUTF16String(title);
-        // defaultPath = _window->ToUTF16String(defaultPath);
-        // auto* pfd = Create<IFileSaveDialog>(&hr, title, defaultPath);
-        // if (SUCCEEDED(hr)) {
-        //     AddFilters(pfd, filters, filterCount, _window);
-        //
-        //     DWORD dwOptions;
-        //     pfd->GetOptions(&dwOptions);
-        //     dwOptions |= FOS_NOCHANGEDIR;
-        //     pfd->SetOptions(dwOptions);
-        //
-        //     hr = pfd->Show(_window->getHwnd());
-        //     if (SUCCEEDED(hr)) {
-        //         IShellItem* psiResult = nullptr;
-        //         hr = pfd->GetResult(&psiResult);
-        //         if (SUCCEEDED(hr)) {
-        //             wchar_t* result = nullptr;
-        //             PWSTR pszName = nullptr;
-        //             hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &pszName);
-        //             if (SUCCEEDED(hr)) {
-        //                 const auto len = wcslen(pszName);
-        //                 result = new wchar_t[len + 1];
-        //                 wcscpy_s(result, len + 1, pszName);
-        //                 CoTaskMemFree(pszName);
-        //             }
-        //             psiResult->Release();
-        //             pfd->Release();
-        //             return result;
-        //         }
-        //     }
-        //     pfd->Release();
-        // }
-        // return nullptr;
+        var dialog = (IFileSaveDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(Constants.CLSID_FileSaveDialog));
+
+        try
+        {
+            dialog!.GetOptions(out uint options);
+            options |= Constants.FOS_FORCEFILESYSTEM | Constants.FOS_PATHMUSTEXIST | Constants.FOS_OVERWRITEPROMPT;
+            dialog.SetOptions(options);
+
+            dialog.SetTitle(title);
+            dialog.SetOkButtonLabel("Save");
+
+            if (filterPatterns != null && filterPatterns.Count > 0)
+            {
+                var specs = filterPatterns.Select(f => new COMDLG_FILTERSPEC
+                {
+                    pszName = f.Name,
+                    pszSpec = f.Spec
+                }).ToArray();
+
+                dialog.SetFileTypes((uint) specs.Length, specs);
+                dialog.SetFileTypeIndex(1);
+            }
+
+            if (!string.IsNullOrEmpty(defaultFileName))
+            {
+                dialog.SetFileName(defaultFileName);
+            }
+
+            if (!string.IsNullOrEmpty(defaultExtension))
+            {
+                dialog.SetDefaultExtension(defaultExtension);
+            }
+
+            if (!string.IsNullOrEmpty(path))
+            {
+                var iid = typeof(IShellItem).GUID;
+                if (DLLImports.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem startFolder) == Constants.S_OK)
+                {
+                    dialog.SetFolder(startFolder);
+                }
+            }
+
+            int hr = dialog.Show(_hwnd);
+
+            if (hr == Constants.ERROR_CANCELLED)
+            {
+                return "";
+            }
+
+            if (hr != Constants.S_OK)
+            {
+                Marshal.ThrowExceptionForHR(hr);
+            }
+
+            dialog.GetResult(out IShellItem item);
+            item.GetDisplayName(SIGDN.FILESYSPATH, out string pathToUse);
+            return pathToUse;
+        }
+        finally
+        {
+            Marshal.ReleaseComObject(dialog);
+        }
     }
 
     public override async Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon)
@@ -1490,6 +1499,4 @@ public class WindowsPhotino : Photino
             callbackHandle.Free();
         }
     }
-
-    private static readonly Guid CLSID_FileOpenDialog = new Guid("DC1C5A9C-E88A-4DDE-A5A1-60F82A20AEF7");
 }

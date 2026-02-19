@@ -130,6 +130,9 @@ public class Constants
 
     public const int DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
     public const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
+    public static readonly Guid CLSID_FileOpenDialog = new Guid("DC1C5A9C-E88A-4DDE-A5A1-60F82A20AEF7");
+    public static readonly Guid CLSID_FileSaveDialog = new Guid("C0B4E2F3-BA21-4773-8DBA-335EC946EB8B");
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -257,6 +260,47 @@ public interface IFileOpenDialog
     // IFileOpenDialog
     void GetResults(out IShellItemArray ppenum);
     void GetSelectedItems(out IShellItemArray ppsai);
+}
+
+[ComImport]
+[Guid("84BCCEA3-5FE1-45D5-8AD3-A759A9BB5B50")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+interface IFileSaveDialog
+{
+    // -- IModalWindow --
+    [PreserveSig] int Show(IntPtr hwndOwner);
+
+    // -- IFileDialog (same order as IFileOpenDialog) --
+    void SetFileTypes(uint cFileTypes, [MarshalAs(UnmanagedType.LPArray)] COMDLG_FILTERSPEC[] rgFilterSpec);
+    void SetFileTypeIndex(uint iFileType);
+    void GetFileTypeIndex(out uint piFileType);
+    void Advise(IntPtr pfde, out uint pdwCookie);
+    void Unadvise(uint dwCookie);
+    void SetOptions(uint fos);
+    void GetOptions(out uint pfos);
+    void SetDefaultFolder(IShellItem psi);
+    void SetFolder(IShellItem psi);
+    void GetFolder(out IShellItem ppsi);
+    void GetCurrentSelection(out IShellItem ppsi);
+    void SetFileName([MarshalAs(UnmanagedType.LPWStr)] string pszName);
+    void GetFileName([MarshalAs(UnmanagedType.LPWStr)] out string pszName);
+    void SetTitle([MarshalAs(UnmanagedType.LPWStr)] string pszTitle);
+    void SetOkButtonLabel([MarshalAs(UnmanagedType.LPWStr)] string pszText);
+    void SetFileNameLabel([MarshalAs(UnmanagedType.LPWStr)] string pszLabel);
+    void GetResult(out IShellItem ppsi);
+    void AddPlace(IShellItem psi, int fdap);
+    void SetDefaultExtension([MarshalAs(UnmanagedType.LPWStr)] string pszDefaultExtension);
+    void Close(int hr);
+    void SetClientGuid([In] ref Guid guid);
+    void ClearClientData();
+    void SetFilter(IntPtr pFilter);
+
+    // -- IFileSaveDialog (replaces GetResults/GetSelectedItems) --
+    void SetSaveAsItem(IShellItem psi);
+    void SetProperties(IntPtr pStore);
+    void SetCollectedProperties(IntPtr pList, bool fAppendDefault);
+    void GetProperties(out IntPtr ppStore);
+    void ApplyProperties(IShellItem psi, IntPtr pStore, IntPtr hwnd, IntPtr pSink);
 }
 
 [ComImport]

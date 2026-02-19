@@ -176,7 +176,7 @@ public abstract class Photino
 
     public abstract Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect);
 
-    public abstract Task<string> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns, string defaultExtension = ".txt", string defaultFileName = "PhotinoExFile");
+    public abstract Task<string> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns, string defaultExtension = "txt", string defaultFileName = "PhotinoExFile");
 
     public abstract Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon);
 
