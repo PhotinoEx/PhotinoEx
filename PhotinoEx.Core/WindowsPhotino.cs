@@ -1276,6 +1276,13 @@ public class WindowsPhotino : Photino
             // Zero out the buffer
             Marshal.Copy(new byte[bufferSize * 2], 0, buffer, bufferSize * 2);
 
+            int flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER;
+
+            if (multiSelect)
+            {
+                flags |= OFN_ALLOWMULTISELECT;
+            }
+
             var ofn = new OPENFILENAME
             {
                 lStructSize = Marshal.SizeOf<OPENFILENAME>(),
@@ -1284,24 +1291,32 @@ public class WindowsPhotino : Photino
                 lpstrFile   = buffer,
                 nMaxFile    = bufferSize,
                 lpstrTitle  = title,
-                Flags       = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_ALLOWMULTISELECT
+                Flags       = flags
             };
 
             if (!GetOpenFileName(ref ofn))
+            {
                 return result;
+            }
 
             // Read null-separated strings from buffer until double-null
-            int offset = 0;
+            var offset = 0;
             while (true)
             {
-                string s = Marshal.PtrToStringAuto(buffer + offset);
-                if (string.IsNullOrEmpty(s)) break;
+                var s = Marshal.PtrToStringAuto(buffer + offset);
+                if (string.IsNullOrEmpty(s))
+                {
+                    break;
+                }
+
                 result.Add(s);
                 offset += (s.Length + 1) * 2; // +1 for null, *2 for Unicode
             }
 
             if (result.Count == 1)
+            {
                 return result.ToList(); // single file, full path
+            }
 
             // result[0] = directory, rest = filenames
             string dir = result[0];
@@ -1339,19 +1354,6 @@ public class WindowsPhotino : Photino
         // }
         // return nullptr;
         // throw new NotImplementedException();
-    }
-
-    string[] ParseMultiSelect(string lpstrFile)
-    {
-        // Split on null chars, drop empty entries
-        string[] parts = lpstrFile.Split('\0', StringSplitOptions.RemoveEmptyEntries);
-
-        if (parts.Length == 1)
-            return parts; // only one file selected — full path returned as-is
-
-        // parts[0] = directory, parts[1..] = filenames
-        string dir = parts[0];
-        return parts[1..].Select(f => Path.Combine(dir, f)).ToArray();
     }
 
     public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
