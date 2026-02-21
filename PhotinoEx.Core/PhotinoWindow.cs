@@ -1858,8 +1858,8 @@ public class PhotinoWindow
 
     public PhotinoWindow SetDarkmode(bool darkmode)
     {
-        Log($".Darkmode({darkmode}");
-        _startupParameters.Darkmode = darkmode;
+        Log($".Darkmode({darkmode})");
+        Darkmode = darkmode;
         return this;
     }
 
