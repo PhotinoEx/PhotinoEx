@@ -14,6 +14,7 @@ Currently do not use this in production. Once feature parity is done, i'll start
     - [x] Webview controls
     - [x] Folder/File/Message opening
     - [x] Toast for system
+    - [ ] Tray menu/icon
     - [x] Application Icons (use .dekstop files)
 - [ ] Windows support.
     - [x] Window controls
@@ -21,10 +22,11 @@ Currently do not use this in production. Once feature parity is done, i'll start
     - [x] Dark Mode
     - [ ] OS automatic Dark Mode theming
     - [x] Folder/File/Message opening
-    - [ ] Toast for system
+    - [ ] Toast for system (use dotTray)
+    - [ ] Tray menu/icon
     - [x] Application Icons
 - [ ] Mac support. (currently dont have an environment to test)
-- [ ] Update to Dotnet 10
+- [x] Update to Dotnet 10
 - [ ] Setup Nugets
 - [ ] A tag navigation - allowing it to open on browser eternally
 - [ ] implement AreBrowserAcceleratorKeysEnabled across platforms
