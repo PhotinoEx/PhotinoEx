@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.FileProviders;
 using PhotinoEx.Blazor;
+using PhotinoEx.Core;
 
 namespace PhotinoEx.Test;
 
@@ -21,7 +22,16 @@ class Program
         App = appBuilder.Build();
 
         App.MainWindow.SetDevToolsEnabled(true);
-        // App.MainWindow.SetIconFile("C:\\Users\\craig\\Desktop\\Repos\\PhotinoEx\\PhotinoEx.Test\\wwwroot\\Icon_PhotinoEx.ico");
+        if (PhotinoWindow.IsWindowsPlatform)
+        {
+            App.MainWindow.SetIconFile("C:\\Users\\craig\\Desktop\\Repos\\PhotinoEx\\PhotinoEx.Test\\wwwroot\\Icon_PhotinoEx.ico");
+        }
+
+        if (PhotinoWindow.IsLinuxPlatform)
+        {
+            App.MainWindow.SetIconFile("/home/cwx/Repos/PhotinoEx/PhotinoEx.Test/wwwroot/hicolor/48x48/apps/Icon_PhotinoEx.png");
+        }
+
         App.MainWindow.SetHeight(300);
         App.MainWindow.SetWidth(300);
         App.MainWindow.SetMinWidth(200);
