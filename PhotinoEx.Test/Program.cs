@@ -40,6 +40,7 @@ class Program
         App.MainWindow.SetMaxWidth(400);
         App.MainWindow.SetUseOsDefaultSize(false);
         App.MainWindow.SetDarkmode(true);
+        App.MainWindow.SetTitle("PhotinoEx Test Application");
 
         AppDomain.CurrentDomain.UnhandledException += async (_, error) =>
         {

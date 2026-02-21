@@ -15,7 +15,7 @@ Currently do not use this in production. Once feature parity is done, i'll start
     - [x] Folder/File/Message opening
     - [x] Toast for system
     - [ ] Tray menu/icon
-    - [x] Application Icons (use .dekstop files)
+    - [x] Application Icons
 - [ ] Windows support.
     - [x] Window controls
     - [x] Webview controls

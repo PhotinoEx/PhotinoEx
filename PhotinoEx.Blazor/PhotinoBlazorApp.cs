@@ -25,7 +25,7 @@ public class PhotinoBlazorApp
         WindowManager = Services.GetService<PhotinoWebViewManager>();
 
         MainWindow
-            .SetTitle("Photino.Blazor App")
+            .SetTitle("PhotinoEx.Blazor App")
             .SetUseOsDefaultSize(false)
             .SetWidth(1000)
             .SetHeight(900);
