@@ -17,6 +17,7 @@ using ApplicationWindow = Gtk.ApplicationWindow;
 using File = Gio.File;
 using FileDialog = Gtk.FileDialog;
 using FileFilter = Gtk.FileFilter;
+using FileInfo = System.IO.FileInfo;
 using PhotinoExFileFilter = PhotinoEx.Core.Models.FileFilter;
 using MessageDialog = Gtk.MessageDialog;
 using Monitor = PhotinoEx.Core.Models.Monitor;
@@ -619,12 +620,21 @@ public class LinuxPhotino : Photino
     }
 
     /// <summary>
-    /// IMPORTANT: This does not work on Wayland, its ignored for the .desktop file, blame wayland
+    /// This needs a specific setup for linux - icon MUST be contained in /hicolor/48x48/apps/ otherwise it wont get used
     /// </summary>
     /// <param name="filename"></param>
     public override void SetIconFile(string filename)
     {
-        _window?.SetIconName(filename);
+        // filename = /home/cwx/Repos/PhotinoEx/PhotinoEx.Test/wwwroot/hicolor/48x48/apps/Icon_PhotinoEx.png
+        // directory = /home/cwx/Repos/PhotinoEx/PhotinoEx.Test/wwwroot/hicolor/48x48/apps
+        var file = new FileInfo(filename);
+
+        // /home/cwx/Repos/PhotinoEx/PhotinoEx.Test/wwwroot
+        var pathToSearch = file.DirectoryName.Replace("/hicolor/48x48/apps", "");
+        var theme = IconTheme.GetForDisplay(_window.GetDisplay());
+        theme.AddSearchPath(pathToSearch);
+        // Icon_PhotinoEx
+        _window?.SetIconName(file.Name.Replace(file.Extension, ""));
     }
 
     public override void SetFullScreen(bool fullScreen)

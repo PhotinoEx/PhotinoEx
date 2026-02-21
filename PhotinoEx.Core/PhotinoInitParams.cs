@@ -74,7 +74,6 @@ public class PhotinoInitParams
         var response = new List<string>();
         var startUrl = StartUrl;
         var startString = StartString;
-        var windowIconFile = WindowIconFile;
 
         if (string.IsNullOrWhiteSpace(startUrl) && string.IsNullOrWhiteSpace(startString))
         {
@@ -89,11 +88,6 @@ public class PhotinoInitParams
         if (FullScreen && (Maximized || Minimized))
         {
             response.Add("FullScreen cannot be combined with Maximized or Minimized");
-        }
-
-        if (!string.IsNullOrWhiteSpace(windowIconFile) && !File.Exists(windowIconFile))
-        {
-            response.Add($"WindowIconFile: {windowIconFile} cannot be found");
         }
 
         Size = 0;
