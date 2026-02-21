@@ -1589,7 +1589,8 @@ public class PhotinoWindow
 
     #endregion
 
-    //CONSTRUCTOR
+    #region Constuctor
+
     /// <summary>
     /// Initializes a new instance of the PhotinoWindow class.
     /// </summary>
@@ -1614,6 +1615,8 @@ public class PhotinoWindow
         _startupParameters.WebMessageRecievedHandler = OnWebMessageReceived;
         _startupParameters.CustomSchemeHandler = OnCustomScheme;
     }
+
+    #endregion
 
     #region Methods
 

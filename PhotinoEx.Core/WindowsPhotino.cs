@@ -111,27 +111,27 @@ public class WindowsPhotino : Photino
         if (_params.Chromeless)
         {
             //CW_USEDEFAULT CAN NOT BE USED ON POPUP WINDOWS
-            if (_params.Left == Constants.CW_USEDEFAULT && _params.Top == Constants.CW_USEDEFAULT)
+            if (_params.Left == default && _params.Top == default)
             {
                 _params.CenterOnInitialize = true;
             }
 
-            if (_params.Left == Constants.CW_USEDEFAULT)
+            if (_params.Left == default)
             {
                 _params.Left = 0;
             }
 
-            if (_params.Top == Constants.CW_USEDEFAULT)
+            if (_params.Top == default)
             {
                 _params.Top = 0;
             }
 
-            if (_params.Height == Constants.CW_USEDEFAULT)
+            if (_params.Height == default)
             {
                 _params.Height = 600;
             }
 
-            if (_params.Width == Constants.CW_USEDEFAULT)
+            if (_params.Width == default)
             {
                 _params.Width = 800;
             }
