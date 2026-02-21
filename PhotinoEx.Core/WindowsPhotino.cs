@@ -32,6 +32,7 @@ public class WindowsPhotino : Photino
         _userAgent = _params.UserAgent;
         _browserControlInitParameters = _params.BrowserControlInitParameters;
         _notificationRegistrationId = _params.NotificationRegistrationId;
+        _darkmodeEnabled = _params.Darkmode;
 
         _transparentEnabled = _params.Transparent;
         _devToolsEnabled = _params.DevToolsEnabled;
@@ -193,6 +194,7 @@ public class WindowsPhotino : Photino
         SetMaximized(_params.Maximized);
         SetResizable(_params.Resizable);
         SetTopmost(_params.Topmost);
+        SetDarkmodeEnabled(_params.Darkmode);
 
         // if (initParams->NotificationsEnabled)
         // {
@@ -753,11 +755,11 @@ public class WindowsPhotino : Photino
     {
         _darkmodeEnabled = darkmode;
         var simple = darkmode ? 1 : 0;
-        var result = DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE, ref simple, sizeof(int));
+        var result = DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE, ref simple, sizeof(uint));
 
         if (result != Constants.S_OK)
         {
-            DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref simple, sizeof(int));
+            DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref simple, sizeof(uint));
         }
     }
 
