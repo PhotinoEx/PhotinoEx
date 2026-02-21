@@ -749,15 +749,6 @@ public class PhotinoWindow
         {
             if (_iconFile != value)
             {
-                if (!File.Exists(value))
-                {
-                    var absolutePath = $"{AppContext.BaseDirectory}{value}";
-                    if (!File.Exists(absolutePath))
-                    {
-                        throw new ArgumentException($"Icon file: {value} does not exist.");
-                    }
-                }
-
                 _iconFile = value;
 
                 if (_instance is null)
@@ -766,7 +757,7 @@ public class PhotinoWindow
                 }
                 else
                 {
-                    Invoke(() => _instance.SetIconFile(_iconFile!));
+                    Invoke(() => _instance.SetIconFile(_iconFile));
                 }
             }
         }
