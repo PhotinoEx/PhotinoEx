@@ -128,8 +128,13 @@ public class Constants
     public const int IDYES = 6;
     public const int IDNO = 7;
 
+    public const int DWMWA_NCRENDERING_ENABLED = 1;
     public const int DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
     public const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+    public const int DWMWA_BORDER_COLOR = 34;
+    public const int DWMWA_CAPTION_COLOR = 35;
+    public const int DWMWA_TEXT_COLOR = 36;
+    public const int DWMWA_SYSTEMBACKDROP_TYPE = 38;
 
     public static readonly Guid CLSID_FileOpenDialog = new Guid("DC1C5A9C-E88A-4DDE-A5A1-60F82A20AEF7");
     public static readonly Guid CLSID_FileSaveDialog = new Guid("C0B4E2F3-BA21-4773-8DBA-335EC946EB8B");
@@ -329,4 +334,13 @@ public struct COMDLG_FILTERSPEC
 public enum SIGDN : uint
 {
     FILESYSPATH = 0x80058000
+}
+
+public enum WindowBackdropType
+{
+    Auto,
+    None,
+    Mica,
+    Acrylic,
+    Tabbed
 }
