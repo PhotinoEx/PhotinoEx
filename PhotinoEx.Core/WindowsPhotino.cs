@@ -210,7 +210,6 @@ public class WindowsPhotino : Photino
 
     private IntPtr _hInstance { get; set; }
     private IntPtr _hwnd { get; set; }
-    private WinToastHandler? _toastHandler { get; set; }
     public CoreWebView2Environment? WebViewEnvironment { get; private set; }
     public CoreWebView2? WebViewWindow { get; private set; }
     public CoreWebView2Controller? WebViewController { get; private set; }
