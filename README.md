@@ -22,11 +22,11 @@ Currently do not use this in production. Once feature parity is done, i'll start
     - [x] Dark Mode
     - [ ] OS automatic Dark Mode theming
     - [x] Folder/File/Message opening
-    - [ ] Toast for system (use dotTray)
-    - [ ] Tray menu/icon
     - [x] Application Icons
 - [ ] Mac support. (currently dont have an environment to test)
 - [x] Update to Dotnet 10
+- [ ] Toast System for Windows
+- [ ] System Tray Icon and menu
 - [ ] Setup Nugets
 - [ ] A tag navigation - allowing it to open on browser eternally
 - [ ] implement AreBrowserAcceleratorKeysEnabled across platforms
@@ -37,7 +37,7 @@ Currently do not use this in production. Once feature parity is done, i'll start
 
 ## Requirements
 
-- Dotnet 10. (dotnet 9 till feature parity is complete)
+- Dotnet 10.
 - An IDE supporting C# and Dotnet.
     - I will recommend [Rider](https://www.jetbrains.com/rider/) but VisualStudio should also work fine.
 
