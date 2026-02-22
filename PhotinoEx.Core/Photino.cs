@@ -62,13 +62,18 @@ public abstract class Photino
 
     public abstract bool GetContextMenuEnabled();
 
+    // Tested - linux
+    // untested - windows / apple
     public abstract bool GetDevToolsEnabled();
 
+    // Tested - linux
+    // untested - windows / apple
     public abstract bool GetFullScreen();
 
     public abstract bool GetGrantBrowserPermissions();
 
     public abstract string GetUserAgent();
+
     public abstract bool GetDarkmodeEnabled();
 
     public abstract bool GetMediaAutoplayEnabled();
@@ -87,8 +92,12 @@ public abstract class Photino
 
     public abstract string GetIconFileName();
 
+    // Tested - linux
+    // untested - windows / apple
     public abstract bool GetMaximized();
 
+    // Tested - linux
+    // untested - windows / apple
     public abstract bool GetMinimized();
 
     public abstract bool GetResizable();
@@ -105,53 +114,79 @@ public abstract class Photino
 
     public abstract bool GetIgnoreCertificateErrorsEnabled();
 
-    [SupportedOSPlatform("windows")]
-    [SupportedOSPlatform("MacOs")]
+    [UnsupportedOSPlatform("Linux")]
     public abstract Point GetPosition();
 
+    // Tested - linux / windows
+    // untested - apple
     public abstract void NavigateToString(string content);
 
+    // Tested - linux / windows
+    // untested - apple
     public abstract void NavigateToUrl(string url);
 
-    // TODO: this currently doesnt work on linux so maybe look into this
     public abstract void Restore();
 
+    // Tested - linux / windows
+    // untested - apple
     public abstract void SendWebMessage(string message);
 
     public abstract void SetTransparentEnabled(bool enabled);
 
     public abstract void SetContextMenuEnabled(bool enabled);
 
+    // Tested - linux
+    // untested - windows / apple
     public abstract void SetDevToolsEnabled(bool enabled);
 
-    [SupportedOSPlatform("windows")]
-    [SupportedOSPlatform("MacOs")]
+    [UnsupportedOSPlatform("Linux")]
     public abstract void SetPosition(Point newLocation);
 
+    // Tested - linux
+    // untested - windows / apple
     public abstract void SetIconFile(string filename);
 
+    // Tested - linux
+    // untested - windows / apple
     public abstract void SetFullScreen(bool fullScreen);
 
+    // Tested - linux
+    // untested - windows / apple
     public abstract void SetMaximized(bool maximized);
 
+    // Tested - linux
+    // untested - windows / apple
     public abstract void SetMinimized(bool minimized);
 
     public abstract void SetResizable(bool resizable);
 
+    // Tested - windows
+    // untested - linux / apple
     public abstract void SetDarkmodeEnabled(bool darkmode);
 
     public abstract void SetSize(Size size);
 
+    // Tested - linux / windows
+    // untested -  apple
     public abstract void SetTitle(string title);
 
+    // Tested - linux
+    // untested -  apple / windows
+    [UnsupportedOSPlatform("Linux")]
     public abstract void SetTopmost(bool topmost);
 
     public abstract void SetZoom(int zoom);
 
+    // Tested - linux
+    // untested - windows / apple
     public abstract void ShowNotification(string title, string message);
 
+    // Tested - linux / windows
+    // untested - apple
     public abstract void WaitForExit();
 
+    // Tested - linux / windows
+    // untested - apple
     public abstract void AddCustomSchemeName(string scheme);
 
     public abstract List<Monitor> GetAllMonitors();
@@ -172,14 +207,24 @@ public abstract class Photino
 
     public abstract void SetMinimizedCallback(Action callback);
 
+    // Tested - linux / windows
+    // untested - apple
     public abstract Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<FileFilter>? filterPatterns);
 
+    // Tested - linux / windows
+    // untested - apple
     public abstract Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect);
 
+    // Tested - linux / windows
+    // untested - apple
     public abstract Task<string> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns, string defaultExtension = "txt", string defaultFileName = "PhotinoExFile");
 
+    // Tested - linux / windows
+    // Untested - apple
     public abstract Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon);
 
+    // Tested - linux / windows
+    // untested - apple
     public abstract void Invoke(Action callback);
 
     public bool InvokeClose()

@@ -1308,6 +1308,7 @@ public class PhotinoWindow
     /// Gets or sets whether the native window is always at the top of the z-order.
     /// Default is false.
     /// </summary>
+    [UnsupportedOSPlatform("Linux")]
     public bool Topmost
     {
         get
@@ -2402,6 +2403,7 @@ public class PhotinoWindow
     /// Returns the current <see cref="PhotinoWindow"/> instance.
     /// </returns>
     /// <param name="topMost">Whether the window is at the top</param>
+    [UnsupportedOSPlatform("Linux")]
     public PhotinoWindow SetTopMost(bool topMost)
     {
         Log($".SetTopMost({topMost})");
