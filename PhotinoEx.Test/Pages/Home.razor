@@ -1,5 +1,4 @@
 @page "/"
-@using PhotinoEx.Core.Enums
 
 <h3>Home</h3>
 <button @onclick="OpenFile">OpenFile</button>
@@ -8,6 +7,7 @@
 <button @onclick="OpenFolder">OpenFolder</button>
 <button @onclick="SaveFile">SaveFile</button>
 <button @onclick="SendMessage">SendMessage</button>
+<button @onclick="MiniRestore">Minimise and restore</button>
 
 @code {
 
@@ -15,24 +15,44 @@
     {
         var result = await Program.App.MainWindow.ShowOpenFileDialogAsync(multiSelect: false);
     }
+
     private async Task OpenFiles()
     {
         var result = await Program.App.MainWindow.ShowOpenFileDialogAsync(multiSelect: true);
     }
+
     private async Task OpenFolders()
     {
         var result = await Program.App.MainWindow.ShowOpenFolderDialogAsync(multiSelect: true);
     }
+
     private async Task OpenFolder()
     {
         var result = await Program.App.MainWindow.ShowOpenFolderDialogAsync(multiSelect: false);
     }
+
     private async Task SaveFile()
     {
         var result = await Program.App.MainWindow.ShowSaveFileDialogAsync();
     }
+
     private async Task SendMessage()
     {
         var result = await Program.App.MainWindow.ShowMessageDialogAsync("testTitle", "testMessage", DialogButtons.AbortRetryIgnore, DialogIcon.Error);
+    }
+
+    private async Task MiniRestore()
+    {
+        // Minimizing takes time, wait 1 second between checking
+        Console.WriteLine($"Minimized: {Program.App.MainWindow.Minimized}");
+        Console.WriteLine("Minimizing");
+        Program.App.MainWindow.SetMinimized(true);
+        await Task.Delay(1000);
+        Console.WriteLine($"Minimized: {Program.App.MainWindow.Minimized}");
+        await Task.Delay(5000);
+        Console.WriteLine("Restoring");
+        Program.App.MainWindow.SetMinimized(false);
+        await Task.Delay(1000);
+        Console.WriteLine($"Minimized: {Program.App.MainWindow.Minimized}");
     }
 }
