@@ -8,6 +8,7 @@
 <button @onclick="SaveFile">SaveFile</button>
 <button @onclick="SendMessage">SendMessage</button>
 <button @onclick="MiniRestore">Minimise and restore</button>
+<button @onclick="MaxiRestore">Maximise and restore</button>
 
 @code {
 
@@ -43,16 +44,27 @@
 
     private async Task MiniRestore()
     {
-        // Minimizing takes time, wait 1 second between checking
+        // Minimizing takes time, wait 2 second between checking
         Console.WriteLine($"Minimized: {Program.App.MainWindow.Minimized}");
-        Console.WriteLine("Minimizing");
         Program.App.MainWindow.SetMinimized(true);
-        await Task.Delay(1000);
+        await Task.Delay(2000);
         Console.WriteLine($"Minimized: {Program.App.MainWindow.Minimized}");
         await Task.Delay(5000);
-        Console.WriteLine("Restoring");
         Program.App.MainWindow.SetMinimized(false);
-        await Task.Delay(1000);
+        await Task.Delay(2000);
         Console.WriteLine($"Minimized: {Program.App.MainWindow.Minimized}");
+    }
+
+    private async Task MaxiRestore()
+    {
+        // Maximizing takes time, wait 2 second between checking
+        Console.WriteLine($"Maximized: {Program.App.MainWindow.Maximized}");
+        Program.App.MainWindow.SetMaximized(true);
+        await Task.Delay(2000);
+        Console.WriteLine($"Maximized: {Program.App.MainWindow.Maximized}");
+        await Task.Delay(5000);
+        Program.App.MainWindow.SetMaximized(false);
+        await Task.Delay(2000);
+        Console.WriteLine($"Maximized: {Program.App.MainWindow.Maximized}");
     }
 }
