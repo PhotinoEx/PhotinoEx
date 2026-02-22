@@ -254,11 +254,10 @@ public class LinuxPhotino : Photino
         {
             SetTransparentEnabled(true);
         }
-
     }
 
     public SignalHandler<Widget>? OnWindowDestroyEvent { get; set; }
-    public SignalHandler<Widget,Widget.StateFlagsChangedSignalArgs>? OnWindowStateFlagChanged { get; set; }
+    public SignalHandler<Widget, Widget.StateFlagsChangedSignalArgs>? OnWindowStateFlagChanged { get; set; }
     public SignalHandler<Widget, Widget.MoveFocusSignalArgs>? OnWindowFocusChanged { get; set; }
     public ReturningSignalHandler<WebView, WebView.ContextMenuSignalArgs, bool>? OnWebviewContextMenu { get; set; }
     public ReturningSignalHandler<WebView, WebView.PermissionRequestSignalArgs, bool>? OnWebviewPermissionRequest { get; set; }
@@ -762,15 +761,18 @@ public class LinuxPhotino : Photino
             // TODO: Test this returns what we actually want
             var monitorPtr = monitors.GetItem(i);
             var mont = new Gdk.Monitor(new MonitorHandle(monitorPtr, false));
-            monitorList.Add(new Monitor(new MonitorRect()
-            {
-                Height = mont.HeightMm,
-                Width = mont.WidthMm
-            }, new MonitorRect()
-            {
-                Height = mont.HeightMm,
-                Width = mont.WidthMm
-            }, mont.Scale));
+            monitorList.Add(new Monitor(
+                new MonitorRect()
+                {
+                    Height = mont.HeightMm,
+                    Width = mont.WidthMm
+                },
+                new MonitorRect()
+                {
+                    Height = mont.HeightMm,
+                    Width = mont.WidthMm
+                }, mont.Scale)
+            );
         }
 
         return monitorList;
@@ -827,7 +829,8 @@ public class LinuxPhotino : Photino
         _syncContext.Send(_ => callback(), null);
     }
 
-    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<PhotinoExFileFilter>? filterPatterns)
+    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect,
+        List<PhotinoExFileFilter>? filterPatterns)
     {
         var dialog = FileDialog.New();
         dialog.SetTitle(title);
@@ -927,7 +930,8 @@ public class LinuxPhotino : Photino
         return results;
     }
 
-    public override async Task<string> ShowSaveFileAsync(string title, string? path, List<PhotinoExFileFilter>? filterPatterns, string defaultExtension = ".txt", string defaultFileName = "PhotinoExFile")
+    public override async Task<string> ShowSaveFileAsync(string title, string? path, List<PhotinoExFileFilter>? filterPatterns,
+        string defaultExtension = ".txt", string defaultFileName = "PhotinoExFile")
     {
         var dialog = FileDialog.New();
         dialog.SetTitle(title);
