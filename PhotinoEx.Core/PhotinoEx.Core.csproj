@@ -12,8 +12,8 @@
     <PackageReference Include="DotTray" Version="2.2.1" />
     <PackageReference Include="GirCore.Gtk-4.0" Version="0.7.0" />
     <PackageReference Include="GirCore.WebKit-6.0" Version="0.7.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebView" Version="9.0.12" />
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3719.77" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3800.47" />
   </ItemGroup>
 
 

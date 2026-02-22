@@ -43,6 +43,9 @@ class Program
         App.MainWindow.SetTitle("PhotinoEx Test Application");
         App.MainWindow.SetDevToolsEnabled(false);
         App.MainWindow.SetZoom(1);
+        // App.MainWindow.SetChromeless(true);
+        App.MainWindow.SetTransparent(true);
+
 
         AppDomain.CurrentDomain.UnhandledException += async (_, error) =>
         {
