@@ -91,6 +91,10 @@ public class LinuxPhotino : Photino
         _parent = _params.ParentInstance;
         _application = Application.New($"com.photinoex.App", ApplicationFlags.FlagsNone);
         WebKit.Module.Initialize();
+
+        _cssProvider = CssProvider.New();
+        _cssProvider.LoadFromString("window { background: transparent; }");
+
         _application.OnActivate += ApplicationOnActivate;
     }
 
@@ -213,11 +217,6 @@ public class LinuxPhotino : Photino
 
         SetTitle(_params.Title);
 
-        if (_params.Chromeless)
-        {
-            _window!.SetDecorated(false);
-        }
-
         if (!string.IsNullOrEmpty(_params.WindowIconFile))
         {
             SetIconFile(_params.WindowIconFile);
@@ -238,17 +237,23 @@ public class LinuxPhotino : Photino
             SetResizable(false);
         }
 
-        if (_params.Transparent)
-        {
-            SetTransparentEnabled(true);
-        }
-
         if (_zoom != 100)
         {
             SetZoom(_zoom);
         }
 
         _window.Present();
+
+        // needs to be done after window present
+        if (_params.Chromeless)
+        {
+            _window!.SetDecorated(false);
+        }
+
+        if (_params.Transparent)
+        {
+            SetTransparentEnabled(true);
+        }
 
     }
 
@@ -264,6 +269,7 @@ public class LinuxPhotino : Photino
     private SynchronizationContext _syncContext;
     private WebView? _webView { get; set; }
     private bool _isFullScreen { get; set; }
+    private CssProvider _cssProvider { get; set; }
 
     public void SetWebkitSettings()
     {
@@ -407,6 +413,7 @@ public class LinuxPhotino : Photino
     public override void ClearBrowserAutoFill()
     {
         // TODO: from Photino
+        throw new NotImplementedException();
     }
 
     public override void Close()
@@ -603,7 +610,16 @@ public class LinuxPhotino : Photino
 
     public override void SetTransparentEnabled(bool enabled)
     {
-        _window?.Decorated = enabled;
+        _transparentEnabled = enabled;
+
+        if (_transparentEnabled)
+        {
+            _window!.GetStyleContext().AddProvider(_cssProvider, 600);
+        }
+        else
+        {
+            _window!.GetStyleContext().RemoveProvider(_cssProvider);
+        }
     }
 
     public override void SetContextMenuEnabled(bool enabled)
