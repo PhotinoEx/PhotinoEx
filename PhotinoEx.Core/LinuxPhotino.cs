@@ -238,11 +238,6 @@ public class LinuxPhotino : Photino
             SetResizable(false);
         }
 
-        if (_params.Topmost)
-        {
-            SetTopmost(true);
-        }
-
         if (_params.Transparent)
         {
             SetTransparentEnabled(true);
@@ -364,7 +359,6 @@ public class LinuxPhotino : Photino
             }
             catch (Exception ex)
             {
-                // Optional GTK dialog to match original behavior
                 throw new Exception($"fucked up {ex}");
             }
         }
@@ -466,18 +460,18 @@ public class LinuxPhotino : Photino
         return _webSecurityEnabled;
     }
 
-    [SupportedOSPlatform("windows")]
-    [SupportedOSPlatform("MacOs")]
+    [UnsupportedOSPlatform("Linux")]
     public override Point GetPosition()
     {
-        return new Point(0, 0);
+        throw new NotSupportedException("Linux is not a supported OS");
+        // Wayland does not support setting TopMost
     }
 
-    [SupportedOSPlatform("windows")]
-    [SupportedOSPlatform("MacOs")]
+    [UnsupportedOSPlatform("Linux")]
     public override void SetPosition(Point newLocation)
     {
-        // do nothing, cuz
+        throw new NotSupportedException("Linux is not a supported OS");
+        // Wayland does not support setting TopMost
     }
 
     public override bool GetJavascriptClipboardAccessEnabled()
@@ -565,9 +559,11 @@ public class LinuxPhotino : Photino
         return _window?.GetTitle() ?? "";
     }
 
+    [UnsupportedOSPlatform("Linux")]
     public override bool GetTopmost()
     {
-        return (_window?.GetStateFlags() & StateFlags.Focused) != 0;
+        throw new NotSupportedException("Linux is not a supported OS");
+        // Wayland does not support setting TopMost
     }
 
     public override int GetZoom()
@@ -677,8 +673,6 @@ public class LinuxPhotino : Photino
         else
         {
             _window?.Present();
-            // Unminimize does not actually do what it says, present does :shrug:
-            // _window?.Unminimize();
         }
     }
 
@@ -697,9 +691,11 @@ public class LinuxPhotino : Photino
         _window?.SetTitle(title);
     }
 
+    [UnsupportedOSPlatform("Linux")]
     public override void SetTopmost(bool topmost)
     {
-        _window!.SetStateFlags(StateFlags.Focused, !topmost);
+        throw new NotSupportedException("Linux is not a supported OS");
+        // Wayland does not support setting TopMost
     }
 
     public override void SetZoom(int zoom)
