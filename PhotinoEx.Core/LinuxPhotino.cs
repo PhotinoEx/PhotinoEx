@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Text.Json;
+using Gdk;
 using Gdk.Internal;
 using Gio;
 using GLib;
@@ -511,7 +512,9 @@ public class LinuxPhotino : Photino
 
     public override bool GetMinimized()
     {
-        return (_window!.GetStateFlags() & StateFlags.Prelight) != 0;
+        var surface = (ToplevelHelper) _window!.GetSurface();
+        var surfaceState = surface.GetState();
+        return (surfaceState & ToplevelState.Suspended) != 0;
     }
 
     public override bool GetResizable()
@@ -673,7 +676,9 @@ public class LinuxPhotino : Photino
         }
         else
         {
-            _window?.Unminimize();
+            _window?.Present();
+            // Unminimize does not actually do what it says, present does :shrug:
+            // _window?.Unminimize();
         }
     }
 
