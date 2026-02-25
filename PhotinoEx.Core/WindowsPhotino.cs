@@ -172,6 +172,7 @@ public class WindowsPhotino : Photino
         );
 
         SetAppTheme(_windowsThemeIsDark);
+        SetBackdropTheme();
 
         if (_hwnd == IntPtr.Zero)
         {
@@ -208,6 +209,12 @@ public class WindowsPhotino : Photino
         // }
 
         Show(_params.Minimized || _params.Maximized);
+    }
+
+    private void SetBackdropTheme()
+    {
+        var backdrop = (int) WindowBackdropType.Mica;
+        DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_SYSTEMBACKDROP_TYPE, ref backdrop, sizeof(WindowBackdropType));
     }
 
     private IntPtr _hInstance { get; set; }
