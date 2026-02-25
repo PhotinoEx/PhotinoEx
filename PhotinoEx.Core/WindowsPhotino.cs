@@ -171,6 +171,8 @@ public class WindowsPhotino : Photino
             IntPtr.Zero
         );
 
+        SetAppTheme(_windowsThemeIsDark);
+
         if (_hwnd == IntPtr.Zero)
         {
             uint errorCode = DLLImports.GetLastError();
@@ -195,6 +197,7 @@ public class WindowsPhotino : Photino
         SetResizable(_params.Resizable);
         SetTopmost(_params.Topmost);
 
+
         // if (initParams->NotificationsEnabled)
         // {
         //     if (_notificationRegistrationId != NULL)
@@ -212,8 +215,8 @@ public class WindowsPhotino : Photino
     public CoreWebView2Environment? WebViewEnvironment { get; private set; }
     public CoreWebView2? WebViewWindow { get; private set; }
     public CoreWebView2Controller? WebViewController { get; private set; }
-    private IntPtr darkBrush;
-    private IntPtr lightBrush;
+    private IntPtr darkBrush { get; set; }
+    private IntPtr lightBrush { get; set; }
     private PhotinoInitParams _params { get; set; }
     private SynchronizationContext _syncContext { get; set; }
     private bool _windowsThemeIsDark { get; set; }
@@ -222,7 +225,7 @@ public class WindowsPhotino : Photino
     public void Register()
     {
         _hInstance = DLLImports.GetModuleHandle(null);
-        _windowsThemeIsDark = CheckSystemTheme();
+        _windowsThemeIsDark = CheckWindowsThemeIsDark();
 
         var window = new WNDCLASSEX
         {
@@ -275,7 +278,8 @@ public class WindowsPhotino : Photino
                     var param = Marshal.PtrToStringUni(lParam);
                     if (param == "ImmersiveColorSet")
                     {
-                        _windowsThemeIsDark = CheckSystemTheme();
+                        _windowsThemeIsDark = CheckWindowsThemeIsDark();
+                        SetAppTheme(_windowsThemeIsDark);
                     }
 
                     break;
@@ -756,33 +760,28 @@ public class WindowsPhotino : Photino
         DLLImports.SendMessage(_hwnd, Constants.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
     }
 
-    private bool CheckSystemTheme()
+    private bool CheckWindowsThemeIsDark()
     {
         using RegistryKey? key = Registry.CurrentUser.OpenSubKey(Constants.WindowsTheme);
         if (key?.GetValue("AppsUseLightTheme") is int value)
         {
-
-            SetAppTheme(value);
-            // Dark mode is 0 and light mode is 1
+            // because its checking if appsUseLightTheme, if it returns 1 its "true"
             return value == 0;
         }
 
         return false;
     }
 
-    public void SetAppTheme(int darkmode)
+    public void SetAppTheme(bool darkmode)
     {
-        if (darkmode == 1)
-        {
-            return;
-        }
+        var simple = darkmode ? 1 : 0;
+        // Dark mode is 1 and light mode is 0
 
-        // Dark mode is 0 and light mode is 1
-        var result = DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE, ref darkmode, sizeof(uint));
+        var result = DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE, ref simple, sizeof(uint));
 
         if (result != Constants.S_OK)
         {
-            DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref darkmode, sizeof(uint));
+            DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref simple, sizeof(uint));
         }
     }
 
