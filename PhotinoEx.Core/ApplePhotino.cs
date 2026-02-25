@@ -342,14 +342,4 @@ public class ApplePhotino : Photino
     {
         throw new NotImplementedException();
     }
-
-    public override bool GetDarkmodeEnabled()
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void SetDarkmodeEnabled(bool darkmode)
-    {
-        throw new NotImplementedException();
-    }
 }

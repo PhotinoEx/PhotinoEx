@@ -1275,35 +1275,6 @@ public class PhotinoWindow
         }
     }
 
-    public bool Darkmode
-    {
-        get
-        {
-            if (_instance is null)
-            {
-                return _startupParameters.Darkmode;
-            }
-
-            var darkmode = false;
-            Invoke(() => darkmode = _instance.GetDarkmodeEnabled());
-            return darkmode;
-        }
-        set
-        {
-            if (Darkmode != value)
-            {
-                if (_instance is null)
-                {
-                    _startupParameters.Darkmode = value;
-                }
-                else
-                {
-                    Invoke(() => _instance.SetDarkmodeEnabled(value));
-                }
-            }
-        }
-    }
-
     /// <summary>
     /// Gets or sets whether the native window is always at the top of the z-order.
     /// Default is false.
@@ -1849,13 +1820,6 @@ public class PhotinoWindow
         var left = location.X + offset.X;
         var top = location.Y + offset.Y;
         return MoveTo(left, top);
-    }
-
-    public PhotinoWindow SetDarkmode(bool darkmode)
-    {
-        Log($".Darkmode({darkmode})");
-        Darkmode = darkmode;
-        return this;
     }
 
     /// <summary>
