@@ -39,12 +39,11 @@ class Program
         App.MainWindow.SetMaxHeight(400);
         App.MainWindow.SetMaxWidth(400);
         App.MainWindow.SetUseOsDefaultSize(false);
-        App.MainWindow.SetDarkmode(true);
         App.MainWindow.SetTitle("PhotinoEx Test Application");
-        App.MainWindow.SetDevToolsEnabled(false);
-        App.MainWindow.SetZoom(1);
+        App.MainWindow.SetDevToolsEnabled(true);
+        App.MainWindow.SetZoom(100);
         // App.MainWindow.SetChromeless(true);
-        App.MainWindow.SetTransparent(true);
+        // App.MainWindow.SetTransparent(true);
 
 
         AppDomain.CurrentDomain.UnhandledException += async (_, error) =>
