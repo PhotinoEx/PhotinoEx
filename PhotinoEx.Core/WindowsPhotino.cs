@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Web.WebView2.Core;
+using Microsoft.Win32;
 using PhotinoEx.Core.Enums;
 using PhotinoEx.Core.Models;
 using PhotinoEx.Core.Utils;
@@ -32,7 +33,6 @@ public class WindowsPhotino : Photino
         _userAgent = _params.UserAgent;
         _browserControlInitParameters = _params.BrowserControlInitParameters;
         _notificationRegistrationId = _params.NotificationRegistrationId;
-        _darkmodeEnabled = _params.Darkmode;
 
         _transparentEnabled = _params.Transparent;
         _devToolsEnabled = _params.DevToolsEnabled;
@@ -194,7 +194,6 @@ public class WindowsPhotino : Photino
         SetMaximized(_params.Maximized);
         SetResizable(_params.Resizable);
         SetTopmost(_params.Topmost);
-        SetDarkmodeEnabled(_params.Darkmode);
 
         // if (initParams->NotificationsEnabled)
         // {
@@ -216,12 +215,14 @@ public class WindowsPhotino : Photino
     private IntPtr darkBrush;
     private IntPtr lightBrush;
     private PhotinoInitParams _params { get; set; }
-    private SynchronizationContext _syncContext;
+    private SynchronizationContext _syncContext { get; set; }
+    private bool _windowsThemeIsDark { get; set; }
 
 
     public void Register()
     {
         _hInstance = DLLImports.GetModuleHandle(null);
+        _windowsThemeIsDark = CheckSystemTheme();
 
         var window = new WNDCLASSEX
         {
@@ -231,7 +232,7 @@ public class WindowsPhotino : Photino
             cbClsExtra = 0,
             cbWndExtra = 0,
             hInstance = _hInstance,
-            hbrBackground = GetDarkmodeEnabled() ? darkBrush : lightBrush,
+            hbrBackground = _windowsThemeIsDark ? darkBrush : lightBrush,
             lpszMenuName = IntPtr.Zero,
             lpszClassName = "Photino"
         };
@@ -257,7 +258,7 @@ public class WindowsPhotino : Photino
                     PAINT ps;
                     IntPtr hdc = DLLImports.BeginPaint(hwnd, out ps);
 
-                    if (GetDarkmodeEnabled())
+                    if (_windowsThemeIsDark)
                     {
                         DLLImports.FillRect(hdc, ref ps.rcPaint, darkBrush);
                     }
@@ -267,6 +268,16 @@ public class WindowsPhotino : Photino
                     }
 
                     DLLImports.EndPaint(hwnd, ref ps);
+                    break;
+                }
+            case Constants.WM_SETTINGCHANGE:
+                {
+                    var param = Marshal.PtrToStringUni(lParam);
+                    if (param == "ImmersiveColorSet")
+                    {
+                        _windowsThemeIsDark = CheckSystemTheme();
+                    }
+
                     break;
                 }
             case Constants.WM_ACTIVATE:
@@ -745,20 +756,33 @@ public class WindowsPhotino : Photino
         DLLImports.SendMessage(_hwnd, Constants.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
     }
 
-    public override bool GetDarkmodeEnabled()
+    private bool CheckSystemTheme()
     {
-        return _darkmodeEnabled;
+        using RegistryKey? key = Registry.CurrentUser.OpenSubKey(Constants.WindowsTheme);
+        if (key?.GetValue("AppsUseLightTheme") is int value)
+        {
+
+            SetAppTheme(value);
+            // Dark mode is 0 and light mode is 1
+            return value == 0;
+        }
+
+        return false;
     }
 
-    public override void SetDarkmodeEnabled(bool darkmode)
+    public void SetAppTheme(int darkmode)
     {
-        _darkmodeEnabled = darkmode;
-        var simple = darkmode ? 1 : 0;
-        var result = DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE, ref simple, sizeof(uint));
+        if (darkmode == 1)
+        {
+            return;
+        }
+
+        // Dark mode is 0 and light mode is 1
+        var result = DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE, ref darkmode, sizeof(uint));
 
         if (result != Constants.S_OK)
         {
-            DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref simple, sizeof(uint));
+            DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref darkmode, sizeof(uint));
         }
     }
 

@@ -138,6 +138,8 @@ public class Constants
 
     public static readonly Guid CLSID_FileOpenDialog = new Guid("DC1C5A9C-E88A-4DDE-A5A1-60F82A20AEF7");
     public static readonly Guid CLSID_FileSaveDialog = new Guid("C0B4E2F3-BA21-4773-8DBA-335EC946EB8B");
+
+    public const string WindowsTheme = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
 }
 
 [StructLayout(LayoutKind.Sequential)]

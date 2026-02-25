@@ -42,7 +42,6 @@ public abstract class Photino
     protected bool _smoothScrollingEnabled { get; set; }
     protected bool _ignoreCertificateErrorsEnabled { get; set; }
     protected bool _notificationsEnabled { get; set; }
-    protected bool _darkmodeEnabled { get; set; }
 
     protected int _zoom { get; set; }
 
@@ -73,8 +72,6 @@ public abstract class Photino
     public abstract bool GetGrantBrowserPermissions();
 
     public abstract string GetUserAgent();
-
-    public abstract bool GetDarkmodeEnabled();
 
     public abstract bool GetMediaAutoplayEnabled();
 
@@ -159,10 +156,6 @@ public abstract class Photino
     public abstract void SetMinimized(bool minimized);
 
     public abstract void SetResizable(bool resizable);
-
-    // Tested - windows
-    // untested - linux / apple
-    public abstract void SetDarkmodeEnabled(bool darkmode);
 
     public abstract void SetSize(Size size);
 

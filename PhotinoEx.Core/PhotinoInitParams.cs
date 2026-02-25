@@ -47,7 +47,6 @@ public class PhotinoInitParams
     public bool UseOsDefaultLocation;
 
     public bool Chromeless;
-    public bool Darkmode;
     public bool Transparent;
     public bool ContextMenuEnabled;
     public bool DevToolsEnabled;
