@@ -282,7 +282,7 @@ public class WindowsPhotino : Photino
                 }
             case Constants.WM_SETTINGCHANGE:
                 {
-                    var param = Marshal.PtrToStringUni(lParam);
+                    var param = Marshal.PtrToStringAnsi(lParam);
                     if (param == "ImmersiveColorSet")
                     {
                         _windowsThemeIsDark = CheckWindowsThemeIsDark();
