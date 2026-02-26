@@ -3,7 +3,7 @@ using PhotinoEx.Core.Models;
 
 namespace PhotinoEx.Core.Utils;
 
-internal static class DLLImports
+internal static class WinAPi
 {
     #region GDI
 

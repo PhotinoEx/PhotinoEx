@@ -19,8 +19,8 @@ public class WindowsPhotino : Photino
 {
     public WindowsPhotino(PhotinoInitParams initParams)
     {
-        darkBrush = DLLImports.CreateSolidBrush(RGB(0, 0, 0));
-        lightBrush = DLLImports.CreateSolidBrush(RGB(255, 255, 255));
+        darkBrush = WinAPi.CreateSolidBrush(RGB(0, 0, 0));
+        lightBrush = WinAPi.CreateSolidBrush(RGB(255, 255, 255));
 
         _syncContext = SynchronizationContext.Current ?? new SynchronizationContext();
         _params = initParams;
@@ -78,34 +78,34 @@ public class WindowsPhotino : Photino
 
         if (_params.UseOsDefaultSize)
         {
-            _params.Width = unchecked((int) Constants.CW_USEDEFAULT);
-            _params.Height = unchecked((int) Constants.CW_USEDEFAULT);
+            _params.Width = unchecked((int) WinConstants.CW_USEDEFAULT);
+            _params.Height = unchecked((int) WinConstants.CW_USEDEFAULT);
         }
         else
         {
             if (_params.Width < 0)
             {
-                _params.Width = unchecked((int) Constants.CW_USEDEFAULT);
+                _params.Width = unchecked((int) WinConstants.CW_USEDEFAULT);
             }
 
             if (_params.Height < 0)
             {
-                _params.Height = unchecked((int) Constants.CW_USEDEFAULT);
+                _params.Height = unchecked((int) WinConstants.CW_USEDEFAULT);
             }
         }
 
         if (_params.UseOsDefaultLocation)
         {
-            _params.Left = unchecked((int) Constants.CW_USEDEFAULT);
-            _params.Top = unchecked((int) Constants.CW_USEDEFAULT);
+            _params.Left = unchecked((int) WinConstants.CW_USEDEFAULT);
+            _params.Top = unchecked((int) WinConstants.CW_USEDEFAULT);
         }
 
         if (_params.FullScreen)
         {
             _params.Left = 0;
             _params.Top = 0;
-            _params.Width = DLLImports.GetSystemMetrics(Constants.SM_CXSCREEN);
-            _params.Height = DLLImports.GetSystemMetrics(Constants.SM_CYSCREEN);
+            _params.Width = WinAPi.GetSystemMetrics(WinConstants.SM_CXSCREEN);
+            _params.Height = WinAPi.GetSystemMetrics(WinConstants.SM_CYSCREEN);
         }
 
         if (_params.Chromeless)
@@ -159,11 +159,11 @@ public class WindowsPhotino : Photino
 
         Register();
 
-        _hwnd = DLLImports.CreateWindowEx(
-            _params.Transparent ? Constants.WS_EX_LAYERED : 0,
+        _hwnd = WinAPi.CreateWindowEx(
+            _params.Transparent ? WinConstants.WS_EX_LAYERED : 0,
             "Photino",
             _windowTitle,
-            _params.Chromeless || _params.FullScreen ? Constants.WS_POPUP : Constants.WS_OVERLAPPEDWINDOW,
+            _params.Chromeless || _params.FullScreen ? WinConstants.WS_POPUP : WinConstants.WS_OVERLAPPEDWINDOW,
             _params.Left, _params.Top, _params.Width, _params.Height,
             IntPtr.Zero,
             IntPtr.Zero,
@@ -177,7 +177,7 @@ public class WindowsPhotino : Photino
 
         if (_hwnd == IntPtr.Zero)
         {
-            uint errorCode = DLLImports.GetLastError();
+            uint errorCode = WinAPi.GetLastError();
             Console.WriteLine($"Error creating window. Error Code: {errorCode}");
             return;
         }
@@ -215,7 +215,7 @@ public class WindowsPhotino : Photino
     private void SetBackdropTheme()
     {
         var backdrop = (int) WindowBackdropType.Mica;
-        DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_SYSTEMBACKDROP_TYPE, ref backdrop, sizeof(WindowBackdropType));
+        WinAPi.DwmSetWindowAttribute(_hwnd, WinConstants.DWMWA_SYSTEMBACKDROP_TYPE, ref backdrop, sizeof(WindowBackdropType));
     }
 
     private IntPtr _hInstance { get; set; }
@@ -232,14 +232,14 @@ public class WindowsPhotino : Photino
 
     public void Register()
     {
-        _hInstance = DLLImports.GetModuleHandle(null);
+        _hInstance = WinAPi.GetModuleHandle(null);
         _windowsThemeIsDark = CheckWindowsThemeIsDark();
 
         var window = new WndClassEx()
         {
             cbSize = (uint) Marshal.SizeOf(typeof(WndClassEx)),
-            style = Constants.CS_HREDRAW | Constants.CS_VREDRAW,
-            lpfnWndProc = Marshal.GetFunctionPointerForDelegate(new DLLImports.WndProcDelegate(WindowProc)),
+            style = WinConstants.CS_HREDRAW | WinConstants.CS_VREDRAW,
+            lpfnWndProc = Marshal.GetFunctionPointerForDelegate(new WinAPi.WndProcDelegate(WindowProc)),
             cbClsExtra = 0,
             cbWndExtra = 0,
             hInstance = _hInstance,
@@ -248,40 +248,40 @@ public class WindowsPhotino : Photino
             lpszClassName = "Photino"
         };
 
-        var classAtom = DLLImports.RegisterClassEx(ref window);
+        var classAtom = WinAPi.RegisterClassEx(ref window);
 
         if (classAtom == 0)
         {
-            var errorCode = DLLImports.GetLastError();
+            var errorCode = WinAPi.GetLastError();
             Console.WriteLine($"Error creating window. Error Code: {errorCode}");
             return;
         }
 
-        DLLImports.SetThreadDpiAwarenessContext(-3);
+        WinAPi.SetThreadDpiAwarenessContext(-3);
     }
 
     private IntPtr WindowProc(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam)
     {
         switch (msg)
         {
-            case Constants.WM_PAINT:
+            case WinConstants.WM_PAINT:
                 {
                     Paint ps;
-                    IntPtr hdc = DLLImports.BeginPaint(hwnd, out ps);
+                    IntPtr hdc = WinAPi.BeginPaint(hwnd, out ps);
 
                     if (_windowsThemeIsDark)
                     {
-                        DLLImports.FillRect(hdc, ref ps.rcPaint, darkBrush);
+                        WinAPi.FillRect(hdc, ref ps.rcPaint, darkBrush);
                     }
                     else
                     {
-                        DLLImports.FillRect(hdc, ref ps.rcPaint, lightBrush);
+                        WinAPi.FillRect(hdc, ref ps.rcPaint, lightBrush);
                     }
 
-                    DLLImports.EndPaint(hwnd, ref ps);
+                    WinAPi.EndPaint(hwnd, ref ps);
                     break;
                 }
-            case Constants.WM_SETTINGCHANGE:
+            case WinConstants.WM_SETTINGCHANGE:
                 {
                     var param = Marshal.PtrToStringAnsi(lParam);
                     if (param == "ImmersiveColorSet")
@@ -292,11 +292,11 @@ public class WindowsPhotino : Photino
 
                     break;
                 }
-            case Constants.WM_ACTIVATE:
+            case WinConstants.WM_ACTIVATE:
                 {
                     if (HWNDToPhotino.TryGetValue(hwnd, out var photino))
                     {
-                        if (wParam == Constants.WA_INACTIVE)
+                        if (wParam == WinConstants.WA_INACTIVE)
                         {
                             photino.InvokeFocusOut();
                         }
@@ -311,7 +311,7 @@ public class WindowsPhotino : Photino
 
                     break;
                 }
-            case Constants.WM_CLOSE:
+            case WinConstants.WM_CLOSE:
                 {
                     if (HWNDToPhotino.TryGetValue(hwnd, out var photino))
                     {
@@ -319,18 +319,18 @@ public class WindowsPhotino : Photino
 
                         if (!doNotClose)
                         {
-                            DLLImports.DestroyWindow(hwnd);
+                            WinAPi.DestroyWindow(hwnd);
                         }
                     }
 
                     return 0;
                 }
-            case Constants.WM_DESTROY:
+            case WinConstants.WM_DESTROY:
                 {
                     HWNDToPhotino.Remove(hwnd);
                     if (hwnd == messageLoopRootWindowHandle)
                     {
-                        DLLImports.PostQuitMessage(0);
+                        WinAPi.PostQuitMessage(0);
                     }
 
                     return 0;
@@ -344,7 +344,7 @@ public class WindowsPhotino : Photino
 
                     return IntPtr.Zero;
                 }
-            case Constants.WM_GETMINMAXINFO:
+            case WinConstants.WM_GETMINMAXINFO:
                 {
                     if (!HWNDToPhotino.TryGetValue(hwnd, out var photino))
                     {
@@ -393,7 +393,7 @@ public class WindowsPhotino : Photino
 
                     return 0;
                 }
-            case Constants.WM_SIZE:
+            case WinConstants.WM_SIZE:
                 {
                     if (HWNDToPhotino.TryGetValue(hwnd, out var photino))
                     {
@@ -402,15 +402,15 @@ public class WindowsPhotino : Photino
                         var size = photino.GetSize();
                         photino.InvokeResize(size.Width, size.Height);
 
-                        if (wParam == Constants.SIZE_MAXIMIZED)
+                        if (wParam == WinConstants.SIZE_MAXIMIZED)
                         {
                             photino.InvokeMaximized();
                         }
-                        else if (wParam == Constants.SIZE_RESTORED)
+                        else if (wParam == WinConstants.SIZE_RESTORED)
                         {
                             photino.InvokeRestored();
                         }
-                        else if (wParam == Constants.SIZE_MINIMIZED)
+                        else if (wParam == WinConstants.SIZE_MINIMIZED)
                         {
                             photino.InvokeMinimized();
                         }
@@ -418,7 +418,7 @@ public class WindowsPhotino : Photino
 
                     return 0;
                 }
-            case Constants.WM_MOVE:
+            case WinConstants.WM_MOVE:
                 {
                     if (HWNDToPhotino.TryGetValue(hwnd, out var photino))
                     {
@@ -428,7 +428,7 @@ public class WindowsPhotino : Photino
 
                     return 0;
                 }
-            case Constants.WM_MOVING:
+            case WinConstants.WM_MOVING:
                 {
                     if (HWNDToPhotino.TryGetValue(hwnd, out var photino))
                     {
@@ -440,10 +440,10 @@ public class WindowsPhotino : Photino
                 }
         }
 
-        return DLLImports.DefWindowProc(hwnd, msg, wParam, lParam);
+        return WinAPi.DefWindowProc(hwnd, msg, wParam, lParam);
     }
 
-    private const uint WM_USER_INVOKE = (Constants.WM_USER + 0x0002);
+    private const uint WM_USER_INVOKE = (WinConstants.WM_USER + 0x0002);
     private IntPtr messageLoopRootWindowHandle;
     private Dictionary<IntPtr, WindowsPhotino> HWNDToPhotino = [];
     private string? _webview2RuntimePath;
@@ -470,7 +470,7 @@ public class WindowsPhotino : Photino
     {
         if (WebViewController is not null)
         {
-            DLLImports.GetClientRect(_hwnd, out var rect);
+            WinAPi.GetClientRect(_hwnd, out var rect);
             WebViewController.Bounds = new Rectangle(new Point(0, 0), new Size(rect.Right - rect.Left, rect.Bottom - rect.Top));
         }
     }
@@ -678,10 +678,10 @@ public class WindowsPhotino : Photino
     {
         if (!isAlreadyShown)
         {
-            DLLImports.ShowWindow(_hwnd, unchecked((int) Constants.SW_SHOWDEFAULT));
+            WinAPi.ShowWindow(_hwnd, unchecked((int) WinConstants.SW_SHOWDEFAULT));
         }
 
-        DLLImports.UpdateWindow(_hwnd);
+        WinAPi.UpdateWindow(_hwnd);
         // Strangely, it only works to create the webview2 *after* the window has been shown,
         // so defer it until here. This unfortunately means you can't call the Navigate methods
         // until the window is shown.
@@ -694,10 +694,10 @@ public class WindowsPhotino : Photino
 
                 while (!attachTask.IsCompleted)
                 {
-                    if (DLLImports.PeekMessage(out Msg msg, IntPtr.Zero, 0, 0, Constants.PM_REMOVE))
+                    if (WinAPi.PeekMessage(out Msg msg, IntPtr.Zero, 0, 0, WinConstants.PM_REMOVE))
                     {
-                        DLLImports.TranslateMessage(ref msg);
-                        DLLImports.DispatchMessage(ref msg);
+                        WinAPi.TranslateMessage(ref msg);
+                        WinAPi.DispatchMessage(ref msg);
                     }
                 }
 
@@ -712,11 +712,11 @@ public class WindowsPhotino : Photino
 
     public void Center()
     {
-        var screenDpi = DLLImports.GetDpiForWindow(_hwnd);
-        var screenHeight = DLLImports.GetSystemMetricsForDpi(Constants.SM_CYSCREEN, screenDpi);
-        var screenWidth = DLLImports.GetSystemMetricsForDpi(Constants.SM_CXSCREEN, screenDpi);
+        var screenDpi = WinAPi.GetDpiForWindow(_hwnd);
+        var screenHeight = WinAPi.GetSystemMetricsForDpi(WinConstants.SM_CYSCREEN, screenDpi);
+        var screenWidth = WinAPi.GetSystemMetricsForDpi(WinConstants.SM_CXSCREEN, screenDpi);
 
-        if (!DLLImports.GetWindowRect(_hwnd, out var rect))
+        if (!WinAPi.GetWindowRect(_hwnd, out var rect))
         {
             throw new ApplicationException("Could not get window Rect");
         }
@@ -729,7 +729,7 @@ public class WindowsPhotino : Photino
 
     public void SetPosition(int x, int y)
     {
-        DLLImports.SetWindowPos(_hwnd, 0, x, y, 0, 0, Constants.SWP_NOSIZE | Constants.SWP_NOZORDER);
+        WinAPi.SetWindowPos(_hwnd, 0, x, y, 0, 0, WinConstants.SWP_NOSIZE | WinConstants.SWP_NOZORDER);
     }
 
     public override void ClearBrowserAutoFill()
@@ -765,12 +765,12 @@ public class WindowsPhotino : Photino
 
     public override void Close()
     {
-        DLLImports.SendMessage(_hwnd, Constants.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+        WinAPi.SendMessage(_hwnd, WinConstants.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
     }
 
     private bool CheckWindowsThemeIsDark()
     {
-        using RegistryKey? key = Registry.CurrentUser.OpenSubKey(Constants.WindowsTheme);
+        using RegistryKey? key = Registry.CurrentUser.OpenSubKey(WinConstants.WindowsTheme);
         if (key?.GetValue("AppsUseLightTheme") is int value)
         {
             // because its checking if appsUseLightTheme, if it returns 1 its "true"
@@ -785,11 +785,11 @@ public class WindowsPhotino : Photino
         var simple = darkmode ? 1 : 0;
         // Dark mode is 1 and light mode is 0
 
-        var result = DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE, ref simple, sizeof(uint));
+        var result = WinAPi.DwmSetWindowAttribute(_hwnd, WinConstants.DWMWA_USE_IMMERSIVE_DARK_MODE, ref simple, sizeof(uint));
 
-        if (result != Constants.S_OK)
+        if (result != WinConstants.S_OK)
         {
-            DLLImports.DwmSetWindowAttribute(_hwnd, Constants.DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref simple, sizeof(uint));
+            WinAPi.DwmSetWindowAttribute(_hwnd, WinConstants.DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref simple, sizeof(uint));
         }
     }
 
@@ -810,9 +810,9 @@ public class WindowsPhotino : Photino
 
     public override bool GetFullScreen()
     {
-        var styles = DLLImports.GetWindowLong(_hwnd, Constants.GWL_STYLE);
+        var styles = WinAPi.GetWindowLong(_hwnd, WinConstants.GWL_STYLE);
 
-        if ((styles & Constants.WS_POPUP) != 0)
+        if ((styles & WinConstants.WS_POPUP) != 0)
         {
             return true;
         }
@@ -872,8 +872,8 @@ public class WindowsPhotino : Photino
 
     public override bool GetMaximized()
     {
-        var styles = DLLImports.GetWindowLong(_hwnd, Constants.GWL_STYLE);
-        if ((styles & Constants.WS_MAXIMIZE) != 0)
+        var styles = WinAPi.GetWindowLong(_hwnd, WinConstants.GWL_STYLE);
+        if ((styles & WinConstants.WS_MAXIMIZE) != 0)
         {
             return true;
         }
@@ -883,8 +883,8 @@ public class WindowsPhotino : Photino
 
     public override bool GetMinimized()
     {
-        var styles = DLLImports.GetWindowLong(_hwnd, Constants.GWL_STYLE);
-        if ((styles & Constants.WS_MINIMIZE) != 0)
+        var styles = WinAPi.GetWindowLong(_hwnd, WinConstants.GWL_STYLE);
+        if ((styles & WinConstants.WS_MINIMIZE) != 0)
         {
             return true;
         }
@@ -894,14 +894,14 @@ public class WindowsPhotino : Photino
 
     public override Point GetPosition()
     {
-        DLLImports.GetWindowRect(_hwnd, out var rect);
+        WinAPi.GetWindowRect(_hwnd, out var rect);
         return new Point(rect.Left, rect.Top);
     }
 
     public override bool GetResizable()
     {
-        var styles = DLLImports.GetWindowLong(_hwnd, Constants.GWL_STYLE);
-        if ((styles & Constants.WS_THICKFRAME) != 0)
+        var styles = WinAPi.GetWindowLong(_hwnd, WinConstants.GWL_STYLE);
+        if ((styles & WinConstants.WS_THICKFRAME) != 0)
         {
             return true;
         }
@@ -911,12 +911,12 @@ public class WindowsPhotino : Photino
 
     public override uint GetScreenDpi()
     {
-        return DLLImports.GetDpiForWindow(_hwnd);
+        return WinAPi.GetDpiForWindow(_hwnd);
     }
 
     public override Size GetSize()
     {
-        DLLImports.GetWindowRect(_hwnd, out var rect);
+        WinAPi.GetWindowRect(_hwnd, out var rect);
         return new Size(rect.Width, rect.Height);
     }
 
@@ -927,8 +927,8 @@ public class WindowsPhotino : Photino
 
     public override bool GetTopmost()
     {
-        var styles = DLLImports.GetWindowLong(_hwnd, Constants.GWL_EXSTYLE);
-        if ((styles & Constants.WS_EX_TOPMOST) != 0)
+        var styles = WinAPi.GetWindowLong(_hwnd, WinConstants.GWL_EXSTYLE);
+        if ((styles & WinConstants.WS_EX_TOPMOST) != 0)
         {
             return true;
         }
@@ -960,7 +960,7 @@ public class WindowsPhotino : Photino
 
     public override void Restore()
     {
-        DLLImports.ShowWindow(_hwnd, unchecked((int) Constants.SW_RESTORE));
+        WinAPi.ShowWindow(_hwnd, unchecked((int) WinConstants.SW_RESTORE));
     }
 
     public override void SendWebMessage(string message)
@@ -989,46 +989,46 @@ public class WindowsPhotino : Photino
 
     public override void SetIconFile(string filename)
     {
-        var iconSmall = DLLImports.LoadImage(_hInstance, filename, Constants.IMAGE_ICON, 16, 16,
-            Constants.LR_LOADFROMFILE | Constants.LR_DEFAULTSIZE | Constants.LR_SHARED);
-        var iconBig = DLLImports.LoadImage(_hInstance, filename, Constants.IMAGE_ICON, 32, 32,
-            Constants.LR_LOADFROMFILE | Constants.LR_DEFAULTSIZE | Constants.LR_SHARED);
+        var iconSmall = WinAPi.LoadImage(_hInstance, filename, WinConstants.IMAGE_ICON, 16, 16,
+            WinConstants.LR_LOADFROMFILE | WinConstants.LR_DEFAULTSIZE | WinConstants.LR_SHARED);
+        var iconBig = WinAPi.LoadImage(_hInstance, filename, WinConstants.IMAGE_ICON, 32, 32,
+            WinConstants.LR_LOADFROMFILE | WinConstants.LR_DEFAULTSIZE | WinConstants.LR_SHARED);
 
-        DLLImports.SendMessage(_hwnd, Constants.WM_SETICON, Constants.ICON_BIG, iconBig);
-        DLLImports.SendMessage(_hwnd, Constants.WM_SETICON, Constants.ICON_SMALL, iconSmall);
+        WinAPi.SendMessage(_hwnd, WinConstants.WM_SETICON, WinConstants.ICON_BIG, iconBig);
+        WinAPi.SendMessage(_hwnd, WinConstants.WM_SETICON, WinConstants.ICON_SMALL, iconSmall);
 
         _iconFileName = filename;
     }
 
     public override void SetFullScreen(bool fullScreen)
     {
-        var style = DLLImports.GetWindowLong(_hwnd, Constants.GWL_STYLE);
+        var style = WinAPi.GetWindowLong(_hwnd, WinConstants.GWL_STYLE);
         if (fullScreen)
         {
-            style |= Constants.WS_POPUP;
-            style &= (~Constants.WS_OVERLAPPEDWINDOW);
+            style |= WinConstants.WS_POPUP;
+            style &= (~WinConstants.WS_OVERLAPPEDWINDOW);
             SetPosition(0, 0);
 
             SetSize(
                 new Size(
-                    DLLImports.GetSystemMetrics(Constants.SM_CXSCREEN),
-                    DLLImports.GetSystemMetrics(Constants.SM_CYSCREEN)
+                    WinAPi.GetSystemMetrics(WinConstants.SM_CXSCREEN),
+                    WinAPi.GetSystemMetrics(WinConstants.SM_CYSCREEN)
                 )
             );
         }
 
-        DLLImports.SetWindowLong(_hwnd, Constants.GWL_STYLE, style);
+        WinAPi.SetWindowLong(_hwnd, WinConstants.GWL_STYLE, style);
     }
 
     public override void SetMaximized(bool maximized)
     {
         if (maximized)
         {
-            DLLImports.ShowWindow(_hwnd, Constants.SW_MAXIMIZE);
+            WinAPi.ShowWindow(_hwnd, WinConstants.SW_MAXIMIZE);
         }
         else
         {
-            DLLImports.ShowWindow(_hwnd, Constants.SW_NORMAL);
+            WinAPi.ShowWindow(_hwnd, WinConstants.SW_NORMAL);
         }
     }
 
@@ -1054,11 +1054,11 @@ public class WindowsPhotino : Photino
     {
         if (minimized)
         {
-            DLLImports.ShowWindow(_hwnd, Constants.SW_MINIMIZE);
+            WinAPi.ShowWindow(_hwnd, WinConstants.SW_MINIMIZE);
         }
         else
         {
-            DLLImports.ShowWindow(_hwnd, Constants.SW_NORMAL);
+            WinAPi.ShowWindow(_hwnd, WinConstants.SW_NORMAL);
         }
     }
 
@@ -1082,48 +1082,48 @@ public class WindowsPhotino : Photino
 
     public override void SetPosition(Point position)
     {
-        DLLImports.SetWindowPos(
+        WinAPi.SetWindowPos(
             _hwnd,
-            Constants.HWND_TOPMOST,
+            WinConstants.HWND_TOPMOST,
             position.X,
             position.Y,
             0,
             0,
-            Constants.SWP_NOSIZE | Constants.SWP_NOZORDER
+            WinConstants.SWP_NOSIZE | WinConstants.SWP_NOZORDER
         );
     }
 
     public override void SetResizable(bool resizable)
     {
-        var style = DLLImports.GetWindowLongPtr(_hwnd, Constants.GWL_STYLE);
+        var style = WinAPi.GetWindowLongPtr(_hwnd, WinConstants.GWL_STYLE);
         if (resizable)
         {
-            style |= Constants.WS_THICKFRAME | Constants.WS_MINIMIZEBOX | Constants.WS_MAXIMIZEBOX;
+            style |= WinConstants.WS_THICKFRAME | WinConstants.WS_MINIMIZEBOX | WinConstants.WS_MAXIMIZEBOX;
         }
         else
         {
-            style &= (~Constants.WS_THICKFRAME) & (~Constants.WS_MINIMIZEBOX) & (~Constants.WS_MAXIMIZEBOX);
+            style &= (~WinConstants.WS_THICKFRAME) & (~WinConstants.WS_MINIMIZEBOX) & (~WinConstants.WS_MAXIMIZEBOX);
         }
 
-        DLLImports.SetWindowLong(_hwnd, Constants.GWL_STYLE, style);
+        WinAPi.SetWindowLong(_hwnd, WinConstants.GWL_STYLE, style);
     }
 
     public override void SetSize(Size size)
     {
-        DLLImports.SetWindowPos(
+        WinAPi.SetWindowPos(
             _hwnd,
-            Constants.HWND_TOP,
+            WinConstants.HWND_TOP,
             0,
             0,
             size.Width,
             size.Height,
-            Constants.SWP_NOMOVE | Constants.SWP_NOZORDER
+            WinConstants.SWP_NOMOVE | WinConstants.SWP_NOZORDER
         );
     }
 
     public override void SetTitle(string title)
     {
-        DLLImports.SetWindowText(_hwnd, title);
+        WinAPi.SetWindowText(_hwnd, title);
 
         // if (_notificationsEnabled)
         // {
@@ -1135,24 +1135,24 @@ public class WindowsPhotino : Photino
 
     public override void SetTopmost(bool topmost)
     {
-        var style = DLLImports.GetWindowLongPtr(_hwnd, Constants.GWL_EXSTYLE);
+        var style = WinAPi.GetWindowLongPtr(_hwnd, WinConstants.GWL_EXSTYLE);
         if (topmost)
         {
-            style |= Constants.WS_EX_TOPMOST;
+            style |= WinConstants.WS_EX_TOPMOST;
         }
         else
         {
-            style &= (~Constants.WS_EX_TOPMOST);
+            style &= (~WinConstants.WS_EX_TOPMOST);
         }
 
-        DLLImports.SetWindowLong(_hwnd, Constants.GWL_EXSTYLE, style);
-        DLLImports.SetWindowPos(_hwnd,
-            topmost ? Constants.HWND_TOPMOST : Constants.HWND_NOTOPMOST,
+        WinAPi.SetWindowLong(_hwnd, WinConstants.GWL_EXSTYLE, style);
+        WinAPi.SetWindowPos(_hwnd,
+            topmost ? WinConstants.HWND_TOPMOST : WinConstants.HWND_NOTOPMOST,
             0,
             0,
             0,
             0,
-            Constants.SWP_NOMOVE | Constants.SWP_NOSIZE
+            WinConstants.SWP_NOMOVE | WinConstants.SWP_NOSIZE
         );
     }
 
@@ -1180,10 +1180,10 @@ public class WindowsPhotino : Photino
     {
         messageLoopRootWindowHandle = _hwnd;
 
-        while (DLLImports.GetMessage(out var msg, IntPtr.Zero, 0, 0))
+        while (WinAPi.GetMessage(out var msg, IntPtr.Zero, 0, 0))
         {
-            DLLImports.TranslateMessage(ref msg);
-            DLLImports.DispatchMessage(ref msg);
+            WinAPi.TranslateMessage(ref msg);
+            WinAPi.DispatchMessage(ref msg);
         }
     }
 
@@ -1247,7 +1247,7 @@ public class WindowsPhotino : Photino
 
         try
         {
-            DLLImports.SendMessage(_hwnd, WM_USER_INVOKE, GCHandle.ToIntPtr(callbackHandle), IntPtr.Zero);
+            WinAPi.SendMessage(_hwnd, WM_USER_INVOKE, GCHandle.ToIntPtr(callbackHandle), IntPtr.Zero);
         }
         finally
         {

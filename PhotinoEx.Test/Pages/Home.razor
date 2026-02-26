@@ -18,87 +18,87 @@
 
     private async Task OpenFile()
     {
-        var result = await Program.App.MainWindow.ShowOpenFileDialogAsync(multiSelect: false);
+        var result = await Program.App!.MainWindow.ShowOpenFileDialogAsync(multiSelect: false);
     }
 
     private async Task OpenFiles()
     {
-        var result = await Program.App.MainWindow.ShowOpenFileDialogAsync(multiSelect: true);
+        var result = await Program.App!.MainWindow.ShowOpenFileDialogAsync(multiSelect: true);
     }
 
     private async Task OpenFolders()
     {
-        var result = await Program.App.MainWindow.ShowOpenFolderDialogAsync(multiSelect: true);
+        var result = await Program.App!.MainWindow.ShowOpenFolderDialogAsync(multiSelect: true);
     }
 
     private async Task OpenFolder()
     {
-        var result = await Program.App.MainWindow.ShowOpenFolderDialogAsync(multiSelect: false);
+        var result = await Program.App!.MainWindow.ShowOpenFolderDialogAsync(multiSelect: false);
     }
 
     private async Task SaveFile()
     {
-        var result = await Program.App.MainWindow.ShowSaveFileDialogAsync();
+        var result = await Program.App!.MainWindow.ShowSaveFileDialogAsync();
     }
 
     private async Task SendMessage()
     {
-        var result = await Program.App.MainWindow.ShowMessageDialogAsync("testTitle", "testMessage", DialogButtons.AbortRetryIgnore, DialogIcon.Error);
+        var result = await Program.App!.MainWindow.ShowMessageDialogAsync("testTitle", "testMessage", DialogButtons.AbortRetryIgnore, DialogIcon.Error);
     }
 
     private async Task MiniRestore()
     {
         // Minimizing takes time, wait 2 second between checking
-        Console.WriteLine($"Minimized: {Program.App.MainWindow.Minimized}");
-        Program.App.MainWindow.SetMinimized(true);
+        Console.WriteLine($"Minimized: {Program.App!.MainWindow.Minimized}");
+        Program.App!.MainWindow.SetMinimized(true);
         await Task.Delay(2000);
-        Console.WriteLine($"Minimized: {Program.App.MainWindow.Minimized}");
+        Console.WriteLine($"Minimized: {Program.App!.MainWindow.Minimized}");
         await Task.Delay(5000);
-        Program.App.MainWindow.SetMinimized(false);
+        Program.App!.MainWindow.SetMinimized(false);
         await Task.Delay(2000);
-        Console.WriteLine($"Minimized: {Program.App.MainWindow.Minimized}");
+        Console.WriteLine($"Minimized: {Program.App!.MainWindow.Minimized}");
     }
 
     private async Task MaxiRestore()
     {
         // Maximizing takes time, wait 2 second between checking
-        Console.WriteLine($"Maximized: {Program.App.MainWindow.Maximized}");
-        Program.App.MainWindow.SetMaximized(true);
+        Console.WriteLine($"Maximized: {Program.App!.MainWindow.Maximized}");
+        Program.App!.MainWindow.SetMaximized(true);
         await Task.Delay(2000);
-        Console.WriteLine($"Maximized: {Program.App.MainWindow.Maximized}");
+        Console.WriteLine($"Maximized: {Program.App!.MainWindow.Maximized}");
         await Task.Delay(5000);
-        Program.App.MainWindow.SetMaximized(false);
+        Program.App!.MainWindow.SetMaximized(false);
         await Task.Delay(2000);
-        Console.WriteLine($"Maximized: {Program.App.MainWindow.Maximized}");
+        Console.WriteLine($"Maximized: {Program.App!.MainWindow.Maximized}");
     }
 
     private async Task FullscreenRestore()
     {
         // Maximizing takes time, wait 2 second between checking
-        Console.WriteLine($"FullScreen: {Program.App.MainWindow.FullScreen}");
-        Program.App.MainWindow.SetFullScreen(true);
+        Console.WriteLine($"FullScreen: {Program.App!.MainWindow.FullScreen}");
+        Program.App!.MainWindow.SetFullScreen(true);
         await Task.Delay(2000);
-        Console.WriteLine($"FullScreen: {Program.App.MainWindow.FullScreen}");
+        Console.WriteLine($"FullScreen: {Program.App!.MainWindow.FullScreen}");
         await Task.Delay(5000);
-        Program.App.MainWindow.SetFullScreen(false);
+        Program.App!.MainWindow.SetFullScreen(false);
         await Task.Delay(2000);
-        Console.WriteLine($"FullScreen: {Program.App.MainWindow.FullScreen}");
+        Console.WriteLine($"FullScreen: {Program.App!.MainWindow.FullScreen}");
     }
 
     private async Task CheckDevTools()
     {
-        Console.WriteLine($"DevToolsEnabled: {Program.App.MainWindow.DevToolsEnabled}");
+        Console.WriteLine($"DevToolsEnabled: {Program.App!.MainWindow.DevToolsEnabled}");
     }
 
     private async Task TopMost()
     {
-        Console.WriteLine($"Topmost: {Program.App.MainWindow.Topmost}");
-        Program.App.MainWindow.SetTopMost(true);
+        Console.WriteLine($"Topmost: {Program.App!.MainWindow.Topmost}");
+        Program.App!.MainWindow.SetTopMost(true);
         await Task.Delay(2000);
-        Console.WriteLine($"Topmost: {Program.App.MainWindow.Topmost}");
+        Console.WriteLine($"Topmost: {Program.App!.MainWindow.Topmost}");
         await Task.Delay(5000);
-        Program.App.MainWindow.SetTopMost(false);
+        Program.App!.MainWindow.SetTopMost(false);
         await Task.Delay(2000);
-        Console.WriteLine($"Topmost: {Program.App.MainWindow.Topmost}");
+        Console.WriteLine($"Topmost: {Program.App!.MainWindow.Topmost}");
     }
 }

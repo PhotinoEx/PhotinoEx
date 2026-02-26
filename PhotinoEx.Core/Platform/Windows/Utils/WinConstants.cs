@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace PhotinoEx.Core.Utils;
 
-public class Constants
+internal class WinConstants
 {
     public const uint WS_THICKFRAME = 0x00040000;
     public const uint WS_OVERLAPPEDWINDOW = 0x00CF0000;
@@ -106,7 +106,6 @@ public class Constants
 
     public const int S_OK = 0;
     public const int ERROR_CANCELLED = unchecked((int) 0x800704C7);
-
 
     public const uint MB_OK = 0x00000000;
     public const uint MB_OKCANCEL = 0x00000001;

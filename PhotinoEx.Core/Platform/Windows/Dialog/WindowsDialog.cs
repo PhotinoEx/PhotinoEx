@@ -15,16 +15,16 @@ public class WindowsDialog : IDialog
 
     public async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<FileFilter>? filterPatterns)
     {
-        var dialog = (IFileOpenDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(Constants.CLSID_FileOpenDialog));
+        var dialog = (IFileOpenDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(WinConstants.CLSID_FileOpenDialog));
         var result = new List<string>();
 
         try
         {
             dialog!.GetOptions(out uint options);
-            options |= Constants.FOS_FILEMUSTEXIST | Constants.FOS_FORCEFILESYSTEM | Constants.FOS_PATHMUSTEXIST;
+            options |= WinConstants.FOS_FILEMUSTEXIST | WinConstants.FOS_FORCEFILESYSTEM | WinConstants.FOS_PATHMUSTEXIST;
             if (multiSelect)
             {
-                options |= Constants.FOS_ALLOWMULTISELECT;
+                options |= WinConstants.FOS_ALLOWMULTISELECT;
             }
             dialog.SetOptions(options);
             dialog.SetTitle(title);
@@ -47,7 +47,7 @@ public class WindowsDialog : IDialog
             if (!string.IsNullOrEmpty(path))
             {
                 var iid = typeof(IShellItem).GUID;
-                if (DLLImports.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem folder) == Constants.S_OK)
+                if (WinAPi.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem folder) == WinConstants.S_OK)
                 {
                     dialog.SetFolder(folder);
                 }
@@ -55,12 +55,12 @@ public class WindowsDialog : IDialog
 
             var hr = dialog.Show(_hwnd);
 
-            if (hr == Constants.ERROR_CANCELLED)
+            if (hr == WinConstants.ERROR_CANCELLED)
             {
                 return result;
             }
 
-            if (hr != Constants.S_OK)
+            if (hr != WinConstants.S_OK)
             {
                 Marshal.ThrowExceptionForHR(hr);
             }
@@ -80,16 +80,16 @@ public class WindowsDialog : IDialog
 
     public async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
     {
-        var dialog = (IFileOpenDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(Constants.CLSID_FileOpenDialog));
+        var dialog = (IFileOpenDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(WinConstants.CLSID_FileOpenDialog));
         var result = new List<string>();
 
         try
         {
             dialog!.GetOptions(out uint options);
-            options |= Constants.FOS_PICKFOLDERS | Constants.FOS_FORCEFILESYSTEM | Constants.FOS_PATHMUSTEXIST;
+            options |= WinConstants.FOS_PICKFOLDERS | WinConstants.FOS_FORCEFILESYSTEM | WinConstants.FOS_PATHMUSTEXIST;
             if (multiSelect)
             {
-                options |= Constants.FOS_ALLOWMULTISELECT;
+                options |= WinConstants.FOS_ALLOWMULTISELECT;
             }
             dialog.SetOptions(options);
             dialog.SetTitle(title);
@@ -98,7 +98,7 @@ public class WindowsDialog : IDialog
             if (!string.IsNullOrEmpty(path))
             {
                 var iid = typeof(IShellItem).GUID;
-                if (DLLImports.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem folder) == Constants.S_OK)
+                if (WinAPi.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem folder) == WinConstants.S_OK)
                 {
                     dialog.SetFolder(folder);
                 }
@@ -106,12 +106,12 @@ public class WindowsDialog : IDialog
 
             var hr = dialog.Show(_hwnd);
 
-            if (hr == Constants.ERROR_CANCELLED)
+            if (hr == WinConstants.ERROR_CANCELLED)
             {
                 return result;
             }
 
-            if (hr != Constants.S_OK)
+            if (hr != WinConstants.S_OK)
             {
                 Marshal.ThrowExceptionForHR(hr);
             }
@@ -132,12 +132,12 @@ public class WindowsDialog : IDialog
     public async Task<string> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns, string defaultExtension = "txt",
         string defaultFileName = "PhotinoExFile")
     {
-        var dialog = (IFileSaveDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(Constants.CLSID_FileSaveDialog));
+        var dialog = (IFileSaveDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(WinConstants.CLSID_FileSaveDialog));
 
         try
         {
             dialog!.GetOptions(out uint options);
-            options |= Constants.FOS_FORCEFILESYSTEM | Constants.FOS_PATHMUSTEXIST | Constants.FOS_OVERWRITEPROMPT;
+            options |= WinConstants.FOS_FORCEFILESYSTEM | WinConstants.FOS_PATHMUSTEXIST | WinConstants.FOS_OVERWRITEPROMPT;
             dialog.SetOptions(options);
 
             dialog.SetTitle(title);
@@ -171,7 +171,7 @@ public class WindowsDialog : IDialog
             if (!string.IsNullOrEmpty(path))
             {
                 var iid = typeof(IShellItem).GUID;
-                if (DLLImports.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem startFolder) == Constants.S_OK)
+                if (WinAPi.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem startFolder) == WinConstants.S_OK)
                 {
                     dialog.SetFolder(startFolder);
                 }
@@ -179,18 +179,18 @@ public class WindowsDialog : IDialog
 
             int hr = dialog.Show(_hwnd);
 
-            if (hr == Constants.ERROR_CANCELLED)
+            if (hr == WinConstants.ERROR_CANCELLED)
             {
                 return "";
             }
 
-            if (hr != Constants.S_OK)
+            if (hr != WinConstants.S_OK)
             {
                 Marshal.ThrowExceptionForHR(hr);
             }
 
             dialog.GetResult(out IShellItem item);
-            item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string pathToUse);
+            item.GetDisplayName(WinConstants.SIGDN_FILESYSPATH, out string pathToUse);
             return pathToUse;
         }
         finally
@@ -206,58 +206,58 @@ public class WindowsDialog : IDialog
         switch (icon)
         {
             case DialogIcon.Info:
-                flags |= Constants.MB_ICONINFORMATION;
+                flags |= WinConstants.MB_ICONINFORMATION;
                 break;
             case DialogIcon.Warning:
-                flags |= Constants.MB_ICONWARNING;
+                flags |= WinConstants.MB_ICONWARNING;
                 break;
             case DialogIcon.Error:
-                flags |= Constants.MB_ICONERROR;
+                flags |= WinConstants.MB_ICONERROR;
                 break;
             case DialogIcon.Question:
-                flags |= Constants.MB_ICONQUESTION;
+                flags |= WinConstants.MB_ICONQUESTION;
                 break;
         }
 
         switch (buttons)
         {
             case DialogButtons.Ok:
-                flags |= Constants.MB_OK;
+                flags |= WinConstants.MB_OK;
                 break;
             case DialogButtons.OkCancel:
-                flags |= Constants.MB_OKCANCEL;
+                flags |= WinConstants.MB_OKCANCEL;
                 break;
             case DialogButtons.YesNo:
-                flags |= Constants.MB_YESNO;
+                flags |= WinConstants.MB_YESNO;
                 break;
             case DialogButtons.YesNoCancel:
-                flags |= Constants.MB_YESNOCANCEL;
+                flags |= WinConstants.MB_YESNOCANCEL;
                 break;
             case DialogButtons.RetryCancel:
-                flags |= Constants.MB_RETRYCANCEL;
+                flags |= WinConstants.MB_RETRYCANCEL;
                 break;
             case DialogButtons.AbortRetryIgnore:
-                flags |= Constants.MB_ABORTRETRYIGNORE;
+                flags |= WinConstants.MB_ABORTRETRYIGNORE;
                 break;
         }
 
-        int result = DLLImports.MessageBoxW(_hwnd, text, title, flags);
+        int result = WinAPi.MessageBoxW(_hwnd, text, title, flags);
 
         switch (result)
         {
-            case Constants.IDOK:
+            case WinConstants.IDOK:
                 return DialogResult.Ok;
-            case Constants.IDCANCEL:
+            case WinConstants.IDCANCEL:
                 return DialogResult.Cancel;
-            case Constants.IDYES:
+            case WinConstants.IDYES:
                 return DialogResult.Yes;
-            case Constants.IDNO:
+            case WinConstants.IDNO:
                 return DialogResult.No;
-            case Constants.IDABORT:
+            case WinConstants.IDABORT:
                 return DialogResult.Abort;
-            case Constants.IDRETRY:
+            case WinConstants.IDRETRY:
                 return DialogResult.Retry;
-            case Constants.IDIGNORE:
+            case WinConstants.IDIGNORE:
                 return DialogResult.Ignore;
             default:
                 return DialogResult.Cancel;
@@ -276,7 +276,7 @@ public class WindowsDialog : IDialog
             for (uint i = 0; i < count; i++)
             {
                 results.GetItemAt(i, out IShellItem item);
-                item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string pathToUse);
+                item.GetDisplayName(WinConstants.SIGDN_FILESYSPATH, out string pathToUse);
                 result.Add(pathToUse);
             }
 
@@ -285,7 +285,7 @@ public class WindowsDialog : IDialog
         else
         {
             dialog.GetResult(out IShellItem item);
-            item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string pathToUse);
+            item.GetDisplayName(WinConstants.SIGDN_FILESYSPATH, out string pathToUse);
             result.Add(pathToUse);
             return result;
         }
