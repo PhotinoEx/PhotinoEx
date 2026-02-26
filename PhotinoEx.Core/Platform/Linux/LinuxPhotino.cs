@@ -264,7 +264,6 @@ public class LinuxPhotino : Photino
     private PhotinoInitParams _params { get; set; }
     private SynchronizationContext _syncContext;
     private WebView? _webView { get; set; }
-    public IDialog Dialog { get; set; }
     private bool _isFullScreen { get; set; }
     private CssProvider _cssProvider { get; set; }
 

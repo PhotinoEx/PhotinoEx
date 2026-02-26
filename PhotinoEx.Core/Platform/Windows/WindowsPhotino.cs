@@ -223,7 +223,6 @@ public class WindowsPhotino : Photino
     public CoreWebView2Environment? WebViewEnvironment { get; private set; }
     public CoreWebView2? WebViewWindow { get; private set; }
     public CoreWebView2Controller? WebViewController { get; private set; }
-    public IDialog Dialog { get; set; }
     private IntPtr darkBrush { get; set; }
     private IntPtr lightBrush { get; set; }
     private PhotinoInitParams _params { get; set; }
