@@ -2,6 +2,7 @@ using System.Drawing;
 using System.Runtime.Versioning;
 using PhotinoEx.Core.Enums;
 using PhotinoEx.Core.Models;
+using PhotinoEx.Core.Platform;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
 
@@ -46,6 +47,7 @@ public abstract class Photino
     protected int _zoom { get; set; }
 
     protected Photino? _parent { get; set; }
+    public IDialog? Dialog { get; set; }
 
     public bool ContextMenuEnabled { get; set; }
     public int MinWidth { get; set; }

@@ -2635,7 +2635,7 @@ public class PhotinoWindow
     public async Task<List<string>?> ShowOpenFileDialogAsync(string title = "Choose file", string? defaultPath = null,
         bool multiSelect = false, List<FileFilter>? filterPatterns = null)
     {
-        return await _instance!.ShowOpenFileAsync(title, defaultPath, multiSelect, filterPatterns);
+        return await _instance!.Dialog!.ShowOpenFileAsync(title, defaultPath, multiSelect, filterPatterns);
     }
 
     /// <summary>
@@ -2651,7 +2651,7 @@ public class PhotinoWindow
     public async Task<List<string>?> ShowOpenFolderDialogAsync(string title = "Choose file", string? defaultPath = null,
         bool multiSelect = false)
     {
-        return await _instance!.ShowOpenFolderAsync(title, defaultPath, multiSelect);
+        return await _instance!.Dialog!.ShowOpenFolderAsync(title, defaultPath, multiSelect);
     }
 
     /// <summary>
@@ -2675,7 +2675,7 @@ public class PhotinoWindow
 
         var nativeFilters = GetNativeFilters(filterPatterns);
 
-        return await _instance!.ShowSaveFileAsync(title, defaultPath, nativeFilters);
+        return await _instance!.Dialog!.ShowSaveFileAsync(title, defaultPath, nativeFilters);
     }
 
     /// <summary>
@@ -2692,7 +2692,7 @@ public class PhotinoWindow
     public async Task<DialogResult> ShowMessageDialogAsync(string title, string text, DialogButtons buttons = DialogButtons.Ok,
         DialogIcon icon = DialogIcon.Info)
     {
-        return await _instance!.ShowMessageAsync(title, text, buttons, icon);
+        return await _instance!.Dialog!.ShowMessageAsync(title, text, buttons, icon);
     }
 
     /// <summary>
