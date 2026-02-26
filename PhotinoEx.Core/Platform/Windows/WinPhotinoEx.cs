@@ -17,6 +17,21 @@ namespace PhotinoEx.Core.Platform.Windows;
 [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
 public class WinPhotinoEx : PhotinoEx
 {
+    private IntPtr _hInstance { get; set; }
+    private IntPtr _hwnd { get; set; }
+    public CoreWebView2Environment? WebViewEnvironment { get; private set; }
+    public CoreWebView2? WebViewWindow { get; private set; }
+    public CoreWebView2Controller? WebViewController { get; private set; }
+    private IntPtr darkBrush { get; set; }
+    private IntPtr lightBrush { get; set; }
+    private PhotinoExInitParams _params { get; set; }
+    private SynchronizationContext _syncContext { get; set; }
+    private bool _windowsThemeIsDark { get; set; }
+    private const uint WM_USER_INVOKE = (WinConstants.WM_USER + 0x0002);
+    private IntPtr messageLoopRootWindowHandle;
+    private Dictionary<IntPtr, WinPhotinoEx> HWNDToPhotino = [];
+    private string? _webview2RuntimePath;
+
     public WinPhotinoEx(PhotinoExInitParams exInitParams)
     {
         darkBrush = WinAPi.CreateSolidBrush(RGB(0, 0, 0));
@@ -217,18 +232,6 @@ public class WinPhotinoEx : PhotinoEx
         var backdrop = (int) WindowBackdropType.Mica;
         WinAPi.DwmSetWindowAttribute(_hwnd, WinConstants.DWMWA_SYSTEMBACKDROP_TYPE, ref backdrop, sizeof(WindowBackdropType));
     }
-
-    private IntPtr _hInstance { get; set; }
-    private IntPtr _hwnd { get; set; }
-    public CoreWebView2Environment? WebViewEnvironment { get; private set; }
-    public CoreWebView2? WebViewWindow { get; private set; }
-    public CoreWebView2Controller? WebViewController { get; private set; }
-    private IntPtr darkBrush { get; set; }
-    private IntPtr lightBrush { get; set; }
-    private PhotinoExInitParams _params { get; set; }
-    private SynchronizationContext _syncContext { get; set; }
-    private bool _windowsThemeIsDark { get; set; }
-
 
     public void Register()
     {
@@ -442,11 +445,6 @@ public class WinPhotinoEx : PhotinoEx
 
         return WinAPi.DefWindowProc(hwnd, msg, wParam, lParam);
     }
-
-    private const uint WM_USER_INVOKE = (WinConstants.WM_USER + 0x0002);
-    private IntPtr messageLoopRootWindowHandle;
-    private Dictionary<IntPtr, WinPhotinoEx> HWNDToPhotino = [];
-    private string? _webview2RuntimePath;
 
     private uint RGB(byte r, byte g, byte b)
     {

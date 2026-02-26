@@ -21,16 +21,16 @@ public class PhotinoExBlazorApp
     {
         Services = services;
         RootComponents = Services.GetService<BlazorWindowRootComponents>();
-        MainExWindow = Services.GetService<PhotinoExWindow>();
+        MainWindow = Services.GetService<PhotinoExWindow>();
         WindowManager = Services.GetService<PhotinoExWebViewManager>();
 
-        MainExWindow
+        MainWindow
             .SetTitle("PhotinoEx.Blazor App")
             .SetUseOsDefaultSize(false)
             .SetWidth(1000)
             .SetHeight(900);
 
-        MainExWindow.RegisterCustomSchemeHandler(PhotinoExWebViewManager.BlazorAppScheme, HandleWebRequest);
+        MainWindow.RegisterCustomSchemeHandler(PhotinoExWebViewManager.BlazorAppScheme, HandleWebRequest);
 
         foreach (var component in rootComponents)
         {
@@ -38,19 +38,19 @@ public class PhotinoExBlazorApp
         }
     }
 
-    public PhotinoExWindow MainExWindow { get; private set; }
+    public PhotinoExWindow MainWindow { get; private set; }
 
     public PhotinoExWebViewManager WindowManager { get; private set; }
 
     public void Run()
     {
-        if (string.IsNullOrWhiteSpace(MainExWindow.StartUrl))
+        if (string.IsNullOrWhiteSpace(MainWindow.StartUrl))
         {
-            MainExWindow.StartUrl = "/";
+            MainWindow.StartUrl = "/";
         }
 
-        WindowManager.Navigate(MainExWindow.StartUrl);
-        MainExWindow.WaitForClose();
+        WindowManager.Navigate(MainWindow.StartUrl);
+        MainWindow.WaitForClose();
     }
 
     public Stream HandleWebRequest(object sender, string scheme, string url, out string contentType)

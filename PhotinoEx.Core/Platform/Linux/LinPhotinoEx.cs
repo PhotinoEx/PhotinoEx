@@ -29,6 +29,20 @@ namespace PhotinoEx.Core.Platform.Linux;
 [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
 public class LinPhotinoEx : PhotinoEx
 {
+    public SignalHandler<Widget>? OnWindowDestroyEvent { get; set; }
+    public SignalHandler<Widget, Widget.StateFlagsChangedSignalArgs>? OnWindowStateFlagChanged { get; set; }
+    public SignalHandler<Widget, Widget.MoveFocusSignalArgs>? OnWindowFocusChanged { get; set; }
+    public ReturningSignalHandler<WebView, WebView.ContextMenuSignalArgs, bool>? OnWebviewContextMenu { get; set; }
+    public ReturningSignalHandler<WebView, WebView.PermissionRequestSignalArgs, bool>? OnWebviewPermissionRequest { get; set; }
+
+    private Application _application { get; set; }
+    private Window? _window { get; set; }
+    private PhotinoExInitParams _params { get; set; }
+    private SynchronizationContext _syncContext;
+    private WebView? _webView { get; set; }
+    private bool _isFullScreen { get; set; }
+    private CssProvider _cssProvider { get; set; }
+
     public LinPhotinoEx(PhotinoExInitParams parameters)
     {
         _syncContext = SynchronizationContext.Current ?? new SynchronizationContext();
@@ -252,20 +266,6 @@ public class LinPhotinoEx : PhotinoEx
             SetTransparentEnabled(true);
         }
     }
-
-    public SignalHandler<Widget>? OnWindowDestroyEvent { get; set; }
-    public SignalHandler<Widget, Widget.StateFlagsChangedSignalArgs>? OnWindowStateFlagChanged { get; set; }
-    public SignalHandler<Widget, Widget.MoveFocusSignalArgs>? OnWindowFocusChanged { get; set; }
-    public ReturningSignalHandler<WebView, WebView.ContextMenuSignalArgs, bool>? OnWebviewContextMenu { get; set; }
-    public ReturningSignalHandler<WebView, WebView.PermissionRequestSignalArgs, bool>? OnWebviewPermissionRequest { get; set; }
-
-    private Application _application { get; set; }
-    private Window? _window { get; set; }
-    private PhotinoExInitParams _params { get; set; }
-    private SynchronizationContext _syncContext;
-    private WebView? _webView { get; set; }
-    private bool _isFullScreen { get; set; }
-    private CssProvider _cssProvider { get; set; }
 
     public void SetWebkitSettings()
     {
