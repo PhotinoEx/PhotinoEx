@@ -9,35 +9,35 @@ using PhotinoEx.Core;
 
 namespace PhotinoEx.Blazor;
 
-public static class ServiceCollectionExtensions
+public static class PhotinoExServiceCollectionExtensions
 {
     public static IServiceCollection AddBlazorDesktop(this IServiceCollection services, IFileProvider? fileProvider = null)
     {
         services
-            .AddOptions<PhotinoBlazorAppConfiguration>()
+            .AddOptions<PhotinoExBlazorAppConfiguration>()
             .Configure(opts =>
             {
-                opts.AppBaseUri = new Uri(PhotinoWebViewManager.AppBaseUri);
+                opts.AppBaseUri = new Uri(PhotinoExWebViewManager.AppBaseUri);
                 opts.HostPage = "index.html";
             });
 
         return services
             .AddScoped(sp =>
             {
-                var handler = sp.GetService<PhotinoHttpHandler>();
+                var handler = sp.GetService<PhotinoExHttpHandler>();
                 return new HttpClient(handler)
                 {
-                    BaseAddress = new Uri(PhotinoWebViewManager.AppBaseUri)
+                    BaseAddress = new Uri(PhotinoExWebViewManager.AppBaseUri)
                 };
             })
             .AddSingleton(sp =>
             {
-                var manager = sp.GetService<PhotinoWebViewManager>();
+                var manager = sp.GetService<PhotinoExWebViewManager>();
                 var store = sp.GetService<JSComponentConfigurationStore>();
 
                 return new BlazorWindowRootComponents(manager, store);
             })
-            .AddSingleton<Dispatcher, PhotinoDispatcher>()
+            .AddSingleton<Dispatcher, PhotinoExDispatcher>()
             .AddSingleton<IFileProvider>(_ =>
             {
                 if (fileProvider is null)
@@ -51,11 +51,11 @@ public static class ServiceCollectionExtensions
                 }
             })
             .AddSingleton<JSComponentConfigurationStore>()
-            .AddSingleton<PhotinoBlazorApp>()
-            .AddSingleton<PhotinoHttpHandler>()
-            .AddSingleton<PhotinoSynchronizationContext>()
-            .AddSingleton<PhotinoWebViewManager>()
-            .AddSingleton(new PhotinoWindow())
+            .AddSingleton<PhotinoExBlazorApp>()
+            .AddSingleton<PhotinoExHttpHandler>()
+            .AddSingleton<PhotinoExSynchronizationContext>()
+            .AddSingleton<PhotinoExWebViewManager>()
+            .AddSingleton(new PhotinoExWindow())
             .AddBlazorWebView();
     }
 }

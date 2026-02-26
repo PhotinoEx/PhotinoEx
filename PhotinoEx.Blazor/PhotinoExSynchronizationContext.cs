@@ -21,39 +21,39 @@ namespace PhotinoEx.Blazor;
 // relying on that for single-threadedness. Maybe also in the future Photino could consider having its own
 // built-in SyncContext/Dispatcher like other UI platforms.
 
-internal class PhotinoSynchronizationContext : SynchronizationContext
+internal class PhotinoExSynchronizationContext : SynchronizationContext
 {
     private static readonly ContextCallback ExecutionContextThunk = (object state) =>
     {
         var item = (WorkItem) state;
-        item.SynchronizationContext.ExecuteSynchronously(null, item.Callback, item.State);
+        item.ExSynchronizationContext.ExecuteSynchronously(null, item.Callback, item.State);
     };
 
     private static readonly Action<Task, object> BackgroundWorkThunk = (Task task, object state) =>
     {
         var item = (WorkItem) state;
-        item.SynchronizationContext.ExecuteBackground(item);
+        item.ExSynchronizationContext.ExecuteBackground(item);
     };
 
-    private readonly PhotinoWindow _window;
+    private readonly PhotinoExWindow _exWindow;
     private readonly int _uiThreadId;
     private readonly MethodInfo _invokeMethodInfo;
 
-    public PhotinoSynchronizationContext(PhotinoWindow window)
-        : this(window, new State())
+    public PhotinoExSynchronizationContext(PhotinoExWindow exWindow)
+        : this(exWindow, new State())
     {
     }
 
-    private PhotinoSynchronizationContext(PhotinoWindow window, State state)
+    private PhotinoExSynchronizationContext(PhotinoExWindow exWindow, State state)
     {
         _state = state;
 
-        _window = window ?? throw new ArgumentNullException(nameof(window));
+        _exWindow = exWindow ?? throw new ArgumentNullException(nameof(exWindow));
 
-        _uiThreadId = (int) typeof(PhotinoWindow).GetField("_managedThreadId", BindingFlags.NonPublic | BindingFlags.Instance)!
-            .GetValue(_window)!;
+        _uiThreadId = (int) typeof(PhotinoExWindow).GetField("_managedThreadId", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .GetValue(_exWindow)!;
 
-        _invokeMethodInfo = typeof(PhotinoWindow).GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance)!;
+        _invokeMethodInfo = typeof(PhotinoExWindow).GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance)!;
     }
 
     private readonly State _state;
@@ -191,7 +191,7 @@ internal class PhotinoSynchronizationContext : SynchronizationContext
     // shallow copy
     public override SynchronizationContext CreateCopy()
     {
-        return new PhotinoSynchronizationContext(_window, _state);
+        return new PhotinoExSynchronizationContext(_exWindow, _state);
     }
 
     // Similar to Post, but it can runs the work item synchronously if the context is not busy.
@@ -237,7 +237,7 @@ internal class PhotinoSynchronizationContext : SynchronizationContext
         var flags = forceAsync ? TaskContinuationOptions.RunContinuationsAsynchronously : TaskContinuationOptions.None;
         return antecedent.ContinueWith(BackgroundWorkThunk, new WorkItem
         {
-            SynchronizationContext = this,
+            ExSynchronizationContext = this,
             ExecutionContext = executionContext,
             Callback = d,
             State = state
@@ -251,7 +251,7 @@ internal class PhotinoSynchronizationContext : SynchronizationContext
     {
         // Anything run on the sync context should actually be dispatched as far as Photino
         // is concerned, so that it's safe to interact with the native window/WebView.
-        _invokeMethodInfo.Invoke(_window, new Action[]
+        _invokeMethodInfo.Invoke(_exWindow, new Action[]
         {
             () =>
             {
@@ -323,7 +323,7 @@ internal class PhotinoSynchronizationContext : SynchronizationContext
 
     private class WorkItem
     {
-        public PhotinoSynchronizationContext SynchronizationContext;
+        public PhotinoExSynchronizationContext ExSynchronizationContext;
         public ExecutionContext ExecutionContext;
         public SendOrPostCallback Callback;
         public object State;

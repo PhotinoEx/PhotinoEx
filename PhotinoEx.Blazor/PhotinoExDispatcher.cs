@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Components;
 
 namespace PhotinoEx.Blazor;
 
-internal class PhotinoDispatcher : Dispatcher
+internal class PhotinoExDispatcher : Dispatcher
 {
-    private readonly PhotinoSynchronizationContext _context;
+    private readonly PhotinoExSynchronizationContext _context;
 
-    public PhotinoDispatcher(PhotinoSynchronizationContext context)
+    public PhotinoExDispatcher(PhotinoExSynchronizationContext context)
     {
         _context = context;
         _context.UnhandledException += (sender, e) => OnUnhandledException(e);

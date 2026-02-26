@@ -2,7 +2,7 @@ using System;
 
 namespace PhotinoEx.Blazor;
 
-public class PhotinoBlazorAppConfiguration
+public class PhotinoExBlazorAppConfiguration
 {
     public Uri AppBaseUri { get; set; }
 

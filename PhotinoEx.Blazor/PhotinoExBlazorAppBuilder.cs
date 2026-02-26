@@ -7,25 +7,25 @@ using System.Collections.Generic;
 
 namespace PhotinoEx.Blazor;
 
-public class PhotinoBlazorAppBuilder
+public class PhotinoExBlazorAppBuilder
 {
-    internal PhotinoBlazorAppBuilder()
+    internal PhotinoExBlazorAppBuilder()
     {
         RootComponents = new RootComponentList();
         Services = new ServiceCollection();
     }
 
-    public static PhotinoBlazorAppBuilder CreateDefault(string[] args = default)
+    public static PhotinoExBlazorAppBuilder CreateDefault(string[] args = default)
     {
         return CreateDefault(null, args);
     }
 
-    public static PhotinoBlazorAppBuilder CreateDefault(IFileProvider fileProvider, string[] args = default)
+    public static PhotinoExBlazorAppBuilder CreateDefault(IFileProvider fileProvider, string[] args = default)
     {
         // We don't use the args for anything right now, but we want to accept them
         // here so that it shows up this way in the project templates.
         // var jsRuntime = DefaultWebAssemblyJSRuntime.Instance;
-        var builder = new PhotinoBlazorAppBuilder();
+        var builder = new PhotinoExBlazorAppBuilder();
         builder.Services.AddBlazorDesktop(fileProvider);
 
         // Right now we don't have conventions or behaviors that are specific to this method
@@ -39,13 +39,13 @@ public class PhotinoBlazorAppBuilder
 
     public IServiceCollection Services { get; }
 
-    public PhotinoBlazorApp Build(Action<IServiceProvider> serviceProviderOptions = null)
+    public PhotinoExBlazorApp Build(Action<IServiceProvider> serviceProviderOptions = null)
     {
         // register root components with DI container
         // Services.AddSingleton(RootComponents);
 
         var sp = Services.BuildServiceProvider();
-        var app = sp.GetRequiredService<PhotinoBlazorApp>();
+        var app = sp.GetRequiredService<PhotinoExBlazorApp>();
 
         serviceProviderOptions?.Invoke(sp);
 
