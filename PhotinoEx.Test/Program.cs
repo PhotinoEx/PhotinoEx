@@ -8,26 +8,26 @@ class Program
 {
     private static ManifestEmbeddedFileProvider? EmbedProvider { get; set; }
 
-    public static PhotinoBlazorApp? App { get; set; }
+    public static PhotinoExBlazorApp? App { get; set; }
 
     [STAThread]
     private static void Main(string[] args)
     {
         // EmbedProvider = new ManifestEmbeddedFileProvider(typeof(Program).Assembly, "wwwroot");
         // var appBuilder = PhotinoBlazorAppBuilder.CreateDefault(EmbedProvider, args);
-        var appBuilder = PhotinoBlazorAppBuilder.CreateDefault(args);
+        var appBuilder = PhotinoExBlazorAppBuilder.CreateDefault(args);
 
         appBuilder.RootComponents.Add<App>("app");
 
         App = appBuilder.Build();
 
         App.MainWindow.SetDevToolsEnabled(true);
-        if (PhotinoWindow.IsWindowsPlatform)
+        if (PhotinoExWindow.IsWindowsPlatform)
         {
             App.MainWindow.SetIconFile("C:\\Users\\craig\\Desktop\\Repos\\PhotinoEx\\PhotinoEx.Test\\wwwroot\\Icon_PhotinoEx.ico");
         }
 
-        if (PhotinoWindow.IsLinuxPlatform)
+        if (PhotinoExWindow.IsLinuxPlatform)
         {
             App.MainWindow.SetIconFile("/home/cwx/Repos/PhotinoEx/PhotinoEx.Test/wwwroot/hicolor/48x48/apps/Icon_PhotinoEx.png");
         }
