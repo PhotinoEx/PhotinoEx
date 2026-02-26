@@ -13,9 +13,9 @@ namespace PhotinoEx.Blazor;
 /// </summary>
 public sealed class BlazorWindowRootComponents : IJSComponentConfiguration
 {
-    private readonly PhotinoWebViewManager _manager;
+    private readonly PhotinoExWebViewManager _manager;
 
-    internal BlazorWindowRootComponents(PhotinoWebViewManager manager, JSComponentConfigurationStore jsComponents)
+    internal BlazorWindowRootComponents(PhotinoExWebViewManager manager, JSComponentConfigurationStore jsComponents)
     {
         _manager = manager;
         JSComponents = jsComponents;

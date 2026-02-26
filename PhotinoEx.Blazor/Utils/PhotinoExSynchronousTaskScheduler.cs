@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PhotinoEx.Blazor.Utils;
 
-internal class SynchronousTaskScheduler : TaskScheduler
+internal class PhotinoExSynchronousTaskScheduler : TaskScheduler
 {
     public override int MaximumConcurrencyLevel
     {

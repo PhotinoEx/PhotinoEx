@@ -5,7 +5,7 @@ using PhotinoEx.Core;
 
 namespace PhotinoEx.Blazor;
 
-public class PhotinoBlazorApp
+public class PhotinoExBlazorApp
 {
     /// <summary>
     /// Gets configuration for the service provider.
@@ -21,8 +21,8 @@ public class PhotinoBlazorApp
     {
         Services = services;
         RootComponents = Services.GetService<BlazorWindowRootComponents>();
-        MainWindow = Services.GetService<PhotinoWindow>();
-        WindowManager = Services.GetService<PhotinoWebViewManager>();
+        MainWindow = Services.GetService<PhotinoExWindow>();
+        WindowManager = Services.GetService<PhotinoExWebViewManager>();
 
         MainWindow
             .SetTitle("PhotinoEx.Blazor App")
@@ -30,7 +30,7 @@ public class PhotinoBlazorApp
             .SetWidth(1000)
             .SetHeight(900);
 
-        MainWindow.RegisterCustomSchemeHandler(PhotinoWebViewManager.BlazorAppScheme, HandleWebRequest);
+        MainWindow.RegisterCustomSchemeHandler(PhotinoExWebViewManager.BlazorAppScheme, HandleWebRequest);
 
         foreach (var component in rootComponents)
         {
@@ -38,9 +38,9 @@ public class PhotinoBlazorApp
         }
     }
 
-    public PhotinoWindow MainWindow { get; private set; }
+    public PhotinoExWindow MainWindow { get; private set; }
 
-    public PhotinoWebViewManager WindowManager { get; private set; }
+    public PhotinoExWebViewManager WindowManager { get; private set; }
 
     public void Run()
     {

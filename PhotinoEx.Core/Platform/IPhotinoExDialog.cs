@@ -2,7 +2,7 @@ using PhotinoEx.Core.Models;
 
 namespace PhotinoEx.Core.Platform;
 
-public interface IDialog
+public interface IPhotinoExDialog
 {
     // Tested - linux / windows
     // untested - apple

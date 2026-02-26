@@ -16,9 +16,9 @@ using PhotinoEx.Core;
 
 namespace PhotinoEx.Blazor;
 
-public class PhotinoWebViewManager : WebViewManager
+public class PhotinoExWebViewManager : WebViewManager
 {
-    private readonly PhotinoWindow _window;
+    private readonly PhotinoExWindow _exWindow;
     private readonly Channel<string> _channel;
 
     // On Windows, we can't use a custom scheme to host the initial HTML,
@@ -31,16 +31,16 @@ public class PhotinoWebViewManager : WebViewManager
 
     public static readonly string AppBaseUri = $"{BlazorAppScheme}://localhost/";
 
-    public PhotinoWebViewManager(PhotinoWindow window, IServiceProvider provider, Dispatcher dispatcher,
-        IFileProvider fileProvider, JSComponentConfigurationStore jsComponents, IOptions<PhotinoBlazorAppConfiguration> config)
+    public PhotinoExWebViewManager(PhotinoExWindow exWindow, IServiceProvider provider, Dispatcher dispatcher,
+        IFileProvider fileProvider, JSComponentConfigurationStore jsComponents, IOptions<PhotinoExBlazorAppConfiguration> config)
         : base(provider, dispatcher, config.Value.AppBaseUri, fileProvider, jsComponents, config.Value.HostPage)
     {
-        _window = window ?? throw new ArgumentNullException(nameof(window));
+        _exWindow = exWindow ?? throw new ArgumentNullException(nameof(exWindow));
 
         // Create a scheduler that uses one threads.
-        var sts = new Utils.SynchronousTaskScheduler();
+        var sts = new Utils.PhotinoExSynchronousTaskScheduler();
 
-        _window.WebMessageReceived += (sender, message) =>
+        _exWindow.WebMessageReceived += (sender, message) =>
         {
             // On some platforms, we need to move off the browser UI thread
             Task.Factory.StartNew(message =>
@@ -93,7 +93,7 @@ public class PhotinoWebViewManager : WebViewManager
 
     protected override void NavigateCore(Uri absoluteUri)
     {
-        _window.Load(absoluteUri);
+        _exWindow.Load(absoluteUri);
     }
 
     protected override void SendMessage(string message)
@@ -111,7 +111,7 @@ public class PhotinoWebViewManager : WebViewManager
         while (true)
         {
             var message = await reader.ReadAsync();
-            await _window.SendWebMessageAsync(message);
+            await _exWindow.SendWebMessageAsync(message);
         }
     }
 

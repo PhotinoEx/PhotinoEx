@@ -5,9 +5,9 @@ using Size = System.Drawing.Size;
 
 namespace PhotinoEx.Core.Platform.MacOS;
 
-public class MacOSPhotino : Photino
+public class MacPhotinoEx : PhotinoEx
 {
-    public MacOSPhotino(PhotinoInitParams initParams)
+    public MacPhotinoEx(PhotinoExInitParams exInitParams)
     {
         throw new NotImplementedException();
     }

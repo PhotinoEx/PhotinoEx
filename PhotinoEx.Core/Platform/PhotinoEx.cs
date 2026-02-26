@@ -6,7 +6,7 @@ using Size = System.Drawing.Size;
 
 namespace PhotinoEx.Core.Platform;
 
-public abstract class Photino
+public abstract class PhotinoEx
 {
     protected Action<string>? _WebMessageReceivedCallback { get; set; }
     protected Action<int, int>? _resizedCallback { get; set; }
@@ -18,7 +18,7 @@ public abstract class Photino
     protected Action? _focusInCallback { get; set; }
     protected Action? _focusOutCallback { get; set; }
     protected List<string> _customSchemeNames { get; set; } = new();
-    protected PhotinoInitParams.WebResourceRequestedCallback? _customSchemeCallback { get; set; }
+    protected PhotinoExInitParams.WebResourceRequestedCallback? _customSchemeCallback { get; set; }
 
     protected Func<Monitor, int>? _getAllMonitors { get; set; }
     protected string _startUrl { get; set; } = "";
@@ -44,8 +44,8 @@ public abstract class Photino
 
     protected int _zoom { get; set; }
 
-    protected Photino? _parent { get; set; }
-    public IDialog? Dialog { get; set; }
+    protected PhotinoEx? _parent { get; set; }
+    public IPhotinoExDialog? Dialog { get; set; }
 
     public bool ContextMenuEnabled { get; set; }
     public int MinWidth { get; set; }

@@ -2,7 +2,7 @@
 
 namespace PhotinoEx.Core.Models;
 
-public class PhotinoInitParams
+public class PhotinoExInitParams
 {
     public string StartString { get; set; } = "";
     public string StartUrl { get; set; } = "";
@@ -13,7 +13,7 @@ public class PhotinoInitParams
     public string BrowserControlInitParameters { get; set; } = "";
     public string NotificationRegistrationId { get; set; } = "";
 
-    public Photino? ParentInstance { get; set; }
+    public Platform.PhotinoEx? ParentInstance { get; set; }
 
     public Func<bool>? ClosingHandler { get; set; }
     public Action? FocusInHandler { get; set; }

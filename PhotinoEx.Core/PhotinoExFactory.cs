@@ -7,23 +7,23 @@ using PhotinoEx.Core.Platform.Windows;
 
 namespace PhotinoEx.Core;
 
-internal static class PhotinoFactory
+internal static class PhotinoExFactory
 {
-    public static Photino Create(PhotinoInitParams initParams)
+    public static Platform.PhotinoEx Create(PhotinoExInitParams exInitParams)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            return new LinuxPhotino(initParams);
+            return new LinPhotinoEx(exInitParams);
         }
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            return new WindowsPhotino(initParams);
+            return new WinPhotinoEx(exInitParams);
         }
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            return new MacOSPhotino(initParams);
+            return new MacPhotinoEx(exInitParams);
         }
 
         throw new NotSupportedException("Unsupported platform");

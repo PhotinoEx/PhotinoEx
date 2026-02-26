@@ -4,11 +4,11 @@ using PhotinoEx.Core.Utils;
 
 namespace PhotinoEx.Core.Platform.Windows.Dialog;
 
-public class WindowsDialog : IDialog
+public class WinPhotinoExDialog : IPhotinoExDialog
 {
     private IntPtr _hwnd { get; set; }
 
-    public WindowsDialog(IntPtr hwnd)
+    public WinPhotinoExDialog(IntPtr hwnd)
     {
         _hwnd = hwnd;
     }

@@ -8,11 +8,11 @@ using MessageDialog = Gtk.MessageDialog;
 
 namespace PhotinoEx.Core.Platform.Linux.Dialog;
 
-public class LinuxDialog : IDialog
+public class LinuxPhotinoExDialog : IPhotinoExDialog
 {
     private Window _window { get; set; }
 
-    public LinuxDialog(Window window)
+    public LinuxPhotinoExDialog(Window window)
     {
         _window = window;
     }
