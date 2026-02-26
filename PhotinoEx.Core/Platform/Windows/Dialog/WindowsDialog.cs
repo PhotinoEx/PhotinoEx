@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using PhotinoEx.Core.Enums;
 using PhotinoEx.Core.Models;
 using PhotinoEx.Core.Utils;
 
@@ -36,7 +35,7 @@ public class WindowsDialog : IDialog
                 new FileFilter("All Files", "*.*")
             };
 
-            var specs = filterPatterns.Select(f => new COMDLG_FILTERSPEC()
+            var specs = filterPatterns.Select(f => new ComDlgFilterSpec()
             {
                 pszName = f.Name,
                 pszSpec = f.Spec
@@ -150,7 +149,7 @@ public class WindowsDialog : IDialog
                 filterPatterns.Add(new FileFilter("All Files", "*.*"));
             }
 
-            var specs = filterPatterns.Select(f => new COMDLG_FILTERSPEC
+            var specs = filterPatterns.Select(f => new ComDlgFilterSpec()
             {
                 pszName = f.Name,
                 pszSpec = f.Spec
@@ -191,7 +190,7 @@ public class WindowsDialog : IDialog
             }
 
             dialog.GetResult(out IShellItem item);
-            item.GetDisplayName(SIGDN.FILESYSPATH, out string pathToUse);
+            item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string pathToUse);
             return pathToUse;
         }
         finally
@@ -277,7 +276,7 @@ public class WindowsDialog : IDialog
             for (uint i = 0; i < count; i++)
             {
                 results.GetItemAt(i, out IShellItem item);
-                item.GetDisplayName(SIGDN.FILESYSPATH, out string pathToUse);
+                item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string pathToUse);
                 result.Add(pathToUse);
             }
 
@@ -286,7 +285,7 @@ public class WindowsDialog : IDialog
         else
         {
             dialog.GetResult(out IShellItem item);
-            item.GetDisplayName(SIGDN.FILESYSPATH, out string pathToUse);
+            item.GetDisplayName(Constants.SIGDN_FILESYSPATH, out string pathToUse);
             result.Add(pathToUse);
             return result;
         }

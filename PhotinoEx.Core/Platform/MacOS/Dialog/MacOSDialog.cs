@@ -1,4 +1,4 @@
-namespace PhotinoEx.Core.Dialog;
+namespace PhotinoEx.Core.Platform.MacOS.Dialog;
 
 public class MacOSDialog
 {

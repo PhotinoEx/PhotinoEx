@@ -1,12 +1,10 @@
-using System.Drawing;
+using Point = System.Drawing.Point;
 using System.Runtime.Versioning;
-using PhotinoEx.Core.Enums;
 using PhotinoEx.Core.Models;
-using PhotinoEx.Core.Platform;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
 
-namespace PhotinoEx.Core;
+namespace PhotinoEx.Core.Platform;
 
 public abstract class Photino
 {

@@ -20,6 +20,7 @@ using Monitor = PhotinoEx.Core.Models.Monitor;
 using Notification = Gio.Notification;
 using Window = Gtk.Window;
 using Size = System.Drawing.Size;
+using Point = System.Drawing.Point;
 using Settings = WebKit.Settings;
 
 namespace PhotinoEx.Core.Platform.Linux;

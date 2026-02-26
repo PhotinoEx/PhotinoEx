@@ -1,7 +1,8 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using PhotinoEx.Core.Enums;
 using PhotinoEx.Core.Models;
+using PhotinoEx.Core.Platform;
+using PhotinoEx.Core.Platform.Windows;
 using Action = System.Action;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;

@@ -1,7 +1,6 @@
-﻿using System.Runtime.Versioning;
-using Monitor = PhotinoEx.Core.Models.Monitor;
+﻿using PhotinoEx.Core.Platform;
 
-namespace PhotinoEx.Core;
+namespace PhotinoEx.Core.Models;
 
 public class PhotinoInitParams
 {

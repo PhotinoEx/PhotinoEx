@@ -1,5 +1,5 @@
 using Gtk;
-using PhotinoEx.Core.Enums;
+using PhotinoEx.Core.Models;
 using FileFilter = Gtk.FileFilter;
 using PhotinoExFileFilter = PhotinoEx.Core.Models.FileFilter;
 using File = Gio.File;
