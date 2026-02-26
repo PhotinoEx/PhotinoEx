@@ -15,15 +15,15 @@ namespace PhotinoEx.Core.Platform.Windows;
 
 [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
 [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
-public class WindowsPhotino : Photino
+public class WinPhotinoEx : PhotinoEx
 {
-    public WindowsPhotino(PhotinoInitParams initParams)
+    public WinPhotinoEx(PhotinoExInitParams exInitParams)
     {
         darkBrush = WinAPi.CreateSolidBrush(RGB(0, 0, 0));
         lightBrush = WinAPi.CreateSolidBrush(RGB(255, 255, 255));
 
         _syncContext = SynchronizationContext.Current ?? new SynchronizationContext();
-        _params = initParams;
+        _params = exInitParams;
 
         _windowTitle = string.IsNullOrEmpty(_params.Title) ? "Set a title" : _params.Title;
         // they also did wintoast things here
@@ -171,7 +171,7 @@ public class WindowsPhotino : Photino
             IntPtr.Zero
         );
 
-        Dialog = new WindowsDialog(_hwnd);
+        Dialog = new WinPhotinoExDialog(_hwnd);
         SetAppTheme(_windowsThemeIsDark);
         SetBackdropTheme();
 
@@ -225,7 +225,7 @@ public class WindowsPhotino : Photino
     public CoreWebView2Controller? WebViewController { get; private set; }
     private IntPtr darkBrush { get; set; }
     private IntPtr lightBrush { get; set; }
-    private PhotinoInitParams _params { get; set; }
+    private PhotinoExInitParams _params { get; set; }
     private SynchronizationContext _syncContext { get; set; }
     private bool _windowsThemeIsDark { get; set; }
 
@@ -445,7 +445,7 @@ public class WindowsPhotino : Photino
 
     private const uint WM_USER_INVOKE = (WinConstants.WM_USER + 0x0002);
     private IntPtr messageLoopRootWindowHandle;
-    private Dictionary<IntPtr, WindowsPhotino> HWNDToPhotino = [];
+    private Dictionary<IntPtr, WinPhotinoEx> HWNDToPhotino = [];
     private string? _webview2RuntimePath;
 
     private uint RGB(byte r, byte g, byte b)

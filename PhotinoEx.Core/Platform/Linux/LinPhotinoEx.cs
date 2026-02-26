@@ -27,9 +27,9 @@ namespace PhotinoEx.Core.Platform.Linux;
 
 [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
 [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
-public class LinuxPhotino : Photino
+public class LinPhotinoEx : PhotinoEx
 {
-    public LinuxPhotino(PhotinoInitParams parameters)
+    public LinPhotinoEx(PhotinoExInitParams parameters)
     {
         _syncContext = SynchronizationContext.Current ?? new SynchronizationContext();
 
@@ -146,7 +146,7 @@ public class LinuxPhotino : Photino
 
         _window = ApplicationWindow.New((Application) sender);
         _window!.SetChild(_webView);
-        Dialog = new LinuxDialog(_window);
+        Dialog = new LinuxPhotinoExDialog(_window);
 
         if (_params.FullScreen)
         {
@@ -261,7 +261,7 @@ public class LinuxPhotino : Photino
 
     private Application _application { get; set; }
     private Window? _window { get; set; }
-    private PhotinoInitParams _params { get; set; }
+    private PhotinoExInitParams _params { get; set; }
     private SynchronizationContext _syncContext;
     private WebView? _webView { get; set; }
     private bool _isFullScreen { get; set; }
