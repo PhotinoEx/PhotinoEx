@@ -20,6 +20,7 @@ using Monitor = PhotinoEx.Core.Models.Monitor;
 using Notification = Gio.Notification;
 using Window = Gtk.Window;
 using Size = System.Drawing.Size;
+using Point = System.Drawing.Point;
 using Settings = WebKit.Settings;
 
 namespace PhotinoEx.Core.Platform.Linux;
@@ -263,7 +264,6 @@ public class LinuxPhotino : Photino
     private PhotinoInitParams _params { get; set; }
     private SynchronizationContext _syncContext;
     private WebView? _webView { get; set; }
-    public IDialog Dialog { get; set; }
     private bool _isFullScreen { get; set; }
     private CssProvider _cssProvider { get; set; }
 

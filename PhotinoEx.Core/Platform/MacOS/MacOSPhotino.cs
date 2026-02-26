@@ -1,10 +1,9 @@
-using System.Drawing;
-using PhotinoEx.Core.Enums;
+using Point = System.Drawing.Point;
+using PhotinoEx.Core.Models;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
-using PhotinoExFileFilter = PhotinoEx.Core.Models.FileFilter;
 
-namespace PhotinoEx.Core;
+namespace PhotinoEx.Core.Platform.MacOS;
 
 public class MacOSPhotino : Photino
 {

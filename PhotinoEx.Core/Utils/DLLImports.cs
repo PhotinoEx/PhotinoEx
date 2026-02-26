@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using PhotinoEx.Core.Models;
 
 namespace PhotinoEx.Core.Utils;
 
@@ -27,7 +28,7 @@ internal static class DLLImports
     #region User
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern ushort RegisterClassEx([In] ref WNDCLASSEX lpwcx);
+    public static extern ushort RegisterClassEx([In] ref WndClassEx lpwcx);
 
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr CreateWindowEx(uint dwExStyle, string lpClassName, string lpWindowName,
@@ -39,22 +40,22 @@ internal static class DLLImports
     public static extern IntPtr DefWindowProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool GetMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax);
+    public static extern bool GetMessage(out Msg lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax);
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern IntPtr DispatchMessage(ref MSG lpmsg);
+    public static extern IntPtr DispatchMessage(ref Msg lpmsg);
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern IntPtr TranslateMessage(ref MSG lpmsg);
+    public static extern IntPtr TranslateMessage(ref Msg lpmsg);
 
     [DllImport("user32.dll", SetLastError = true)]
     public static extern void PostQuitMessage(int nExitCode);
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern IntPtr BeginPaint(IntPtr hWnd, out PAINT lpPaint);
+    public static extern IntPtr BeginPaint(IntPtr hWnd, out Paint lpPaint);
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool EndPaint(IntPtr hWnd, [In] ref PAINT lpPaint);
+    public static extern bool EndPaint(IntPtr hWnd, [In] ref Paint lpPaint);
 
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool SetLayeredWindowAttributes(IntPtr hwnd, uint crKey, byte bAlpha, uint dwFlags);
@@ -63,7 +64,7 @@ internal static class DLLImports
     public static extern bool SetWindowRgn(IntPtr hWnd, IntPtr hRgn, bool bRedraw);
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+    public static extern bool GetWindowRect(IntPtr hWnd, out Rect lpRect);
 
     [DllImport("user32.dll", SetLastError = true)]
     public static extern int GetSystemMetrics(int nIndex);
@@ -78,13 +79,13 @@ internal static class DLLImports
     public static extern IntPtr SetClassLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
+    public static extern bool GetClientRect(IntPtr hWnd, out Rect lpRect);
 
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool DestroyWindow(IntPtr hWnd);
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern int FillRect(IntPtr hDC, [In] ref RECT lprc, IntPtr hbr);
+    public static extern int FillRect(IntPtr hDC, [In] ref Rect lprc, IntPtr hbr);
 
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool InvalidateRect(IntPtr hWnd, IntPtr lpRect, bool bErase);
@@ -117,7 +118,7 @@ internal static class DLLImports
     public static extern void SetThreadDpiAwarenessContext(int dpiContext);
 
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool PeekMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg);
+    public static extern bool PeekMessage(out Msg lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg);
 
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     public static extern IntPtr LoadImage(IntPtr hinst, string lpszName, uint uType, int cxDesired, int cyDesired, uint fuLoad);

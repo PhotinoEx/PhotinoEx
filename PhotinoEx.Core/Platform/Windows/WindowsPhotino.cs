@@ -5,15 +5,13 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Win32;
-using PhotinoEx.Core.Enums;
 using PhotinoEx.Core.Models;
-using PhotinoEx.Core.Platform;
 using PhotinoEx.Core.Platform.Windows.Dialog;
 using PhotinoEx.Core.Utils;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
 
-namespace PhotinoEx.Core;
+namespace PhotinoEx.Core.Platform.Windows;
 
 [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
 [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
@@ -225,7 +223,6 @@ public class WindowsPhotino : Photino
     public CoreWebView2Environment? WebViewEnvironment { get; private set; }
     public CoreWebView2? WebViewWindow { get; private set; }
     public CoreWebView2Controller? WebViewController { get; private set; }
-    public IDialog Dialog { get; set; }
     private IntPtr darkBrush { get; set; }
     private IntPtr lightBrush { get; set; }
     private PhotinoInitParams _params { get; set; }
@@ -238,9 +235,9 @@ public class WindowsPhotino : Photino
         _hInstance = DLLImports.GetModuleHandle(null);
         _windowsThemeIsDark = CheckWindowsThemeIsDark();
 
-        var window = new WNDCLASSEX
+        var window = new WndClassEx()
         {
-            cbSize = (uint) Marshal.SizeOf(typeof(WNDCLASSEX)),
+            cbSize = (uint) Marshal.SizeOf(typeof(WndClassEx)),
             style = Constants.CS_HREDRAW | Constants.CS_VREDRAW,
             lpfnWndProc = Marshal.GetFunctionPointerForDelegate(new DLLImports.WndProcDelegate(WindowProc)),
             cbClsExtra = 0,
@@ -269,7 +266,7 @@ public class WindowsPhotino : Photino
         {
             case Constants.WM_PAINT:
                 {
-                    PAINT ps;
+                    Paint ps;
                     IntPtr hdc = DLLImports.BeginPaint(hwnd, out ps);
 
                     if (_windowsThemeIsDark)
@@ -354,11 +351,11 @@ public class WindowsPhotino : Photino
                         return 0;
                     }
 
-                    var minMaxInfo = Marshal.PtrToStructure<MINMAXINFO>(lParam);
+                    var minMaxInfo = Marshal.PtrToStructure<MinMaxInfo>(lParam);
 
                     if (photino.MinWidth > 0)
                     {
-                        minMaxInfo.ptMinTrackSize = new POINT()
+                        minMaxInfo.ptMinTrackSize = new Point()
                         {
                             X = photino.MinWidth,
                             Y = minMaxInfo.ptMinTrackSize.Y
@@ -367,7 +364,7 @@ public class WindowsPhotino : Photino
 
                     if (photino.MinHeight > 0)
                     {
-                        minMaxInfo.ptMinTrackSize = new POINT()
+                        minMaxInfo.ptMinTrackSize = new Point()
                         {
                             X = minMaxInfo.ptMinTrackSize.X,
                             Y = photino.MinHeight
@@ -376,7 +373,7 @@ public class WindowsPhotino : Photino
 
                     if (photino.MaxWidth < int.MaxValue)
                     {
-                        minMaxInfo.ptMaxTrackSize = new POINT()
+                        minMaxInfo.ptMaxTrackSize = new Point()
                         {
                             X = photino.MaxWidth,
                             Y = minMaxInfo.ptMaxTrackSize.Y
@@ -385,7 +382,7 @@ public class WindowsPhotino : Photino
 
                     if (photino.MaxHeight < int.MaxValue)
                     {
-                        minMaxInfo.ptMaxTrackSize = new POINT()
+                        minMaxInfo.ptMaxTrackSize = new Point()
                         {
                             X = minMaxInfo.ptMaxTrackSize.X,
                             Y = photino.MaxHeight
@@ -697,7 +694,7 @@ public class WindowsPhotino : Photino
 
                 while (!attachTask.IsCompleted)
                 {
-                    if (DLLImports.PeekMessage(out MSG msg, IntPtr.Zero, 0, 0, Constants.PM_REMOVE))
+                    if (DLLImports.PeekMessage(out Msg msg, IntPtr.Zero, 0, 0, Constants.PM_REMOVE))
                     {
                         DLLImports.TranslateMessage(ref msg);
                         DLLImports.DispatchMessage(ref msg);

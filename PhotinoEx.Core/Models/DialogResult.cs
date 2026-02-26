@@ -1,4 +1,4 @@
-namespace PhotinoEx.Core.Enums;
+namespace PhotinoEx.Core.Models;
 
 public enum DialogResult
 {
