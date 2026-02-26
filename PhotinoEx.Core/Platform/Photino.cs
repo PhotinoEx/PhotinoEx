@@ -2,6 +2,7 @@ using System.Drawing;
 using System.Runtime.Versioning;
 using PhotinoEx.Core.Enums;
 using PhotinoEx.Core.Models;
+using PhotinoEx.Core.Platform;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
 
@@ -46,6 +47,7 @@ public abstract class Photino
     protected int _zoom { get; set; }
 
     protected Photino? _parent { get; set; }
+    public IDialog? Dialog { get; set; }
 
     public bool ContextMenuEnabled { get; set; }
     public int MinWidth { get; set; }
@@ -199,22 +201,6 @@ public abstract class Photino
     public abstract void SetRestoredCallback(Action callback);
 
     public abstract void SetMinimizedCallback(Action callback);
-
-    // Tested - linux / windows
-    // untested - apple
-    public abstract Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<FileFilter>? filterPatterns);
-
-    // Tested - linux / windows
-    // untested - apple
-    public abstract Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect);
-
-    // Tested - linux / windows
-    // untested - apple
-    public abstract Task<string> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns, string defaultExtension = "txt", string defaultFileName = "PhotinoExFile");
-
-    // Tested - linux / windows
-    // Untested - apple
-    public abstract Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon);
 
     // Tested - linux / windows
     // untested - apple

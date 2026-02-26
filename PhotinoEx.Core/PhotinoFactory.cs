@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using PhotinoEx.Core.Platform.Linux;
 
 namespace PhotinoEx.Core;
 
@@ -18,7 +19,7 @@ internal static class PhotinoFactory
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            return new ApplePhotino(initParams);
+            return new MacOSPhotino(initParams);
         }
 
         throw new NotSupportedException("Unsupported platform");

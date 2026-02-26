@@ -9,25 +9,20 @@ using Gio;
 using GLib;
 using GObject;
 using Gtk;
-using PhotinoEx.Core.Enums;
 using PhotinoEx.Core.Models;
+using PhotinoEx.Core.Platform.Linux.Dialog;
 using WebKit;
 using Action = System.Action;
 using Application = Gtk.Application;
 using ApplicationWindow = Gtk.ApplicationWindow;
-using File = Gio.File;
-using FileDialog = Gtk.FileDialog;
-using FileFilter = Gtk.FileFilter;
 using FileInfo = System.IO.FileInfo;
-using PhotinoExFileFilter = PhotinoEx.Core.Models.FileFilter;
-using MessageDialog = Gtk.MessageDialog;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Notification = Gio.Notification;
 using Window = Gtk.Window;
 using Size = System.Drawing.Size;
 using Settings = WebKit.Settings;
 
-namespace PhotinoEx.Core;
+namespace PhotinoEx.Core.Platform.Linux;
 
 [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
 [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
@@ -150,6 +145,7 @@ public class LinuxPhotino : Photino
 
         _window = ApplicationWindow.New((Application) sender);
         _window!.SetChild(_webView);
+        Dialog = new LinuxDialog(_window);
 
         if (_params.FullScreen)
         {
@@ -267,6 +263,7 @@ public class LinuxPhotino : Photino
     private PhotinoInitParams _params { get; set; }
     private SynchronizationContext _syncContext;
     private WebView? _webView { get; set; }
+    public IDialog Dialog { get; set; }
     private bool _isFullScreen { get; set; }
     private CssProvider _cssProvider { get; set; }
 
@@ -827,232 +824,5 @@ public class LinuxPhotino : Photino
         }
 
         _syncContext.Send(_ => callback(), null);
-    }
-
-    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect,
-        List<PhotinoExFileFilter>? filterPatterns)
-    {
-        var dialog = FileDialog.New();
-        dialog.SetTitle(title);
-
-        var filter = FileFilter.New();
-        filter.Name = "FilterPatterns";
-        foreach (var s in filterPatterns ?? new List<PhotinoExFileFilter>())
-        {
-            filter.AddPattern(s.Spec); // *.txt
-        }
-
-        var results = new List<string>();
-
-        try
-        {
-            if (multiSelect)
-            {
-                var files = await dialog.OpenMultipleAsync(_window);
-
-                for (uint i = 0; i < files?.GetNItems(); i++)
-                {
-                    var item = files.GetObject(i) as File;
-                    if (item is null)
-                    {
-                        return results;
-                    }
-
-                    results.Add(item.GetPath()!);
-                }
-            }
-            else
-            {
-                var file = await dialog.OpenAsync(_window);
-
-                if (file is not null)
-                {
-                    var pathToUse = file.GetPath();
-                    results.Add(pathToUse!);
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
-
-        return results;
-    }
-
-    /// <summary>
-    /// TODO: GTK4 currently does not allow multiselect on folders. the api is there, just does not let me multiselect
-    /// </summary>
-    /// <param name="title"></param>
-    /// <param name="path"></param>
-    /// <param name="multiSelect"></param>
-    /// <returns></returns>
-    public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
-    {
-        var dialog = FileDialog.New();
-        dialog.SetTitle(title);
-
-        var results = new List<string>();
-
-        try
-        {
-            if (multiSelect)
-            {
-                var files = await dialog.SelectMultipleFoldersAsync(_window);
-
-                for (uint i = 0; i < files?.GetNItems(); i++)
-                {
-                    var item = files.GetObject(i) as File;
-                    if (item is null)
-                    {
-                        return results;
-                    }
-
-                    results.Add(item.GetPath()!);
-                }
-            }
-            else
-            {
-                var file = await dialog.SelectFolderAsync(_window);
-
-                if (file is not null)
-                {
-                    var pathToUse = file.GetPath();
-                    results.Add(pathToUse!);
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
-
-        return results;
-    }
-
-    public override async Task<string> ShowSaveFileAsync(string title, string? path, List<PhotinoExFileFilter>? filterPatterns,
-        string defaultExtension = ".txt", string defaultFileName = "PhotinoExFile")
-    {
-        var dialog = FileDialog.New();
-        dialog.SetTitle(title);
-
-        var filter = FileFilter.New();
-        filter.Name = "FilterPatterns";
-        foreach (var filters in filterPatterns ?? new List<PhotinoExFileFilter>())
-        {
-            filter.AddPattern(filters.Spec); // *.txt
-        }
-
-        File? file = null;
-        try
-        {
-            file = await dialog.SaveAsync(_window);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
-
-        if (file is null)
-        {
-            return "";
-        }
-
-        return file.GetPath()!;
-    }
-
-    public override async Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon)
-    {
-        var dialog = new MessageDialog();
-        dialog.SetTitle(title);
-        dialog.Text = text;
-        dialog.SetModal(true);
-        dialog.SetTransientFor(_window);
-
-        switch (buttons)
-        {
-            case DialogButtons.Ok:
-                {
-                    dialog.AddButton("Ok", (int) DialogResult.Ok);
-                    break;
-                }
-            case DialogButtons.OkCancel:
-                {
-                    dialog.AddButton("Ok", (int) DialogResult.Ok);
-                    dialog.AddButton("Cancel", (int) DialogResult.Cancel);
-                    break;
-                }
-            case DialogButtons.YesNo:
-                {
-                    dialog.AddButton("Yes", (int) DialogResult.Yes);
-                    dialog.AddButton("No", (int) DialogResult.No);
-                    break;
-                }
-            case DialogButtons.YesNoCancel:
-                {
-                    dialog.AddButton("Yes", (int) DialogResult.Yes);
-                    dialog.AddButton("No", (int) DialogResult.No);
-                    dialog.AddButton("Cancel", (int) DialogResult.Cancel);
-                    break;
-                }
-            case DialogButtons.RetryCancel:
-                {
-                    dialog.AddButton("Retry", (int) DialogResult.Retry);
-                    dialog.AddButton("Cancel", (int) DialogResult.Cancel);
-                    break;
-                }
-            case DialogButtons.AbortRetryIgnore:
-                {
-                    dialog.AddButton("Abort", (int) DialogResult.Abort);
-                    dialog.AddButton("Retry", (int) DialogResult.Retry);
-                    dialog.AddButton("Cancel", (int) DialogResult.Cancel);
-                    break;
-                }
-            default:
-                dialog.AddButton("Ok", (int) DialogResult.Ok);
-                break;
-        }
-
-        var tcs = new TaskCompletionSource<DialogResult>();
-
-        dialog.OnResponse += (_, args) =>
-        {
-            switch (args.ResponseId)
-            {
-                case (int) ResponseType.Close:
-                    tcs.SetResult(DialogResult.Cancel);
-                    break;
-                case (int) DialogResult.Ok:
-                    tcs.SetResult(DialogResult.Ok);
-                    break;
-                case (int) DialogResult.Yes:
-                    tcs.SetResult(DialogResult.Yes);
-                    break;
-                case (int) DialogResult.No:
-                    tcs.SetResult(DialogResult.No);
-                    break;
-                case (int) DialogResult.Cancel:
-                    tcs.SetResult(DialogResult.Cancel);
-                    break;
-                case (int) DialogResult.Abort:
-                    tcs.SetResult(DialogResult.Abort);
-                    break;
-                case (int) DialogResult.Retry:
-                    tcs.SetResult(DialogResult.Retry);
-                    break;
-                case (int) DialogResult.Ignore:
-                    tcs.SetResult(DialogResult.Ignore);
-                    break;
-                default:
-                    tcs.SetResult(DialogResult.Cancel);
-                    break;
-            }
-
-            dialog.Destroy();
-        };
-
-        dialog.Present();
-
-        return await tcs.Task;
     }
 }

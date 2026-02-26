@@ -6,9 +6,9 @@ using PhotinoExFileFilter = PhotinoEx.Core.Models.FileFilter;
 
 namespace PhotinoEx.Core;
 
-public class ApplePhotino : Photino
+public class MacOSPhotino : Photino
 {
-    public ApplePhotino(PhotinoInitParams initParams)
+    public MacOSPhotino(PhotinoInitParams initParams)
     {
         throw new NotImplementedException();
     }
@@ -304,26 +304,6 @@ public class ApplePhotino : Photino
     }
 
     public override void SetMinimizedCallback(Action callback)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<PhotinoExFileFilter>? filterPatterns)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override async Task<string> ShowSaveFileAsync(string title, string? path, List<PhotinoExFileFilter>? filterPatterns, string defaultExtension = ".txt", string defaultFileName = "PhotinoExFile")
-    {
-        throw new NotImplementedException();
-    }
-
-    public override async Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon)
     {
         throw new NotImplementedException();
     }
