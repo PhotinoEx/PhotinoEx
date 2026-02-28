@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 using PhotinoEx.Core.Models;
-using PhotinoEx.Core.Utils;
+using PhotinoEx.Core.Platform.Windows.Utils;
 
 namespace PhotinoEx.Core.Platform.Windows.Dialog;
 
@@ -47,7 +47,7 @@ public class WinPhotinoExDialog : IPhotinoExDialog
             if (!string.IsNullOrEmpty(path))
             {
                 var iid = typeof(IShellItem).GUID;
-                if (WinAPi.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem folder) == WinConstants.S_OK)
+                if (WinApi.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem folder) == WinConstants.S_OK)
                 {
                     dialog.SetFolder(folder);
                 }
@@ -98,7 +98,7 @@ public class WinPhotinoExDialog : IPhotinoExDialog
             if (!string.IsNullOrEmpty(path))
             {
                 var iid = typeof(IShellItem).GUID;
-                if (WinAPi.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem folder) == WinConstants.S_OK)
+                if (WinApi.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem folder) == WinConstants.S_OK)
                 {
                     dialog.SetFolder(folder);
                 }
@@ -171,7 +171,7 @@ public class WinPhotinoExDialog : IPhotinoExDialog
             if (!string.IsNullOrEmpty(path))
             {
                 var iid = typeof(IShellItem).GUID;
-                if (WinAPi.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem startFolder) == WinConstants.S_OK)
+                if (WinApi.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem startFolder) == WinConstants.S_OK)
                 {
                     dialog.SetFolder(startFolder);
                 }
@@ -241,7 +241,7 @@ public class WinPhotinoExDialog : IPhotinoExDialog
                 break;
         }
 
-        int result = WinAPi.MessageBoxW(_hwnd, text, title, flags);
+        int result = WinApi.MessageBoxW(_hwnd, text, title, flags);
 
         switch (result)
         {

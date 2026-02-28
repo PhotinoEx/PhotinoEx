@@ -1,19 +1,20 @@
 using System.Collections.Concurrent;
+using Gio;
 
 namespace PhotinoEx.Core.Platform.Linux.Tray;
 
 public class LinPhotinoExTray : IPhotinoExTray
 {
     private ConcurrentDictionary<string, IPhotinoExTrayIcon> _iconList { get; set; } = new();
-    private IntPtr _busConnection { get; set; }
+    private DBusConnection _busConnection { get; set; }
     private int _instanceCount { get; set; }
 
-    public LinPhotinoExTray(IntPtr connection)
+    public LinPhotinoExTray(DBusConnection connection)
     {
         _busConnection = connection;
     }
 
-    public Task<IPhotinoExTrayIcon> CreateTrayIconAsync(string id, string iconPath, string? toolTip = null, object? menu = null)
+    public async Task<IPhotinoExTrayIcon> CreateTrayIconAsync(string id, string iconPath, string? toolTip = null, object? menu = null)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -30,7 +31,7 @@ public class LinPhotinoExTray : IPhotinoExTray
         _iconList.TryAdd(id, trayIcon);
         Console.WriteLine($"Created and added {id} to tray");
 
-        return Task.FromResult<IPhotinoExTrayIcon>(trayIcon);
+        return trayIcon;
     }
 
     public bool TryGetTrayIcon(string id, out IPhotinoExTrayIcon? icon)

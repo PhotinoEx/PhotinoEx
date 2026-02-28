@@ -1,8 +1,10 @@
+using Gio;
+
 namespace PhotinoEx.Core.Platform.Linux.Tray;
 
 public class LinPhotinoExTrayIcon : IPhotinoExTrayIcon
 {
-    private IntPtr _connection { get; set; }
+    private DBusConnection _connection { get; set; }
     private string _id { get; set; }
     private string _iconPath { get; set; }
     private string? _toolTip { get; set; }
@@ -10,7 +12,7 @@ public class LinPhotinoExTrayIcon : IPhotinoExTrayIcon
     private bool _isVisible { get; set; } = true;
     private string _busName { get; set; }
 
-    public LinPhotinoExTrayIcon(IntPtr connection, string id, string iconPath, string? toolTip, object? menu, int instance)
+    public LinPhotinoExTrayIcon(DBusConnection connection, string id, string iconPath, string? toolTip, object? menu, int instance)
     {
         _connection = connection;
         _id = id;

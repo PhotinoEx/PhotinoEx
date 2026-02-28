@@ -11,6 +11,7 @@ using GObject;
 using Gtk;
 using PhotinoEx.Core.Models;
 using PhotinoEx.Core.Platform.Linux.Dialog;
+using PhotinoEx.Core.Platform.Linux.Tray;
 using WebKit;
 using Action = System.Action;
 using Application = Gtk.Application;
@@ -161,6 +162,7 @@ public class LinPhotinoEx : PhotinoEx
         _window = ApplicationWindow.New((Application) sender);
         _window!.SetChild(_webView);
         Dialog = new LinuxPhotinoExDialog(_window);
+        Tray = new LinPhotinoExTray(_application.GetDbusConnection()!);
 
         if (_params.FullScreen)
         {
