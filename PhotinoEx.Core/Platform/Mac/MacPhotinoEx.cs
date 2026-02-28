@@ -1,9 +1,9 @@
-using Point = System.Drawing.Point;
 using PhotinoEx.Core.Models;
+using Point = System.Drawing.Point;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
 
-namespace PhotinoEx.Core.Platform.MacOS;
+namespace PhotinoEx.Core.Platform.Mac;
 
 public class MacPhotinoEx : PhotinoEx
 {

@@ -1936,6 +1936,7 @@ public class PhotinoExWindow
         return this;
     }
 
+    public async Task<PhotinoExWindow> ActivateTrayAndIcon()
     /// <summary>
     /// Sets <see cref="PhotinoExWindow.UserAgent"/>. Sets the user agent on the browser control at initialization.
     /// </summary>
