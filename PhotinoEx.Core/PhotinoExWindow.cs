@@ -779,7 +779,9 @@ public class PhotinoExWindow
             }
 
             Point position = default;
+
             Invoke(() => position = _instance.GetPosition());
+
             return position;
         }
         set
@@ -1937,6 +1939,15 @@ public class PhotinoExWindow
     }
 
     public async Task<PhotinoExWindow> ActivateTrayAndIcon()
+    {
+        if (_iconFile != null)
+        {
+            await _instance!.Tray!.CreateTrayIconAsync("com.example.photinoex", _iconFile);
+        }
+
+        return this;
+    }
+
     /// <summary>
     /// Sets <see cref="PhotinoExWindow.UserAgent"/>. Sets the user agent on the browser control at initialization.
     /// </summary>

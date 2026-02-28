@@ -1,9 +1,9 @@
 using System.Runtime.InteropServices;
 using PhotinoEx.Core.Models;
 
-namespace PhotinoEx.Core.Utils;
+namespace PhotinoEx.Core.Platform.Windows.Utils;
 
-internal static class WinAPi
+internal static class WinApi
 {
     #region GDI
 

@@ -1,6 +1,4 @@
-using System.Runtime.InteropServices;
-
-namespace PhotinoEx.Core.Utils;
+namespace PhotinoEx.Core.Platform.Windows.Utils;
 
 internal class WinConstants
 {

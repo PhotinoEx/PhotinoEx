@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using PhotinoEx.Core.Models;
 using PhotinoEx.Core.Platform;
 using PhotinoEx.Core.Platform.Linux;
-using PhotinoEx.Core.Platform.MacOS;
+using PhotinoEx.Core.Platform.Mac;
 using PhotinoEx.Core.Platform.Windows;
 
 namespace PhotinoEx.Core;

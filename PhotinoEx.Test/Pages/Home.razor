@@ -13,6 +13,7 @@
 <button @onclick="FullscreenRestore">Fullscreen and restore</button>
 <button @onclick="CheckDevTools">Check Dev Tools</button>
 <button @onclick="TopMost">Check Top Most</button>
+<button @onclick="CallTray">Call Tray Test</button>
 
 @code {
 
@@ -100,5 +101,11 @@
         Program.App!.MainWindow.SetTopMost(false);
         await Task.Delay(2000);
         Console.WriteLine($"Topmost: {Program.App!.MainWindow.Topmost}");
+    }
+
+    private async Task CallTray()
+    {
+        Console.WriteLine($"Calling tray test method");
+        await Program.App!.MainWindow.ActivateTrayAndIcon();
     }
 }

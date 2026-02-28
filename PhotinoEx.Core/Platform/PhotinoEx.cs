@@ -46,6 +46,7 @@ public abstract class PhotinoEx
 
     protected PhotinoEx? _parent { get; set; }
     public IPhotinoExDialog? Dialog { get; set; }
+    public IPhotinoExTray? Tray { get; set; }
 
     public bool ContextMenuEnabled { get; set; }
     public int MinWidth { get; set; }
