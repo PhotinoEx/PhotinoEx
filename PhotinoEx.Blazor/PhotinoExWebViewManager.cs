@@ -29,11 +29,13 @@ public class PhotinoExWebViewManager : WebViewManager
     // because webview2 won't let you do top-level navigation to such a URL.
     // On Linux/Mac, we must use a custom scheme, because their webviews
     // don't have a way to intercept http:// scheme requests.
-    public static readonly string BlazorAppScheme = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-        ? "http"
-        : "app";
-
-    public static readonly string AppBaseUri = $"{BlazorAppScheme}://localhost/";
+    public static Uri CreateAppBaseUri(string applicationId)
+    {
+        var id = PhotinoExApplicationIdentity.Normalize(applicationId);
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? new Uri($"http://{id}.localhost/")
+            : new Uri($"app-{id}://localhost/");
+    }
 
     public PhotinoExWebViewManager(PhotinoExWindow exWindow, IServiceProvider provider, Dispatcher dispatcher,
         IFileProvider fileProvider, JSComponentConfigurationStore jsComponents, IOptions<PhotinoExBlazorAppConfiguration> config)
@@ -82,7 +84,7 @@ public class PhotinoExWebViewManager : WebViewManager
             url = url.Substring(0, url.IndexOf('?'));
         }
 
-        if (url.StartsWith(AppBaseUri, StringComparison.Ordinal)
+        if (url.StartsWith(_appBaseUri.AbsoluteUri, StringComparison.OrdinalIgnoreCase)
             && TryGetResponseContent(url, !hasFileExtension, out var statusCode, out var statusMessage,
                 out var content, out var headers))
         {

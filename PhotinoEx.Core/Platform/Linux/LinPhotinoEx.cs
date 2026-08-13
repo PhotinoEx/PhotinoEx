@@ -104,7 +104,9 @@ public class LinPhotinoEx : PhotinoEx
         }
 
         _parent = _params.ParentInstance;
-        _application = Application.New($"com.photinoex.App", ApplicationFlags.FlagsNone);
+        _application = Application.New(
+            PhotinoExApplicationIdentity.GetLinuxApplicationId(_params.ApplicationId),
+            ApplicationFlags.FlagsNone);
         Tray = new LinPhotinoExTray();
         WebKit.Module.Initialize();
 

@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
 using PhotinoEx.Core;
+using Microsoft.Extensions.Options;
 
 namespace PhotinoEx.Blazor;
 
@@ -23,6 +24,9 @@ public class PhotinoExBlazorApp
         RootComponents = Services.GetRequiredService<BlazorWindowRootComponents>();
         MainWindow = Services.GetRequiredService<PhotinoExWindow>();
         WindowManager = Services.GetRequiredService<PhotinoExWebViewManager>();
+        var config = Services.GetRequiredService<IOptions<PhotinoExBlazorAppConfiguration>>().Value;
+
+        MainWindow.ApplicationId = config.ApplicationId;
 
         MainWindow
             .SetTitle("PhotinoEx.Blazor App")
@@ -30,7 +34,7 @@ public class PhotinoExBlazorApp
             .SetWidth(1000)
             .SetHeight(900);
 
-        MainWindow.RegisterCustomSchemeHandler(PhotinoExWebViewManager.BlazorAppScheme, HandleWebRequest);
+        MainWindow.RegisterCustomSchemeHandler(config.AppBaseUri.Scheme, HandleWebRequest);
 
         foreach (var component in rootComponents)
         {

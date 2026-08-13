@@ -73,7 +73,7 @@ Clipboard operations are part of the platform contract and are exposed through `
 
 ## Blazor layer
 
-`PhotinoExBlazorAppBuilder` is the composition entry point. `CreateDefault()` registers the Blazor desktop services; consumers add root components and optional services, then call `Build()`.
+`PhotinoExBlazorAppBuilder` is the composition entry point. `CreateDefault()` registers the Blazor desktop services; consumers add root components and optional services, then call `Build()`. Applications should pass a stable reverse-domain identity, for example `CreateDefault("com.example.myapp")`. When omitted, the entry assembly name is used.
 
 `PhotinoExServiceCollectionExtensions.AddBlazorDesktop()` registers:
 
@@ -90,10 +90,12 @@ Clipboard operations are part of the platform contract and are exposed through `
 
 `PhotinoExWebViewManager` derives from ASP.NET Core's `WebViewManager`. It resolves requests against the configured file provider and serves `index.html`, framework assets, application assets, and fallback routes without starting a web server.
 
-The local origin differs by platform:
+The local origin includes the application identity so separately installed PhotinoEx applications do not share an origin:
 
-- Windows uses `http://localhost/` because WebView2 cannot perform top-level navigation to the custom scheme used here.
-- Linux and macOS use `app://localhost/` because their webviews do not intercept HTTP requests in the same way.
+- Windows uses `http://{applicationId}.localhost/` because WebView2 cannot perform top-level navigation to the custom scheme used here.
+- Linux and macOS use `app-{applicationId}://localhost/` because their webviews do not intercept HTTP requests in the same way.
+
+The same identity isolates the Windows WebView2 data directory and notification registration ID. On Linux it is also used as the GTK application ID. Explicitly configured data paths and notification IDs are preserved.
 
 The test application copies `wwwroot` to its output directory, where the default physical file provider can serve it.
 

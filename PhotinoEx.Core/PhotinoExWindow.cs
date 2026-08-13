@@ -16,8 +16,14 @@ public class PhotinoExWindow
     /// <summary>
     /// Parameters sent to Photino.Native to start a new instance of a Photino.Native window.
     /// </summary>
-    private PhotinoExInitParams _startupParameters = new()
+    private PhotinoExInitParams _startupParameters = CreateDefaultStartupParameters();
+
+    private static PhotinoExInitParams CreateDefaultStartupParameters()
     {
+        var applicationId = PhotinoExApplicationIdentity.DefaultId;
+        return new PhotinoExInitParams
+        {
+        ApplicationId = applicationId,
         Resizable = true,
         ContextMenuEnabled = true,
         CustomSchemeNames = new(),
@@ -33,14 +39,16 @@ public class PhotinoExWindow
         IgnoreCertificateErrorsEnabled = false,
         NotificationsEnabled = true,
         TemporaryFilesPath = IsWindowsPlatform
-            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PhotinoEx")
+            ? PhotinoExApplicationIdentity.GetWindowsDataPath(applicationId)
             : null,
+        NotificationRegistrationId = applicationId,
         Title = "PhotinoEx",
         UseOsDefaultSize = true,
         Zoom = 100,
         MaxHeight = int.MaxValue,
         MaxWidth = int.MaxValue,
-    };
+        };
+    }
 
     private Platform.PhotinoEx? _instance;
     private readonly int _managedThreadId;
@@ -51,6 +59,41 @@ public class PhotinoExWindow
     #endregion
 
     #region Get Properties
+
+    /// <summary>
+    /// Gets or sets the stable identity used to isolate application-owned native resources.
+    /// </summary>
+    public string ApplicationId
+    {
+        get => _startupParameters.ApplicationId;
+        set
+        {
+            if (_instance is not null)
+            {
+                throw new ApplicationException($"{nameof(ApplicationId)} cannot be changed after Photino Window is initialized");
+            }
+
+            var oldId = _startupParameters.ApplicationId;
+            var normalized = PhotinoExApplicationIdentity.Normalize(value);
+            if (oldId == normalized)
+            {
+                return;
+            }
+
+            if (_startupParameters.NotificationRegistrationId == oldId)
+            {
+                _startupParameters.NotificationRegistrationId = normalized;
+            }
+
+            if (IsWindowsPlatform
+                && _startupParameters.TemporaryFilesPath == PhotinoExApplicationIdentity.GetWindowsDataPath(oldId))
+            {
+                _startupParameters.TemporaryFilesPath = PhotinoExApplicationIdentity.GetWindowsDataPath(normalized);
+            }
+
+            _startupParameters.ApplicationId = normalized;
+        }
+    }
 
     /// <summary>
     /// Indicates whether the current platform is Windows.
@@ -2101,6 +2144,13 @@ public class PhotinoExWindow
     {
         Log($".SetNotificationRegistrationId({notificationRegistrationId})");
         NotificationRegistrationId = notificationRegistrationId;
+        return this;
+    }
+
+    /// <summary>Sets the stable identity used to isolate application-owned native resources.</summary>
+    public PhotinoExWindow SetApplicationId(string applicationId)
+    {
+        ApplicationId = applicationId;
         return this;
     }
 

@@ -11,13 +11,19 @@ namespace PhotinoEx.Blazor;
 
 public static class PhotinoExServiceCollectionExtensions
 {
-    public static IServiceCollection AddBlazorDesktop(this IServiceCollection services, IFileProvider? fileProvider = null)
+    public static IServiceCollection AddBlazorDesktop(
+        this IServiceCollection services,
+        IFileProvider? fileProvider = null,
+        string? applicationId = null)
     {
+        var id = PhotinoExApplicationIdentity.Normalize(applicationId ?? PhotinoExApplicationIdentity.DefaultId);
+        var appBaseUri = PhotinoExWebViewManager.CreateAppBaseUri(id);
         services
             .AddOptions<PhotinoExBlazorAppConfiguration>()
             .Configure(opts =>
             {
-                opts.AppBaseUri = new Uri(PhotinoExWebViewManager.AppBaseUri);
+                opts.ApplicationId = id;
+                opts.AppBaseUri = appBaseUri;
                 opts.HostPage = "index.html";
             });
 
@@ -27,7 +33,7 @@ public static class PhotinoExServiceCollectionExtensions
                 var handler = sp.GetRequiredService<PhotinoExHttpHandler>();
                 return new HttpClient(handler)
                 {
-                    BaseAddress = new Uri(PhotinoExWebViewManager.AppBaseUri)
+                    BaseAddress = appBaseUri
                 };
             })
             .AddSingleton(sp =>

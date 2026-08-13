@@ -39,6 +39,54 @@ public sealed class PhotinoExWindowTests
     }
 
     [Fact]
+    public void ApplicationIdentityIsValidatedAndNormalised()
+    {
+        Assert.Equal("com.example.my-app", PhotinoExApplicationIdentity.Normalize(" COM.Example.My-App "));
+        Assert.Equal("com.photinoex.myapp", PhotinoExApplicationIdentity.GetLinuxApplicationId("myapp"));
+        Assert.Throws<ArgumentException>(() => PhotinoExApplicationIdentity.Normalize("not valid"));
+    }
+
+    [Fact]
+    public void ApplicationIdentityIsolatesDerivedWindowDefaults()
+    {
+        var window = new PhotinoExWindow();
+
+        window.ApplicationId = "com.example.one";
+
+        Assert.Equal("com.example.one", window.ApplicationId);
+        Assert.Equal("com.example.one", window.NotificationRegistrationId);
+        if (PhotinoExWindow.IsWindowsPlatform)
+        {
+            Assert.EndsWith(Path.Combine("PhotinoEx", "com.example.one"), window.TemporaryFilesPath);
+        }
+    }
+
+    [Fact]
+    public void ApplicationIdentityDoesNotReplaceExplicitWindowSettings()
+    {
+        var window = new PhotinoExWindow
+        {
+            NotificationRegistrationId = "custom-notifications",
+            TemporaryFilesPath = "custom-profile"
+        };
+
+        window.ApplicationId = "com.example.two";
+
+        Assert.Equal("custom-notifications", window.NotificationRegistrationId);
+        Assert.Equal("custom-profile", window.TemporaryFilesPath);
+    }
+
+    [Fact]
+    public void ApplicationIdentityCreatesAnIsolatedBlazorOrigin()
+    {
+        var first = PhotinoExWebViewManager.CreateAppBaseUri("com.example.one");
+        var second = PhotinoExWebViewManager.CreateAppBaseUri("com.example.two");
+
+        Assert.NotEqual(first, second);
+        Assert.Equal(first.Scheme == "http" ? "com.example.one.localhost" : "localhost", first.Host);
+    }
+
+    [Fact]
     public void ParentAndIdsAreTracked()
     {
         var parent = new PhotinoExWindow();

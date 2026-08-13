@@ -4,6 +4,7 @@ namespace PhotinoEx.Core.Models;
 
 public class PhotinoExInitParams
 {
+    public string ApplicationId { get; set; } = "";
     public string StartString { get; set; } = "";
     public string StartUrl { get; set; } = "";
     public string Title { get; set; } = "";
