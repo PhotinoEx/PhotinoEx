@@ -4,6 +4,7 @@ namespace PhotinoEx.Core.Models;
 
 public class PhotinoExInitParams
 {
+    public string ApplicationId { get; set; } = "";
     public string StartString { get; set; } = "";
     public string StartUrl { get; set; } = "";
     public string Title { get; set; } = "";
@@ -24,6 +25,8 @@ public class PhotinoExInitParams
     public Action? MinimizedHandler { get; set; }
     public Action<int, int>? MovedHandler { get; set; }
     public Action<string>? WebMessageRecievedHandler { get; set; }
+    public Action<Uri?, string>? WebMessageReceivedWithSourceHandler { get; set; }
+    public Action<FilesDroppedEventArgs>? FilesDroppedHandler { get; set; }
     public List<string>? CustomSchemeNames;
     public WebResourceRequestedCallback? CustomSchemeHandler { get; set; }
 

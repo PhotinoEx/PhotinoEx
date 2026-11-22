@@ -1,12 +1,15 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Win32;
 using PhotinoEx.Core.Models;
+using PhotinoEx.Core.Platform.Windows.FileDragDrop;
 using PhotinoEx.Core.Platform.Windows.Dialog;
+using PhotinoEx.Core.Platform.Windows.Tray;
 using PhotinoEx.Core.Platform.Windows.Utils;
 using Monitor = PhotinoEx.Core.Models.Monitor;
 using Size = System.Drawing.Size;
@@ -17,6 +20,10 @@ namespace PhotinoEx.Core.Platform.Windows;
 [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
 public class WinPhotinoEx : PhotinoEx
 {
+    private const uint CfUnicodeText = 13;
+    private const uint CfHDrop = 15;
+    private const uint GmemMoveable = 0x0002;
+    private readonly WinApi.WndProcDelegate _windowProc;
     private IntPtr _hInstance { get; set; }
     private IntPtr _hwnd { get; set; }
     public CoreWebView2Environment? WebViewEnvironment { get; private set; }
@@ -28,12 +35,14 @@ public class WinPhotinoEx : PhotinoEx
     private SynchronizationContext _syncContext { get; set; }
     private bool _windowsThemeIsDark { get; set; }
     private const uint WM_USER_INVOKE = (WinConstants.WM_USER + 0x0002);
+    private const uint WM_USER_POST = (WinConstants.WM_USER + 0x0003);
     private IntPtr messageLoopRootWindowHandle;
     private Dictionary<IntPtr, WinPhotinoEx> HWNDToPhotino = [];
     private string? _webview2RuntimePath;
 
     public WinPhotinoEx(PhotinoExInitParams exInitParams)
     {
+        _windowProc = WindowProc;
         darkBrush = WinApi.CreateSolidBrush(RGB(0, 0, 0));
         lightBrush = WinApi.CreateSolidBrush(RGB(255, 255, 255));
 
@@ -69,6 +78,8 @@ public class WinPhotinoEx : PhotinoEx
         MaxHeight = _params.MaxHeight;
 
         _WebMessageReceivedCallback = _params.WebMessageRecievedHandler;
+        _WebMessageReceivedWithSourceCallback = _params.WebMessageReceivedWithSourceHandler;
+        _filesDroppedCallback = _params.FilesDroppedHandler;
         _resizedCallback = _params.ResizedHandler;
         _movedCallback = _params.MovedHandler;
         _closingCallback = _params.ClosingHandler;
@@ -90,6 +101,7 @@ public class WinPhotinoEx : PhotinoEx
         }
 
         _parent = _params.ParentInstance;
+        Tray = new WinPhotinoExTray();
 
         if (_params.UseOsDefaultSize)
         {
@@ -186,7 +198,7 @@ public class WinPhotinoEx : PhotinoEx
             IntPtr.Zero
         );
 
-        Dialog = new WinPhotinoExDialog(_hwnd);
+        Dialog = new WinPhotinoExDialog(_hwnd, Post);
         SetAppTheme(_windowsThemeIsDark);
         SetBackdropTheme();
 
@@ -198,6 +210,7 @@ public class WinPhotinoEx : PhotinoEx
         }
 
         HWNDToPhotino.Add(_hwnd, this);
+        WinApi.DragAcceptFiles(_hwnd, true);
 
         if (!string.IsNullOrEmpty(_params.WindowIconFile))
         {
@@ -227,6 +240,129 @@ public class WinPhotinoEx : PhotinoEx
         Show(_params.Minimized || _params.Maximized);
     }
 
+    public override void SetClipboardText(string text)
+    {
+        var bytes = Encoding.Unicode.GetBytes(text + '\0');
+        SetClipboardData(CfUnicodeText, bytes);
+    }
+
+    public override void SetClipboardFiles(IReadOnlyList<string> paths)
+    {
+        var bytes = Encoding.Unicode.GetBytes(string.Join('\0', paths) + "\0\0");
+        SetClipboardData(CfHDrop, bytes, 20, header =>
+        {
+            Marshal.WriteInt32(header, 0, 20);
+            Marshal.WriteInt32(header, 4, 0);
+            Marshal.WriteInt32(header, 8, 0);
+            Marshal.WriteInt32(header, 12, 0);
+            Marshal.WriteInt32(header, 16, 1);
+        });
+    }
+
+    public override Task<FileDragDropEffects> BeginFileDragAsync(
+        IReadOnlyList<string> paths,
+        FileDragDropEffects allowedEffects,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = WinApi.DoDragDrop(
+            new WinFileDataObject(paths),
+            new WinDropSource(cancellationToken),
+            (uint)allowedEffects,
+            out var performedEffect
+        );
+
+        const int dragDropDrop = 0x00040100;
+        const int dragDropCancel = 0x00040101;
+        if (result == dragDropCancel)
+        {
+            return Task.FromResult(FileDragDropEffects.None);
+        }
+
+        if (result != dragDropDrop)
+        {
+            Marshal.ThrowExceptionForHR(result);
+        }
+
+        return Task.FromResult((FileDragDropEffects)performedEffect);
+    }
+
+    private void SetClipboardData(
+        uint format,
+        byte[] bytes,
+        int headerSize = 0,
+        Action<IntPtr>? initializeHeader = null
+    )
+    {
+        var memory = WinApi.GlobalAlloc(GmemMoveable, (UIntPtr)(headerSize + bytes.Length));
+        if (memory == IntPtr.Zero)
+        {
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+
+        var transferred = false;
+        try
+        {
+            var target = WinApi.GlobalLock(memory);
+            if (target == IntPtr.Zero)
+            {
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+
+            try
+            {
+                initializeHeader?.Invoke(target);
+                Marshal.Copy(bytes, 0, target + headerSize, bytes.Length);
+            }
+            finally
+            {
+                WinApi.GlobalUnlock(memory);
+            }
+
+            if (!TryOpenClipboard())
+            {
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+
+            try
+            {
+                if (!WinApi.EmptyClipboard() || WinApi.SetClipboardData(format, memory) == IntPtr.Zero)
+                {
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
+                }
+
+                transferred = true;
+            }
+            finally
+            {
+                WinApi.CloseClipboard();
+            }
+        }
+        finally
+        {
+            if (!transferred)
+            {
+                WinApi.GlobalFree(memory);
+            }
+        }
+    }
+
+    private bool TryOpenClipboard()
+    {
+        for (var attempt = 0; attempt < 10; attempt++)
+        {
+            if (WinApi.OpenClipboard(_hwnd))
+            {
+                return true;
+            }
+
+            Thread.Sleep(10);
+        }
+
+        return false;
+    }
+
     private void SetBackdropTheme()
     {
         var backdrop = (int) WindowBackdropType.Mica;
@@ -242,7 +378,7 @@ public class WinPhotinoEx : PhotinoEx
         {
             cbSize = (uint) Marshal.SizeOf(typeof(WndClassEx)),
             style = WinConstants.CS_HREDRAW | WinConstants.CS_VREDRAW,
-            lpfnWndProc = Marshal.GetFunctionPointerForDelegate(new WinApi.WndProcDelegate(WindowProc)),
+            lpfnWndProc = Marshal.GetFunctionPointerForDelegate(_windowProc),
             cbClsExtra = 0,
             cbWndExtra = 0,
             hInstance = _hInstance,
@@ -295,6 +431,22 @@ public class WinPhotinoEx : PhotinoEx
 
                     break;
                 }
+            case WinConstants.WM_DROPFILES:
+                {
+                    try
+                    {
+                        if (HWNDToPhotino.TryGetValue(hwnd, out var photino))
+                        {
+                            photino.HandleFilesDropped(wParam);
+                        }
+                    }
+                    finally
+                    {
+                        WinApi.DragFinish(wParam);
+                    }
+
+                    return 0;
+                }
             case WinConstants.WM_ACTIVATE:
                 {
                     if (HWNDToPhotino.TryGetValue(hwnd, out var photino))
@@ -344,6 +496,20 @@ public class WinPhotinoEx : PhotinoEx
                     var callback = (Action) callbackHandle.Target!;
 
                     callback?.Invoke();
+
+                    return IntPtr.Zero;
+                }
+            case WM_USER_POST:
+                {
+                    var callbackHandle = GCHandle.FromIntPtr(wParam);
+                    try
+                    {
+                        ((Action) callbackHandle.Target!).Invoke();
+                    }
+                    finally
+                    {
+                        callbackHandle.Free();
+                    }
 
                     return IntPtr.Zero;
                 }
@@ -444,6 +610,25 @@ public class WinPhotinoEx : PhotinoEx
         }
 
         return WinApi.DefWindowProc(hwnd, msg, wParam, lParam);
+    }
+
+    private void HandleFilesDropped(IntPtr drop)
+    {
+        var fileCount = WinApi.DragQueryFile(drop, uint.MaxValue, null, 0);
+        var paths = new string[fileCount];
+
+        for (uint index = 0; index < fileCount; index++)
+        {
+            var pathLength = WinApi.DragQueryFile(drop, index, null, 0);
+            var path = new StringBuilder(checked((int) pathLength + 1));
+            WinApi.DragQueryFile(drop, index, path, (uint) path.Capacity);
+            paths[index] = path.ToString();
+        }
+
+        WinApi.DragQueryPoint(drop, out var point);
+        InvokeFilesDropped(
+            new FilesDroppedEventArgs(paths, FileDragDropEffects.Copy, point.X, point.Y)
+        );
     }
 
     private uint RGB(byte r, byte g, byte b)
@@ -582,6 +767,7 @@ public class WinPhotinoEx : PhotinoEx
         options.AdditionalBrowserArguments = sb.ToString();
         WebViewEnvironment = await CoreWebView2Environment.CreateAsync(runtimePath, _temporaryFilesPath, options);
         WebViewController = await WebViewEnvironment.CreateCoreWebView2ControllerAsync(_hwnd);
+        WebViewController.AllowExternalDrop = true;
         WebViewWindow = WebViewController.CoreWebView2;
 
         var settings = WebViewWindow.Settings;
@@ -591,11 +777,29 @@ public class WinPhotinoEx : PhotinoEx
         settings.IsWebMessageEnabled = true;
 
         await WebViewWindow.AddScriptToExecuteOnDocumentCreatedAsync(
-            "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener(\'message\', function(e) { callback(e.data); }); } };");
+            "window.external = { sendMessage: function(message) { window.chrome.webview.postMessage(message); }, receiveMessage: function(callback) { window.chrome.webview.addEventListener('message', function(e) { callback(e.data); }); } };"
+            + "document.addEventListener('dragover', function(e) { if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }, true);"
+            + "document.addEventListener('drop', function(e) { var files = e.dataTransfer ? Array.from(e.dataTransfer.files) : []; if (files.length) { e.preventDefault(); e.stopPropagation(); window.chrome.webview.postMessageWithAdditionalObjects('__photino_files_dropped__', files); } }, true);"
+        );
         WebViewWindow.WebMessageReceived += (_, args) =>
         {
             // Console.WriteLine(args.TryGetWebMessageAsString());
             var message = args.TryGetWebMessageAsString();
+            if (message == "__photino_files_dropped__")
+            {
+                var paths = args.AdditionalObjects
+                    .OfType<CoreWebView2File>()
+                    .Select(file => file.Path)
+                    .ToArray();
+                if (paths.Length > 0)
+                {
+                    _filesDroppedCallback?.Invoke(
+                        new FilesDroppedEventArgs(paths, FileDragDropEffects.Copy, 0, 0)
+                    );
+                }
+                return;
+            }
+            _WebMessageReceivedWithSourceCallback?.Invoke(new Uri(args.Source), message);
             _WebMessageReceivedCallback?.Invoke(message);
         };
 
@@ -671,6 +875,7 @@ public class WinPhotinoEx : PhotinoEx
         RefitContent();
         FocusWebView2();
     }
+
 
     public void Show(bool isAlreadyShown)
     {
@@ -1183,6 +1388,8 @@ public class WinPhotinoEx : PhotinoEx
             WinApi.TranslateMessage(ref msg);
             WinApi.DispatchMessage(ref msg);
         }
+
+        GC.KeepAlive(_windowProc);
     }
 
     public override void AddCustomSchemeName(string scheme)
@@ -1250,6 +1457,16 @@ public class WinPhotinoEx : PhotinoEx
         finally
         {
             callbackHandle.Free();
+        }
+    }
+
+    private void Post(Action callback)
+    {
+        var callbackHandle = GCHandle.Alloc(callback);
+        if (!WinApi.PostMessage(_hwnd, WM_USER_POST, GCHandle.ToIntPtr(callbackHandle), IntPtr.Zero))
+        {
+            callbackHandle.Free();
+            throw new InvalidOperationException("Could not post work to the window message loop.");
         }
     }
 }

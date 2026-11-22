@@ -1,26 +1,36 @@
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using PhotinoEx.Core.Models;
 using PhotinoEx.Core.Platform.Windows.Utils;
 
 namespace PhotinoEx.Core.Platform.Windows.Dialog;
 
+[SupportedOSPlatform("windows")]
 public class WinPhotinoExDialog : IPhotinoExDialog
 {
     private IntPtr _hwnd { get; set; }
+    private readonly Action<Action> _post;
 
-    public WinPhotinoExDialog(IntPtr hwnd)
+    // Native modal dialogs must be posted after the current WebView2 callback returns;
+    // opening one inside the callback can trigger WebView2's reentrancy timeout and terminate the process.
+    // https://github.com/MicrosoftEdge/WebView2Feedback/issues/4734
+    public WinPhotinoExDialog(IntPtr hwnd, Action<Action> post)
     {
         _hwnd = hwnd;
+        _post = post;
     }
 
-    public async Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<FileFilter>? filterPatterns)
+    public Task<List<string>> ShowOpenFileAsync(string title, string? path, bool multiSelect, List<FileFilter>? filterPatterns) =>
+        Defer(() => ShowOpenFile(title, path, multiSelect, filterPatterns));
+
+    private List<string> ShowOpenFile(string title, string? path, bool multiSelect, List<FileFilter>? filterPatterns)
     {
-        var dialog = (IFileOpenDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(WinConstants.CLSID_FileOpenDialog));
+        var dialog = CreateDialog<IFileOpenDialog>(WinConstants.CLSID_FileOpenDialog);
         var result = new List<string>();
 
         try
         {
-            dialog!.GetOptions(out uint options);
+            dialog.GetOptions(out uint options);
             options |= WinConstants.FOS_FILEMUSTEXIST | WinConstants.FOS_FORCEFILESYSTEM | WinConstants.FOS_PATHMUSTEXIST;
             if (multiSelect)
             {
@@ -46,11 +56,7 @@ public class WinPhotinoExDialog : IPhotinoExDialog
 
             if (!string.IsNullOrEmpty(path))
             {
-                var iid = typeof(IShellItem).GUID;
-                if (WinApi.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem folder) == WinConstants.S_OK)
-                {
-                    dialog.SetFolder(folder);
-                }
+                SetInitialFolder(path, dialog.SetFolder);
             }
 
             var hr = dialog.Show(_hwnd);
@@ -78,14 +84,17 @@ public class WinPhotinoExDialog : IPhotinoExDialog
         }
     }
 
-    public async Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect)
+    public Task<List<string>> ShowOpenFolderAsync(string title, string? path, bool multiSelect) =>
+        Defer(() => ShowOpenFolder(title, path, multiSelect));
+
+    private List<string> ShowOpenFolder(string title, string? path, bool multiSelect)
     {
-        var dialog = (IFileOpenDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(WinConstants.CLSID_FileOpenDialog));
+        var dialog = CreateDialog<IFileOpenDialog>(WinConstants.CLSID_FileOpenDialog);
         var result = new List<string>();
 
         try
         {
-            dialog!.GetOptions(out uint options);
+            dialog.GetOptions(out uint options);
             options |= WinConstants.FOS_PICKFOLDERS | WinConstants.FOS_FORCEFILESYSTEM | WinConstants.FOS_PATHMUSTEXIST;
             if (multiSelect)
             {
@@ -97,11 +106,7 @@ public class WinPhotinoExDialog : IPhotinoExDialog
 
             if (!string.IsNullOrEmpty(path))
             {
-                var iid = typeof(IShellItem).GUID;
-                if (WinApi.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem folder) == WinConstants.S_OK)
-                {
-                    dialog.SetFolder(folder);
-                }
+                SetInitialFolder(path, dialog.SetFolder);
             }
 
             var hr = dialog.Show(_hwnd);
@@ -129,14 +134,18 @@ public class WinPhotinoExDialog : IPhotinoExDialog
         }
     }
 
-    public async Task<string> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns, string defaultExtension = "txt",
-        string defaultFileName = "PhotinoExFile")
+    public Task<string> ShowSaveFileAsync(string title, string? path, List<FileFilter>? filterPatterns, string defaultExtension = "txt",
+        string defaultFileName = "PhotinoExFile") =>
+        Defer(() => ShowSaveFile(title, path, filterPatterns, defaultExtension, defaultFileName));
+
+    private string ShowSaveFile(string title, string? path, List<FileFilter>? filterPatterns, string defaultExtension,
+        string defaultFileName)
     {
-        var dialog = (IFileSaveDialog) Activator.CreateInstance(Type.GetTypeFromCLSID(WinConstants.CLSID_FileSaveDialog));
+        var dialog = CreateDialog<IFileSaveDialog>(WinConstants.CLSID_FileSaveDialog);
 
         try
         {
-            dialog!.GetOptions(out uint options);
+            dialog.GetOptions(out uint options);
             options |= WinConstants.FOS_FORCEFILESYSTEM | WinConstants.FOS_PATHMUSTEXIST | WinConstants.FOS_OVERWRITEPROMPT;
             dialog.SetOptions(options);
 
@@ -170,18 +179,14 @@ public class WinPhotinoExDialog : IPhotinoExDialog
 
             if (!string.IsNullOrEmpty(path))
             {
-                var iid = typeof(IShellItem).GUID;
-                if (WinApi.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem startFolder) == WinConstants.S_OK)
-                {
-                    dialog.SetFolder(startFolder);
-                }
+                SetInitialFolder(path, dialog.SetFolder);
             }
 
             int hr = dialog.Show(_hwnd);
 
             if (hr == WinConstants.ERROR_CANCELLED)
             {
-                return "";
+                return string.Empty;
             }
 
             if (hr != WinConstants.S_OK)
@@ -190,8 +195,15 @@ public class WinPhotinoExDialog : IPhotinoExDialog
             }
 
             dialog.GetResult(out IShellItem item);
-            item.GetDisplayName(WinConstants.SIGDN_FILESYSPATH, out string pathToUse);
-            return pathToUse;
+            try
+            {
+                item.GetDisplayName(WinConstants.SIGDN_FILESYSPATH, out string pathToUse);
+                return pathToUse;
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(item);
+            }
         }
         finally
         {
@@ -199,7 +211,10 @@ public class WinPhotinoExDialog : IPhotinoExDialog
         }
     }
 
-    public async Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon)
+    public Task<DialogResult> ShowMessageAsync(string title, string text, DialogButtons buttons, DialogIcon icon) =>
+        Defer(() => ShowMessage(title, text, buttons, icon));
+
+    private DialogResult ShowMessage(string title, string text, DialogButtons buttons, DialogIcon icon)
     {
         uint flags = 0;
 
@@ -264,6 +279,24 @@ public class WinPhotinoExDialog : IPhotinoExDialog
         }
     }
 
+    private Task<T> Defer<T>(Func<T> operation)
+    {
+        var completion = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        try
+        {
+            _post(() =>
+            {
+                try { completion.SetResult(operation()); }
+                catch (Exception exception) { completion.SetException(exception); }
+            });
+        }
+        catch (Exception exception)
+        {
+            completion.SetException(exception);
+        }
+        return completion.Task;
+    }
+
     private List<string> GetResults(IFileOpenDialog dialog, bool multiSelect)
     {
         var result = new List<string>();
@@ -271,13 +304,27 @@ public class WinPhotinoExDialog : IPhotinoExDialog
         if (multiSelect)
         {
             dialog.GetResults(out IShellItemArray results);
-            results.GetCount(out uint count);
-
-            for (uint i = 0; i < count; i++)
+            try
             {
-                results.GetItemAt(i, out IShellItem item);
-                item.GetDisplayName(WinConstants.SIGDN_FILESYSPATH, out string pathToUse);
-                result.Add(pathToUse);
+                results.GetCount(out uint count);
+
+                for (uint i = 0; i < count; i++)
+                {
+                    results.GetItemAt(i, out IShellItem item);
+                    try
+                    {
+                        item.GetDisplayName(WinConstants.SIGDN_FILESYSPATH, out string pathToUse);
+                        result.Add(pathToUse);
+                    }
+                    finally
+                    {
+                        Marshal.ReleaseComObject(item);
+                    }
+                }
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(results);
             }
 
             return result;
@@ -285,9 +332,42 @@ public class WinPhotinoExDialog : IPhotinoExDialog
         else
         {
             dialog.GetResult(out IShellItem item);
-            item.GetDisplayName(WinConstants.SIGDN_FILESYSPATH, out string pathToUse);
-            result.Add(pathToUse);
+            try
+            {
+                item.GetDisplayName(WinConstants.SIGDN_FILESYSPATH, out string pathToUse);
+                result.Add(pathToUse);
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(item);
+            }
             return result;
         }
+    }
+
+    private static void SetInitialFolder(string path, Action<IShellItem> setFolder)
+    {
+        var iid = typeof(IShellItem).GUID;
+        if (WinApi.SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out IShellItem folder) != WinConstants.S_OK)
+        {
+            return;
+        }
+
+        try
+        {
+            setFolder(folder);
+        }
+        finally
+        {
+            Marshal.ReleaseComObject(folder);
+        }
+    }
+
+    private static T CreateDialog<T>(Guid classId) where T : class
+    {
+        var type = Type.GetTypeFromCLSID(classId)
+            ?? throw new InvalidOperationException($"COM class '{classId}' is unavailable.");
+        return Activator.CreateInstance(type) as T
+            ?? throw new InvalidOperationException($"Could not create COM class '{classId}'.");
     }
 }

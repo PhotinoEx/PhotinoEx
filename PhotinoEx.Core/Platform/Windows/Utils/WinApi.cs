@@ -1,10 +1,22 @@
+using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
+using System.Text;
 using PhotinoEx.Core.Models;
+using PhotinoEx.Core.Platform.Windows.FileDragDrop;
 
 namespace PhotinoEx.Core.Platform.Windows.Utils;
 
 internal static class WinApi
 {
+    [DllImport("ole32.dll")]
+    public static extern int DoDragDrop(
+        [MarshalAs(UnmanagedType.Interface)] IDataObject dataObject,
+        IWinDropSource dropSource,
+        uint allowedEffects,
+        out uint performedEffect
+    );
+
     #region GDI
 
     [DllImport("gdi32.dll", SetLastError = true)]
@@ -23,9 +35,33 @@ internal static class WinApi
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern uint GetLastError();
 
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr GlobalAlloc(uint flags, UIntPtr bytes);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr GlobalFree(IntPtr memory);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr GlobalLock(IntPtr memory);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool GlobalUnlock(IntPtr memory);
+
     #endregion
 
     #region User
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool OpenClipboard(IntPtr owner);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool CloseClipboard();
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool EmptyClipboard();
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr SetClipboardData(uint format, IntPtr memory);
 
     [DllImport("user32.dll", SetLastError = true)]
     public static extern ushort RegisterClassEx([In] ref WndClassEx lpwcx);
@@ -94,6 +130,9 @@ internal static class WinApi
     public static extern IntPtr SendMessage(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam);
 
     [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool PostMessage(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", SetLastError = true)]
     public static extern uint GetDpiForWindow(IntPtr hwnd);
 
     [DllImport("user32.dll", SetLastError = true)]
@@ -141,6 +180,19 @@ internal static class WinApi
     #endregion
 
     #region Shell
+
+    [DllImport("shell32.dll")]
+    public static extern void DragAcceptFiles(IntPtr hwnd, [MarshalAs(UnmanagedType.Bool)] bool accept);
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    public static extern uint DragQueryFile(IntPtr drop, uint fileIndex, StringBuilder? fileName, uint characterCount);
+
+    [DllImport("shell32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool DragQueryPoint(IntPtr drop, out Point point);
+
+    [DllImport("shell32.dll")]
+    public static extern void DragFinish(IntPtr drop);
 
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
     public static extern int SHCreateItemFromParsingName(string pszPath, IntPtr pbc, [In] ref Guid riid, out IShellItem ppv);

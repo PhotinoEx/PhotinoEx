@@ -1,5 +1,7 @@
 <Solution>
     <Project Path="PhotinoEx.Blazor/PhotinoEx.Blazor.csproj" />
     <Project Path="PhotinoEx.Core/PhotinoEx.Core.csproj" />
+    <Project Path="PhotinoEx.Core.Tests/PhotinoEx.Core.Tests.csproj" />
+    <Project Path="PhotinoEx.IntegrationTests/PhotinoEx.IntegrationTests.csproj" />
     <Project Path="PhotinoEx.Test/PhotinoEx.Test.csproj" />
 </Solution>

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -18,7 +19,7 @@ public class PhotinoExHttpHandler : DelegatingHandler
 
     // Use this constructor if a handler is created manually.
     // Otherwise, use DelegatingHandler.InnerHandler public property to set the next handler.
-    public PhotinoExHttpHandler(PhotinoExBlazorApp app, HttpMessageHandler innerHandler)
+    public PhotinoExHttpHandler(PhotinoExBlazorApp app, HttpMessageHandler? innerHandler)
     {
         this.app = app;
 
@@ -29,7 +30,8 @@ public class PhotinoExHttpHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var content = app.HandleWebRequest(null, null, request.RequestUri.AbsoluteUri, out var contentType);
+        var requestUri = request.RequestUri ?? throw new InvalidOperationException("The request URI is required.");
+        var content = app.HandleWebRequest(null, null, requestUri.AbsoluteUri, out var contentType);
         if (content != null)
         {
             var response = new HttpResponseMessage(HttpStatusCode.OK);

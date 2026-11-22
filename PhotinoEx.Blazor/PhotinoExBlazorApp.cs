@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
 using PhotinoEx.Core;
+using Microsoft.Extensions.Options;
 
 namespace PhotinoEx.Blazor;
 
@@ -10,19 +11,22 @@ public class PhotinoExBlazorApp
     /// <summary>
     /// Gets configuration for the service provider.
     /// </summary>
-    public IServiceProvider Services { get; private set; }
+    public IServiceProvider Services { get; private set; } = null!;
 
     /// <summary>
     /// Gets configuration for the root components in the window.
     /// </summary>
-    public BlazorWindowRootComponents RootComponents { get; private set; }
+    public BlazorWindowRootComponents RootComponents { get; private set; } = null!;
 
     internal void Initialize(IServiceProvider services, RootComponentList rootComponents)
     {
         Services = services;
-        RootComponents = Services.GetService<BlazorWindowRootComponents>();
-        MainWindow = Services.GetService<PhotinoExWindow>();
-        WindowManager = Services.GetService<PhotinoExWebViewManager>();
+        RootComponents = Services.GetRequiredService<BlazorWindowRootComponents>();
+        MainWindow = Services.GetRequiredService<PhotinoExWindow>();
+        WindowManager = Services.GetRequiredService<PhotinoExWebViewManager>();
+        var config = Services.GetRequiredService<IOptions<PhotinoExBlazorAppConfiguration>>().Value;
+
+        MainWindow.ApplicationId = config.ApplicationId;
 
         MainWindow
             .SetTitle("PhotinoEx.Blazor App")
@@ -30,7 +34,7 @@ public class PhotinoExBlazorApp
             .SetWidth(1000)
             .SetHeight(900);
 
-        MainWindow.RegisterCustomSchemeHandler(PhotinoExWebViewManager.BlazorAppScheme, HandleWebRequest);
+        MainWindow.RegisterCustomSchemeHandler(config.AppBaseUri.Scheme, HandleWebRequest);
 
         foreach (var component in rootComponents)
         {
@@ -38,9 +42,9 @@ public class PhotinoExBlazorApp
         }
     }
 
-    public PhotinoExWindow MainWindow { get; private set; }
+    public PhotinoExWindow MainWindow { get; private set; } = null!;
 
-    public PhotinoExWebViewManager WindowManager { get; private set; }
+    public PhotinoExWebViewManager WindowManager { get; private set; } = null!;
 
     public void Run()
     {
@@ -53,8 +57,8 @@ public class PhotinoExBlazorApp
         MainWindow.WaitForClose();
     }
 
-    public Stream HandleWebRequest(object sender, string scheme, string url, out string contentType)
+    public Stream? HandleWebRequest(object? sender, string? scheme, string url, out string contentType)
     {
-        return WindowManager.HandleWebRequest(sender, scheme, url, out contentType!)!;
+        return WindowManager.HandleWebRequest(sender, scheme, url, out contentType);
     }
 }

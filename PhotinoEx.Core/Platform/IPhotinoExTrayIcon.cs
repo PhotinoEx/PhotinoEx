@@ -1,10 +1,17 @@
+using PhotinoEx.Core.Models;
+
 namespace PhotinoEx.Core.Platform;
 
-public interface IPhotinoExTrayIcon
+public interface IPhotinoExTrayIcon : IAsyncDisposable
 {
-    public Task<IPhotinoExTrayIcon> CreateAsync();
-    public Task<bool> DisposeAsync();
-    public void SetVisibility(bool state);
-    public void SetIconPath(string path);
-    public void SetContextMenu(object menu);
+    string Id { get; }
+    bool IsVisible { get; }
+
+    event EventHandler<TrayIconEventArgs>? Clicked;
+    event EventHandler? MenuOpening;
+
+    Task SetIconAsync(string iconPath);
+    Task SetToolTipAsync(string? toolTip);
+    Task SetVisibleAsync(bool visible);
+    Task SetMenuAsync(TrayMenu? menu);
 }

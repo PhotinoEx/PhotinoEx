@@ -1,12 +1,11 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using PhotinoEx.Core.Models;
-using PhotinoEx.Core.Platform;
 using PhotinoEx.Core.Platform.Windows;
 using Action = System.Action;
 using Monitor = PhotinoEx.Core.Models.Monitor;
-using Size = System.Drawing.Size;
 using Point = System.Drawing.Point;
+using Size = System.Drawing.Size;
 
 namespace PhotinoEx.Core;
 
@@ -17,8 +16,14 @@ public class PhotinoExWindow
     /// <summary>
     /// Parameters sent to Photino.Native to start a new instance of a Photino.Native window.
     /// </summary>
-    private PhotinoExInitParams _startupParameters = new()
+    private PhotinoExInitParams _startupParameters = CreateDefaultStartupParameters();
+
+    private static PhotinoExInitParams CreateDefaultStartupParameters()
     {
+        var applicationId = PhotinoExApplicationIdentity.DefaultId;
+        return new PhotinoExInitParams
+        {
+        ApplicationId = applicationId,
         Resizable = true,
         ContextMenuEnabled = true,
         CustomSchemeNames = new(),
@@ -28,20 +33,22 @@ public class PhotinoExWindow
         MediaAutoplayEnabled = true,
         FileSystemAccessEnabled = true,
         WebSecurityEnabled = true,
-        JavascriptClipboardAccessEnabled = true,
+        JavascriptClipboardAccessEnabled = false,
         MediaStreamEnabled = true,
         SmoothScrollingEnabled = true,
         IgnoreCertificateErrorsEnabled = false,
         NotificationsEnabled = true,
         TemporaryFilesPath = IsWindowsPlatform
-            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PhotinoEx")
+            ? PhotinoExApplicationIdentity.GetWindowsDataPath(applicationId)
             : null,
+        NotificationRegistrationId = applicationId,
         Title = "PhotinoEx",
         UseOsDefaultSize = true,
         Zoom = 100,
         MaxHeight = int.MaxValue,
-        MaxWidth = int.MaxValue
-    };
+        MaxWidth = int.MaxValue,
+        };
+    }
 
     private Platform.PhotinoEx? _instance;
     private readonly int _managedThreadId;
@@ -52,6 +59,41 @@ public class PhotinoExWindow
     #endregion
 
     #region Get Properties
+
+    /// <summary>
+    /// Gets or sets the stable identity used to isolate application-owned native resources.
+    /// </summary>
+    public string ApplicationId
+    {
+        get => _startupParameters.ApplicationId;
+        set
+        {
+            if (_instance is not null)
+            {
+                throw new ApplicationException($"{nameof(ApplicationId)} cannot be changed after Photino Window is initialized");
+            }
+
+            var oldId = _startupParameters.ApplicationId;
+            var normalized = PhotinoExApplicationIdentity.Normalize(value);
+            if (oldId == normalized)
+            {
+                return;
+            }
+
+            if (_startupParameters.NotificationRegistrationId == oldId)
+            {
+                _startupParameters.NotificationRegistrationId = normalized;
+            }
+
+            if (IsWindowsPlatform
+                && _startupParameters.TemporaryFilesPath == PhotinoExApplicationIdentity.GetWindowsDataPath(oldId))
+            {
+                _startupParameters.TemporaryFilesPath = PhotinoExApplicationIdentity.GetWindowsDataPath(normalized);
+            }
+
+            _startupParameters.ApplicationId = normalized;
+        }
+    }
 
     /// <summary>
     /// Indicates whether the current platform is Windows.
@@ -107,6 +149,7 @@ public class PhotinoExWindow
     /// </value>
     /// <exception cref="System.ApplicationException">Thrown when the window is not initialized yet.</exception>
     /// <exception cref="System.PlatformNotSupportedException">Thrown when accessed from a non-Windows platform.</exception>
+    [SupportedOSPlatform("windows")]
     public IntPtr WindowHandle
     {
         get
@@ -119,7 +162,7 @@ public class PhotinoExWindow
                 }
 
                 var handle = IntPtr.Zero;
-                Invoke(() => handle = ((WinPhotinoEx) _instance).GetHwnd());
+                Invoke(() => handle = ((WinPhotinoEx)_instance).GetHwnd());
                 return handle;
             }
             else
@@ -204,6 +247,13 @@ public class PhotinoExWindow
     /// </remarks>
     public Guid Id { get; } = Guid.NewGuid();
 
+    /// <summary>
+    /// Gets the platform tray icon registry after the native window is initialized.
+    /// </summary>
+    public Platform.IPhotinoExTray Tray =>
+        _instance?.Tray
+        ?? throw new InvalidOperationException("Tray icons are unavailable before the window is initialized.");
+
     #endregion
 
     #region get-set Properties
@@ -215,6 +265,7 @@ public class PhotinoExWindow
     /// Thrown if trying to set value after native window is initalized.
     /// </exception>
     [SupportedOSPlatform("windows")]
+    [SupportedOSPlatform("macos")]
     public bool Centered
     {
         get
@@ -234,7 +285,7 @@ public class PhotinoExWindow
             }
             else
             {
-                Invoke(() => ((WinPhotinoEx) _instance).Center());
+                Invoke(() => ((WinPhotinoEx)_instance).Center());
             }
         }
     }
@@ -417,7 +468,10 @@ public class PhotinoExWindow
             }
 
             var userAgent = string.Empty;
-            Invoke(() => { userAgent = _instance.GetUserAgent(); });
+            Invoke(() =>
+            {
+                userAgent = _instance.GetUserAgent();
+            });
             return userAgent;
         }
         set
@@ -518,7 +572,8 @@ public class PhotinoExWindow
                 else
                 {
                     throw new ApplicationException(
-                        "JavascriptClipboardAccessEnabled can only be set before the native window is instantiated.");
+                        "JavascriptClipboardAccessEnabled can only be set before the native window is instantiated."
+                    );
                 }
             }
         }
@@ -606,7 +661,8 @@ public class PhotinoExWindow
                 else
                 {
                     throw new ApplicationException(
-                        "IgnoreCertificateErrorsEnabled can only be set before the native window is instantiated.");
+                        "IgnoreCertificateErrorsEnabled can only be set before the native window is instantiated."
+                    );
                 }
             }
         }
@@ -640,7 +696,6 @@ public class PhotinoExWindow
             }
         }
     }
-
 
     /// <summary>
     /// This property returns or sets the fullscreen status of the window.
@@ -758,7 +813,7 @@ public class PhotinoExWindow
                 }
                 else
                 {
-                    Invoke(() => _instance.SetIconFile(_iconFile));
+                    Invoke(() => _instance.SetIconFile(_iconFile!));
                 }
             }
         }
@@ -780,7 +835,9 @@ public class PhotinoExWindow
 
             Point position = default;
 
+#pragma warning disable CA1416
             Invoke(() => position = _instance.GetPosition());
+#pragma warning restore CA1416
 
             return position;
         }
@@ -795,7 +852,9 @@ public class PhotinoExWindow
                 }
                 else
                 {
-                    Invoke(() => _instance.SetPosition(Location));
+#pragma warning disable CA1416
+                    Invoke(() => _instance.SetPosition(value));
+#pragma warning restore CA1416
                 }
             }
         }
@@ -868,8 +927,11 @@ public class PhotinoExWindow
                 }
                 else
                 {
-                    Invoke(() => ((WinPhotinoEx) _instance).SetMaxSize(new Size(value.X, value.Y)));
+                    Invoke(() => ((WinPhotinoEx)_instance).SetMaxSize(new Size(value.X, value.Y)));
                 }
+
+                _maxWidth = value.X;
+                _maxHeight = value.Y;
             }
         }
     }
@@ -955,8 +1017,11 @@ public class PhotinoExWindow
                 }
                 else
                 {
-                    Invoke(() => ((WinPhotinoEx) _instance).SetMinSize(new Size(value.X, value.Y)));
+                    Invoke(() => ((WinPhotinoEx)_instance).SetMinSize(new Size(value.X, value.Y)));
                 }
+
+                _minWidth = value.X;
+                _minHeight = value.Y;
             }
         }
     }
@@ -1579,6 +1644,8 @@ public class PhotinoExWindow
         _startupParameters.FocusInHandler = OnFocusIn;
         _startupParameters.FocusOutHandler = OnFocusOut;
         _startupParameters.WebMessageRecievedHandler = OnWebMessageReceived;
+        _startupParameters.WebMessageReceivedWithSourceHandler = OnWebMessageReceived;
+        _startupParameters.FilesDroppedHandler = OnFilesDropped;
         _startupParameters.CustomSchemeHandler = OnCustomScheme;
     }
 
@@ -1610,6 +1677,92 @@ public class PhotinoExWindow
         }
 
         return this;
+    }
+
+    /// <summary>Copies text to the operating system clipboard.</summary>
+    /// <exception cref="InvalidOperationException">The window has not been initialized.</exception>
+    public PhotinoExWindow CopyTextToClipboard(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        if (_instance is null)
+        {
+            throw new InvalidOperationException("Clipboard access is unavailable before the window is initialized.");
+        }
+
+        Invoke(() => _instance.SetClipboardText(text));
+        return this;
+    }
+
+    /// <summary>Copies files or directories to the operating system clipboard.</summary>
+    /// <exception cref="InvalidOperationException">The window has not been initialized.</exception>
+    public PhotinoExWindow CopyFilesToClipboard(IEnumerable<string> paths)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        var normalizedPaths = NormalizeFilePaths(paths, nameof(paths));
+
+        if (_instance is null)
+        {
+            throw new InvalidOperationException("Clipboard access is unavailable before the window is initialized.");
+        }
+
+        Invoke(() => _instance.SetClipboardFiles(normalizedPaths));
+        return this;
+    }
+
+    /// <summary>Starts a native file drag operation.</summary>
+    /// <remarks>The operation must be called from a valid native pointer gesture.</remarks>
+    [UnsupportedOSPlatform("macos")]
+    public async Task<FileDragDropEffects> BeginFileDragAsync(
+        IEnumerable<string> paths,
+        FileDragDropEffects allowedEffects = FileDragDropEffects.Copy,
+        CancellationToken cancellationToken = default
+    )
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        const FileDragDropEffects supportedEffects =
+            FileDragDropEffects.Copy | FileDragDropEffects.Move | FileDragDropEffects.Link;
+        if (allowedEffects == FileDragDropEffects.None || (allowedEffects & ~supportedEffects) != 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(allowedEffects));
+        }
+
+        var normalizedPaths = NormalizeFilePaths(paths, nameof(paths));
+        if (_instance is null)
+        {
+            throw new InvalidOperationException("File dragging is unavailable before the window is initialized.");
+        }
+
+        Task<FileDragDropEffects>? operation = null;
+        Invoke(() => operation = _instance.BeginFileDragAsync(normalizedPaths, allowedEffects, cancellationToken));
+        return await operation!;
+    }
+
+    internal static string[] NormalizeFilePaths(IEnumerable<string> paths, string parameterName)
+    {
+        var normalizedPaths = paths.Select(path =>
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentException("File or directory paths cannot be blank.", parameterName);
+            }
+
+            var fullPath = Path.GetFullPath(path);
+            if (!File.Exists(fullPath) && !Directory.Exists(fullPath))
+            {
+                throw new FileNotFoundException("A file or directory does not exist.", fullPath);
+            }
+
+            return fullPath;
+        }).Distinct().ToArray();
+
+        if (normalizedPaths.Length == 0)
+        {
+            throw new ArgumentException("At least one file or directory is required.", parameterName);
+        }
+
+        return normalizedPaths;
     }
 
     /// <summary>
@@ -1782,9 +1935,7 @@ public class PhotinoExWindow
         if (IsMacOsPlatform && MacOsVersion?.Major < 23)
         {
             var workArea = MainMonitor.WorkArea;
-            location.Y = location.Y >= 0
-                ? location.Y - workArea.Height
-                : location.Y;
+            location.Y = location.Y >= 0 ? location.Y - workArea.Height : location.Y;
         }
 
         Location = location;
@@ -1938,16 +2089,6 @@ public class PhotinoExWindow
         return this;
     }
 
-    public async Task<PhotinoExWindow> ActivateTrayAndIcon()
-    {
-        if (_iconFile != null)
-        {
-            await _instance!.Tray!.CreateTrayIconAsync("com.example.photinoex", _iconFile);
-        }
-
-        return this;
-    }
-
     /// <summary>
     /// Sets <see cref="PhotinoExWindow.UserAgent"/>. Sets the user agent on the browser control at initialization.
     /// </summary>
@@ -2003,6 +2144,13 @@ public class PhotinoExWindow
     {
         Log($".SetNotificationRegistrationId({notificationRegistrationId})");
         NotificationRegistrationId = notificationRegistrationId;
+        return this;
+    }
+
+    /// <summary>Sets the stable identity used to isolate application-owned native resources.</summary>
+    public PhotinoExWindow SetApplicationId(string applicationId)
+    {
+        ApplicationId = applicationId;
         return this;
     }
 
@@ -2472,7 +2620,7 @@ public class PhotinoExWindow
     {
         if (IsWindowsPlatform)
         {
-            Invoke(() => ((WinPhotinoEx) _instance!).SetWebView2RuntimePath(data));
+            Invoke(() => ((WinPhotinoEx)_instance!).SetWebView2RuntimePath(data));
         }
         else
         {
@@ -2491,6 +2639,8 @@ public class PhotinoExWindow
     /// <returns>
     /// Returns the current <see cref="PhotinoExWindow"/> instance.
     /// </returns>
+    [UnsupportedOSPlatform("linux")]
+    [UnsupportedOSPlatform("macos")]
     public PhotinoExWindow ClearBrowserAutoFill()
     {
         if (IsWindowsPlatform)
@@ -2552,6 +2702,14 @@ public class PhotinoExWindow
                 {
                     Log($"Exception thrown: {ex.Message}");
                     throw new ApplicationException(ex.Message);
+                }
+                finally
+                {
+                    if (_instance?.Tray is { } tray)
+                    {
+                        tray.UnregisterAllAsync().GetAwaiter().GetResult();
+                        (tray as IDisposable)?.Dispose();
+                    }
                 }
             }
         }
@@ -2645,8 +2803,12 @@ public class PhotinoExWindow
     /// <param name="multiSelect">Whether multiple selections are allowed</param>
     /// <param name="filterPatterns">List of filtering.</param>
     /// <returns>Array of file paths as strings</returns>
-    public async Task<List<string>?> ShowOpenFileDialogAsync(string title = "Choose file", string? defaultPath = null,
-        bool multiSelect = false, List<FileFilter>? filterPatterns = null)
+    public async Task<List<string>?> ShowOpenFileDialogAsync(
+        string title = "Choose file",
+        string? defaultPath = null,
+        bool multiSelect = false,
+        List<FileFilter>? filterPatterns = null
+    )
     {
         return await _instance!.Dialog!.ShowOpenFileAsync(title, defaultPath, multiSelect, filterPatterns);
     }
@@ -2661,8 +2823,11 @@ public class PhotinoExWindow
     /// <param name="defaultPath">Default path. Defaults to <see cref="Environment.SpecialFolder.MyDocuments"/></param>
     /// <param name="multiSelect">Whether multiple selections are allowed</param>
     /// <returns>Array of folder paths as strings</returns>
-    public async Task<List<string>?> ShowOpenFolderDialogAsync(string title = "Choose file", string? defaultPath = null,
-        bool multiSelect = false)
+    public async Task<List<string>?> ShowOpenFolderDialogAsync(
+        string title = "Choose file",
+        string? defaultPath = null,
+        bool multiSelect = false
+    )
     {
         return await _instance!.Dialog!.ShowOpenFolderAsync(title, defaultPath, multiSelect);
     }
@@ -2680,8 +2845,11 @@ public class PhotinoExWindow
     /// <param name="defaultPath">Default path. Defaults to <see cref="Environment.SpecialFolder.MyDocuments"/></param>
     /// <param name="filterPatterns">Array for filtering.</param>
     /// <returns></returns>
-    public async Task<string?> ShowSaveFileDialogAsync(string title = "Choose file", string? defaultPath = null,
-        List<FileFilter>? filterPatterns = null)
+    public async Task<string?> ShowSaveFileDialogAsync(
+        string title = "Choose file",
+        string? defaultPath = null,
+        List<FileFilter>? filterPatterns = null
+    )
     {
         defaultPath ??= Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         filterPatterns ??= new List<FileFilter>();
@@ -2702,8 +2870,12 @@ public class PhotinoExWindow
     /// <param name="buttons">Available interaction buttons <see cref="DialogButtons"/></param>
     /// <param name="icon">Icon of the dialog <see cref="DialogButtons"/></param>
     /// <returns><see cref="DialogResult" /></returns>
-    public async Task<DialogResult> ShowMessageDialogAsync(string title, string text, DialogButtons buttons = DialogButtons.Ok,
-        DialogIcon icon = DialogIcon.Info)
+    public async Task<DialogResult> ShowMessageDialogAsync(
+        string title,
+        string text,
+        DialogButtons buttons = DialogButtons.Ok,
+        DialogIcon icon = DialogIcon.Info
+    )
     {
         return await _instance!.Dialog!.ShowMessageAsync(title, text, buttons, icon);
     }
@@ -2720,7 +2892,7 @@ public class PhotinoExWindow
             return;
         }
 
-        Console.WriteLine($"Photino.NET: \"{Title}\"{message}");
+        Console.WriteLine($"PhotinoXDX: \"{Title}\"{message}");
     }
 
     /// <summary>
@@ -2744,8 +2916,7 @@ public class PhotinoExWindow
             foreach (var filter in filters)
             {
                 var specs = filter.Spec.Split(';');
-                var macSpecs = specs.Select(s =>
-                    s == "*.*" || s == "*" ? "*" : s.TrimStart('*', '.'));
+                var macSpecs = specs.Select(s => s == "*.*" || s == "*" ? "*" : s.TrimStart('*', '.'));
                 nativeFilters.Add(new FileFilter(filter.Name, string.Join(";", macSpecs)));
             }
         }
@@ -2757,9 +2928,12 @@ public class PhotinoExWindow
                 var specs = filter.Spec.Split(';');
                 var winSpecs = specs.Select(s =>
                 {
-                    if (s == "*" || s == "*.*") return "*.*";
-                    if (s.StartsWith("*.")) return s;
-                    if (s.StartsWith(".")) return $"*{s}";
+                    if (s == "*" || s == "*.*")
+                        return "*.*";
+                    if (s.StartsWith("*."))
+                        return s;
+                    if (s.StartsWith("."))
+                        return $"*{s}";
                     return $"*.{s}";
                 });
                 nativeFilters.Add(new FileFilter(filter.Name, string.Join(";", winSpecs)));
@@ -2940,6 +3114,7 @@ public class PhotinoExWindow
     }
 
     public event EventHandler<string>? WebMessageReceived;
+    public event EventHandler<WebMessageReceivedEventArgs>? WebMessageReceivedWithSource;
 
     /// <summary>
     /// Registers user-defined handler methods to receive callbacks from the native window when it sends a message.
@@ -2963,6 +3138,24 @@ public class PhotinoExWindow
     internal void OnWebMessageReceived(string message)
     {
         WebMessageReceived?.Invoke(this, message);
+    }
+
+    internal void OnWebMessageReceived(Uri? source, string message)
+    {
+        WebMessageReceivedWithSource?.Invoke(this, new WebMessageReceivedEventArgs(source, message));
+    }
+
+    public event EventHandler<FilesDroppedEventArgs>? FilesDropped;
+
+    public PhotinoExWindow RegisterFilesDroppedHandler(EventHandler<FilesDroppedEventArgs> handler)
+    {
+        FilesDropped += handler;
+        return this;
+    }
+
+    internal void OnFilesDropped(FilesDroppedEventArgs args)
+    {
+        FilesDropped?.Invoke(this, args);
     }
 
     public delegate bool NetClosingDelegate(object sender, EventArgs? e);
@@ -3037,10 +3230,9 @@ public class PhotinoExWindow
         WindowCreated?.Invoke(this, null!);
     }
 
-
     //NOTE: There is 1 callback from C++ to C# which is automatically registered. The .NET callback appropriate for the custom scheme is handled in OnCustomScheme().
 
-    public delegate Stream NetCustomSchemeDelegate(object sender, string scheme, string url, out string contentType);
+    public delegate Stream? NetCustomSchemeDelegate(object? sender, string? scheme, string url, out string contentType);
 
     internal Dictionary<string, NetCustomSchemeDelegate> CustomSchemes = new();
 
@@ -3077,7 +3269,8 @@ public class PhotinoExWindow
             if (CustomSchemes.Count > 15 && !CustomSchemes.ContainsKey(scheme))
             {
                 throw new ApplicationException(
-                    $"No more than 16 custom schemes can be set prior to initialization. Additional handlers can be added after initialization.");
+                    $"No more than 16 custom schemes can be set prior to initialization. Additional handlers can be added after initialization."
+                );
             }
             else
             {
@@ -3113,16 +3306,16 @@ public class PhotinoExWindow
     public MemoryStream OnCustomScheme(string url, out string contentType)
     {
         int length = url.IndexOf(':');
-        string scheme = length >= 0
-            ? url.Substring(0, length).ToLower()
-            : throw new ApplicationException($"URL: '{url}' does not contain a colon.");
+        string scheme =
+            length >= 0 ? url.Substring(0, length).ToLower() : throw new ApplicationException($"URL: '{url}' does not contain a colon.");
 
         if (!this.CustomSchemes.ContainsKey(scheme))
         {
             throw new ApplicationException($"A handler for the custom scheme '{scheme}' has not been registered.");
         }
 
-        var result = this.CustomSchemes[scheme].Invoke(this, scheme, url, out contentType);
+        var result = this.CustomSchemes[scheme].Invoke(this, scheme, url, out contentType)
+            ?? throw new ApplicationException($"The handler for custom scheme '{scheme}' returned no content.");
 
         var memoryStream = new MemoryStream();
         result.CopyTo(memoryStream);

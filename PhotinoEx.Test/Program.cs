@@ -29,7 +29,14 @@ class Program
 
         if (PhotinoExWindow.IsLinuxPlatform)
         {
-            App.MainWindow.SetIconFile("/home/cwx/Repos/PhotinoEx/PhotinoEx.Test/wwwroot/hicolor/48x48/apps/Icon_PhotinoEx.png");
+            App.MainWindow.SetIconFile(Path.Combine(
+                AppContext.BaseDirectory,
+                "wwwroot",
+                "hicolor",
+                "48x48",
+                "apps",
+                "Icon_PhotinoEx.png"
+            ));
         }
 
         App.MainWindow.SetHeight(300);

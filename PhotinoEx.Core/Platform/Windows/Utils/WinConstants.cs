@@ -25,6 +25,7 @@ internal class WinConstants
     public const uint WM_PAINT = 0x000F;
     public const uint WM_CLOSE = 0x0010;
     public const uint WM_SETTINGCHANGE = 0x001A;
+    public const uint WM_DROPFILES = 0x0233;
     public const uint WM_GETMINMAXINFO = 0x0024;
     public const uint WM_SETICON = 0x0080;
     public const uint WM_THEMECHANGED = 0x031A;

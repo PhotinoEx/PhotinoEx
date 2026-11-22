@@ -37,6 +37,8 @@ public class LinPhotinoEx : PhotinoEx
     public ReturningSignalHandler<WebView, WebView.PermissionRequestSignalArgs, bool>? OnWebviewPermissionRequest { get; set; }
 
     private Application _application { get; set; }
+    private Gdk.Clipboard? _clipboard;
+    private LinFileDragDrop? _fileDragDrop;
     private Window? _window { get; set; }
     private PhotinoExInitParams _params { get; set; }
     private SynchronizationContext _syncContext;
@@ -78,6 +80,8 @@ public class LinPhotinoEx : PhotinoEx
         MaxHeight = _params.MaxHeight;
 
         _WebMessageReceivedCallback = _params.WebMessageRecievedHandler;
+        _WebMessageReceivedWithSourceCallback = _params.WebMessageReceivedWithSourceHandler;
+        _filesDroppedCallback = _params.FilesDroppedHandler;
         _resizedCallback = _params.ResizedHandler;
         _movedCallback = _params.MovedHandler;
         _closingCallback = _params.ClosingHandler;
@@ -100,7 +104,10 @@ public class LinPhotinoEx : PhotinoEx
         }
 
         _parent = _params.ParentInstance;
-        _application = Application.New($"com.photinoex.App", ApplicationFlags.FlagsNone);
+        _application = Application.New(
+            PhotinoExApplicationIdentity.GetLinuxApplicationId(_params.ApplicationId),
+            ApplicationFlags.FlagsNone);
+        Tray = new LinPhotinoExTray();
         WebKit.Module.Initialize();
 
         _cssProvider = CssProvider.New();
@@ -136,7 +143,7 @@ public class LinPhotinoEx : PhotinoEx
 
         var script = UserScript.New(
             scriptSource,
-            UserContentInjectedFrames.AllFrames,
+            UserContentInjectedFrames.TopFrame,
             UserScriptInjectionTime.Start,
             null,
             null
@@ -161,9 +168,12 @@ public class LinPhotinoEx : PhotinoEx
 
         _window = ApplicationWindow.New((Application) sender);
         _window!.SetChild(_webView);
+        _fileDragDrop = new LinFileDragDrop(
+            _webView,
+            args => _filesDroppedCallback?.Invoke(args),
+            _syncContext
+        );
         Dialog = new LinuxPhotinoExDialog(_window);
-        Tray = new LinPhotinoExTray(_application.GetDbusConnection()!);
-
         if (_params.FullScreen)
         {
             _window.Fullscreen();
@@ -363,16 +373,18 @@ public class LinPhotinoEx : PhotinoEx
             }
             catch (Exception ex)
             {
-                throw new Exception($"fucked up {ex}");
+                throw new InvalidOperationException($"Failed to set WebKit setting '{propertyName}'.", ex);
             }
         }
     }
 
     private void AddCustomSchemeHandlers()
     {
+        var webView = _webView ?? throw new InvalidOperationException("The webview is not initialized.");
+        var webContext = webView.WebContext ?? throw new InvalidOperationException("The webview context is not initialized.");
         foreach (var customSchemeName in _customSchemeNames)
         {
-            _webView!.WebContext.RegisterUriScheme(customSchemeName, HandleCustomSchemeRequest);
+            webContext.RegisterUriScheme(customSchemeName, HandleCustomSchemeRequest);
         }
     }
 
@@ -404,15 +416,45 @@ public class LinPhotinoEx : PhotinoEx
         {
             var message = jsValue.ToString();
 
+            System.Uri.TryCreate(_webView?.Uri, UriKind.Absolute, out var source);
+            _WebMessageReceivedWithSourceCallback?.Invoke(source, message);
             _WebMessageReceivedCallback?.Invoke(message);
         }
     }
 
+    [UnsupportedOSPlatform("linux")]
     public override void ClearBrowserAutoFill()
     {
         // TODO: from Photino
         throw new NotImplementedException();
     }
+
+    public override void SetClipboardText(string text)
+    {
+        var display = _window?.GetDisplay()
+            ?? throw new InvalidOperationException("The GTK window is not initialized.");
+        (_clipboard ??= display.GetClipboard()).SetText(text);
+    }
+
+    public override void SetClipboardFiles(IReadOnlyList<string> paths)
+    {
+        var display = _window?.GetDisplay()
+            ?? throw new InvalidOperationException("The GTK window is not initialized.");
+        var uriList = string.Join("\r\n", paths.Select(path => new System.Uri(path).AbsoluteUri)) + "\r\n";
+        var bytes = GLib.Bytes.New(Encoding.UTF8.GetBytes(uriList));
+        var provider = Gdk.ContentProvider.NewForBytes("text/uri-list", bytes);
+        if (!(_clipboard ??= display.GetClipboard()).SetContent(provider))
+        {
+            throw new InvalidOperationException("GTK rejected the clipboard file list.");
+        }
+    }
+
+    public override Task<FileDragDropEffects> BeginFileDragAsync(
+        IReadOnlyList<string> paths,
+        FileDragDropEffects allowedEffects,
+        CancellationToken cancellationToken
+    ) => (_fileDragDrop ?? throw new InvalidOperationException("The GTK window is not initialized."))
+        .BeginAsync(paths, allowedEffects, cancellationToken);
 
     public override void Close()
     {
@@ -431,7 +473,8 @@ public class LinPhotinoEx : PhotinoEx
 
     public override bool GetDevToolsEnabled()
     {
-        _devToolsEnabled = _webView.GetSettings().GetEnableDeveloperExtras();
+        var webView = _webView ?? throw new InvalidOperationException("The webview is not initialized.");
+        _devToolsEnabled = webView.GetSettings().GetEnableDeveloperExtras();
         return _devToolsEnabled;
     }
 
@@ -468,15 +511,13 @@ public class LinPhotinoEx : PhotinoEx
     [UnsupportedOSPlatform("Linux")]
     public override Point GetPosition()
     {
-        throw new NotSupportedException("Linux is not a supported OS");
-        // Wayland does not support setting TopMost
+        throw new PlatformNotSupportedException("Window positioning is not supported on Linux.");
     }
 
     [UnsupportedOSPlatform("Linux")]
     public override void SetPosition(Point newLocation)
     {
-        throw new NotSupportedException("Linux is not a supported OS");
-        // Wayland does not support setting TopMost
+        throw new PlatformNotSupportedException("Window positioning is not supported on Linux.");
     }
 
     public override bool GetJavascriptClipboardAccessEnabled()
@@ -511,7 +552,8 @@ public class LinPhotinoEx : PhotinoEx
 
     public override bool GetMinimized()
     {
-        var surface = (ToplevelHelper) _window!.GetSurface();
+        var surface = _window?.GetSurface() as ToplevelHelper
+            ?? throw new InvalidOperationException("The GTK window surface is not initialized.");
         var surfaceState = surface.GetState();
         return (surfaceState & ToplevelState.Suspended) != 0;
     }
@@ -567,8 +609,7 @@ public class LinPhotinoEx : PhotinoEx
     [UnsupportedOSPlatform("Linux")]
     public override bool GetTopmost()
     {
-        throw new NotSupportedException("Linux is not a supported OS");
-        // Wayland does not support setting TopMost
+        throw new PlatformNotSupportedException("Topmost windows are not supported on Linux.");
     }
 
     public override int GetZoom()
@@ -643,8 +684,10 @@ public class LinPhotinoEx : PhotinoEx
         var file = new FileInfo(filename);
 
         // /home/cwx/Repos/PhotinoEx/PhotinoEx.Test/wwwroot
-        var pathToSearch = file.DirectoryName.Replace("/hicolor/48x48/apps", "");
-        var theme = IconTheme.GetForDisplay(_window.GetDisplay());
+        var directory = file.DirectoryName ?? throw new ArgumentException("The icon path must include a directory.", nameof(filename));
+        var display = _window?.GetDisplay() ?? throw new InvalidOperationException("The GTK window is not initialized.");
+        var pathToSearch = directory.Replace("/hicolor/48x48/apps", "");
+        var theme = IconTheme.GetForDisplay(display);
         theme.AddSearchPath(pathToSearch);
         // Icon_PhotinoEx
         _window?.SetIconName(file.Name.Replace(file.Extension, ""));
@@ -708,14 +751,13 @@ public class LinPhotinoEx : PhotinoEx
     [UnsupportedOSPlatform("Linux")]
     public override void SetTopmost(bool topmost)
     {
-        throw new NotSupportedException("Linux is not a supported OS");
-        // Wayland does not support setting TopMost
+        throw new PlatformNotSupportedException("Topmost windows are not supported on Linux.");
     }
 
     public override void SetZoom(int zoom)
     {
         _zoom = zoom;
-        _webView!.SetZoomLevel(_zoom);
+        _webView!.SetZoomLevel(_zoom / 100d);
     }
 
     public override void ShowNotification(string title, string message)

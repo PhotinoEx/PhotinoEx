@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Read version from tag
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Tag must be a SemVer version prefixed with v (for example v0.1.0-preview.1)." >&2
+            exit 1
+          fi
+          echo "PACKAGE_VERSION=$version" >> "$GITHUB_ENV"
+
+      - run: dotnet restore PhotinoEx.slnx
+      - run: dotnet build PhotinoEx.slnx --configuration Release --no-restore -p:Version=${{ env.PACKAGE_VERSION }}
+      - run: dotnet test PhotinoEx.slnx --configuration Release --no-build
+      - name: Pack
+        run: |
+          dotnet pack PhotinoEx.Core/PhotinoEx.Core.csproj --configuration Release --no-build --no-restore -p:PackageVersion=${{ env.PACKAGE_VERSION }} -p:Version=${{ env.PACKAGE_VERSION }} --output artifacts
+          dotnet pack PhotinoEx.Blazor/PhotinoEx.Blazor.csproj --configuration Release --no-build --no-restore -p:PackageVersion=${{ env.PACKAGE_VERSION }} -p:Version=${{ env.PACKAGE_VERSION }} --output artifacts
+
+      - name: Test packages in clean projects
+        shell: bash
+        run: |
+          mkdir package-smoke
+          dotnet new console --framework net10.0 --name CoreSmoke --output package-smoke/CoreSmoke
+          dotnet add package PhotinoXDX.Core --project package-smoke/CoreSmoke --version "$PACKAGE_VERSION" --source "$GITHUB_WORKSPACE/artifacts"
+          dotnet build package-smoke/CoreSmoke --no-restore
+          dotnet new console --framework net10.0 --name BlazorSmoke --output package-smoke/BlazorSmoke
+          dotnet add package PhotinoXDX.Blazor --project package-smoke/BlazorSmoke --version "$PACKAGE_VERSION" --source "$GITHUB_WORKSPACE/artifacts"
+          dotnet build package-smoke/BlazorSmoke --no-restore
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages-${{ env.PACKAGE_VERSION }}
+          path: artifacts/*.*nupkg
+
+      - name: Log in to NuGet
+        id: nuget
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+      - name: Publish to NuGet
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ steps.nuget.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          options=(--verify-tag --generate-notes)
+          if [[ "$PACKAGE_VERSION" == *-* ]]; then options+=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg artifacts/*.snupkg "${options[@]}"

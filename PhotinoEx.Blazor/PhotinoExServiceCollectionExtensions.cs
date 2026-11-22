@@ -11,29 +11,35 @@ namespace PhotinoEx.Blazor;
 
 public static class PhotinoExServiceCollectionExtensions
 {
-    public static IServiceCollection AddBlazorDesktop(this IServiceCollection services, IFileProvider? fileProvider = null)
+    public static IServiceCollection AddBlazorDesktop(
+        this IServiceCollection services,
+        IFileProvider? fileProvider = null,
+        string? applicationId = null)
     {
+        var id = PhotinoExApplicationIdentity.Normalize(applicationId ?? PhotinoExApplicationIdentity.DefaultId);
+        var appBaseUri = PhotinoExWebViewManager.CreateAppBaseUri(id);
         services
             .AddOptions<PhotinoExBlazorAppConfiguration>()
             .Configure(opts =>
             {
-                opts.AppBaseUri = new Uri(PhotinoExWebViewManager.AppBaseUri);
+                opts.ApplicationId = id;
+                opts.AppBaseUri = appBaseUri;
                 opts.HostPage = "index.html";
             });
 
         return services
             .AddScoped(sp =>
             {
-                var handler = sp.GetService<PhotinoExHttpHandler>();
+                var handler = sp.GetRequiredService<PhotinoExHttpHandler>();
                 return new HttpClient(handler)
                 {
-                    BaseAddress = new Uri(PhotinoExWebViewManager.AppBaseUri)
+                    BaseAddress = appBaseUri
                 };
             })
             .AddSingleton(sp =>
             {
-                var manager = sp.GetService<PhotinoExWebViewManager>();
-                var store = sp.GetService<JSComponentConfigurationStore>();
+                var manager = sp.GetRequiredService<PhotinoExWebViewManager>();
+                var store = sp.GetRequiredService<JSComponentConfigurationStore>();
 
                 return new BlazorWindowRootComponents(manager, store);
             })
@@ -52,6 +58,8 @@ public static class PhotinoExServiceCollectionExtensions
             })
             .AddSingleton<JSComponentConfigurationStore>()
             .AddSingleton<PhotinoExBlazorApp>()
+            .AddScoped<IPhotinoExClipboard, PhotinoExClipboard>()
+            .AddScoped<IPhotinoExFileDragDrop, PhotinoExFileDragDrop>()
             .AddSingleton<PhotinoExHttpHandler>()
             .AddSingleton<PhotinoExSynchronizationContext>()
             .AddSingleton<PhotinoExWebViewManager>()

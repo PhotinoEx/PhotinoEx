@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using PhotinoEx.Core;
+using PhotinoEx.Core.Models;
 
 namespace PhotinoEx.Blazor;
 
@@ -20,51 +21,57 @@ public class PhotinoExWebViewManager : WebViewManager
 {
     private readonly PhotinoExWindow _exWindow;
     private readonly Channel<string> _channel;
+    private readonly Uri _appBaseUri;
+    private readonly EventHandler<WebMessageReceivedEventArgs> _webMessageReceivedHandler;
+    private readonly Task _messagePumpTask;
 
     // On Windows, we can't use a custom scheme to host the initial HTML,
     // because webview2 won't let you do top-level navigation to such a URL.
     // On Linux/Mac, we must use a custom scheme, because their webviews
     // don't have a way to intercept http:// scheme requests.
-    public static readonly string BlazorAppScheme = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-        ? "http"
-        : "app";
-
-    public static readonly string AppBaseUri = $"{BlazorAppScheme}://localhost/";
+    public static Uri CreateAppBaseUri(string applicationId)
+    {
+        var id = PhotinoExApplicationIdentity.Normalize(applicationId);
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? new Uri($"http://{id}.localhost/")
+            : new Uri($"app-{id}://localhost/");
+    }
 
     public PhotinoExWebViewManager(PhotinoExWindow exWindow, IServiceProvider provider, Dispatcher dispatcher,
         IFileProvider fileProvider, JSComponentConfigurationStore jsComponents, IOptions<PhotinoExBlazorAppConfiguration> config)
         : base(provider, dispatcher, config.Value.AppBaseUri, fileProvider, jsComponents, config.Value.HostPage)
     {
         _exWindow = exWindow ?? throw new ArgumentNullException(nameof(exWindow));
-
-        // Create a scheduler that uses one threads.
-        var sts = new Utils.PhotinoExSynchronousTaskScheduler();
-
-        _exWindow.WebMessageReceived += (sender, message) =>
-        {
-            // On some platforms, we need to move off the browser UI thread
-            Task.Factory.StartNew(message =>
-            {
-                // TODO: Fix this. Photino should ideally tell us the URL that the message comes from so we
-                // know whether to trust it. Currently it's hardcoded to trust messages from any source, including
-                // if the webview is somehow navigated to an external URL.
-                var messageOriginUrl = new Uri(AppBaseUri);
-
-                MessageReceived(messageOriginUrl, (string) message!);
-            }, message, CancellationToken.None, TaskCreationOptions.DenyChildAttach, sts);
-        };
-
-        //Create channel and start reader
+        _appBaseUri = config.Value.AppBaseUri;
         _channel = Channel.CreateUnbounded<string>(new UnboundedChannelOptions
         {
             SingleReader = true,
             SingleWriter = false,
             AllowSynchronousContinuations = false
         });
-        Task.Run(MessagePump);
+
+        // Create a scheduler that uses one threads.
+        var sts = new Utils.PhotinoExSynchronousTaskScheduler();
+
+        _webMessageReceivedHandler = (sender, args) =>
+        {
+            if (args.Source is null || !IsSameOrigin(args.Source, _appBaseUri))
+            {
+                return;
+            }
+
+            // On some platforms, we need to move off the browser UI thread
+            Task.Factory.StartNew(message =>
+            {
+                MessageReceived(args.Source, (string) message!);
+            }, args.Message, CancellationToken.None, TaskCreationOptions.DenyChildAttach, sts);
+        };
+        _exWindow.WebMessageReceivedWithSource += _webMessageReceivedHandler;
+
+        _messagePumpTask = Task.Run(MessagePump);
     }
 
-    public Stream HandleWebRequest(object sender, string schema, string url, out string contentType)
+    public Stream? HandleWebRequest(object? sender, string? schema, string url, out string contentType)
     {
         // It would be better if we were told whether or not this is a navigation request, but
         // since we're not, guess.
@@ -77,16 +84,18 @@ public class PhotinoExWebViewManager : WebViewManager
             url = url.Substring(0, url.IndexOf('?'));
         }
 
-        if (url.StartsWith(AppBaseUri, StringComparison.Ordinal)
+        if (url.StartsWith(_appBaseUri.AbsoluteUri, StringComparison.OrdinalIgnoreCase)
             && TryGetResponseContent(url, !hasFileExtension, out var statusCode, out var statusMessage,
                 out var content, out var headers))
         {
-            headers.TryGetValue("Content-Type", out contentType);
+            contentType = headers.TryGetValue("Content-Type", out var value)
+                ? value ?? "application/octet-stream"
+                : "application/octet-stream";
             return content;
         }
         else
         {
-            contentType = default;
+            contentType = string.Empty;
             return null;
         }
     }
@@ -98,30 +107,30 @@ public class PhotinoExWebViewManager : WebViewManager
 
     protected override void SendMessage(string message)
     {
-        while (!_channel.Writer.TryWrite(message))
+        if (!_channel.Writer.TryWrite(message))
         {
-            Thread.Sleep(200);
+            throw new ObjectDisposedException(nameof(PhotinoExWebViewManager));
         }
     }
 
+    internal static bool IsSameOrigin(Uri source, Uri appBaseUri) =>
+        source.Scheme.Equals(appBaseUri.Scheme, StringComparison.OrdinalIgnoreCase)
+        && source.Host.Equals(appBaseUri.Host, StringComparison.OrdinalIgnoreCase)
+        && source.Port == appBaseUri.Port;
+
     private async Task MessagePump()
     {
-        var reader = _channel.Reader;
-
-        while (true)
+        await foreach (var message in _channel.Reader.ReadAllAsync())
         {
-            var message = await reader.ReadAsync();
             await _exWindow.SendWebMessageAsync(message);
         }
     }
 
-    protected override ValueTask DisposeAsyncCore()
+    protected override async ValueTask DisposeAsyncCore()
     {
-        //complete channel
-        _channel.Writer.Complete();
-
-
-        //continue disposing
-        return base.DisposeAsyncCore();
+        _exWindow.WebMessageReceivedWithSource -= _webMessageReceivedHandler;
+        _channel.Writer.TryComplete();
+        await _messagePumpTask.ConfigureAwait(false);
+        await base.DisposeAsyncCore();
     }
 }

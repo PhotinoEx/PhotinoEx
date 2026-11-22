@@ -1,14 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>.net10 app that opens native OS windows hosting Blazor UI on Windows, Mac, and Linux</Description>
+    <Description>Blazor desktop applications hosted in PhotinoEx native windows on Windows, macOS, and Linux.</Description>
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
+    <PackageId>PhotinoXDX.Blazor</PackageId>
+    <Title>PhotinoEx Blazor</Title>
+    <PackageTags>blazor;desktop;webview;photino;windows;linux;macos</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
     <ProjectReference Include="..\PhotinoEx.Core\PhotinoEx.Core.csproj" />
   </ItemGroup>
 
