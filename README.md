@@ -1,10 +1,3 @@
-# Use this instead
-https://github.com/XDX-Org/PhotinoXDX
-
-its me branched from this, as a group org doing multiple things
-
-
-
 # PhotinoEx
 
 PhotinoEx is a Fork of [Photino](https://github.com/tryphotino) aiming to fix up bugs, add features and move one part of the project from C++ to C#.
